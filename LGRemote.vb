@@ -1475,13 +1475,6 @@ Partial Public Class HSPI
     Private Sub UpdateLGREmoteState(Value As Integer, ValueString As String)
         Try
             Try
-                'If MyTransportStateHasChanged Then
-                'PlayChangeNotifyCallback(player_status_change.PlayStatusChanged, MyCurrentPlayerState)
-                'End If
-                'If MyTrackInfoHasChanged Then
-                'PlayChangeNotifyCallback(player_status_change.SongChanged, MyCurrentPlayerState)
-                'End If
-                'If MyTransportStateHasChanged Or MyTrackInfoHasChanged Then
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceValueByRef(HSRefServiceRemote, Value, True)
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceString(HSRefServiceRemote, ValueString, True)
                 '   If SuperDebug Then Log("HS updated in UpdateTransportState. HSRef = " & HSRefPlayer & " and MyTransportStateHasChanged = " & MyTransportStateHasChanged.ToString & ", MyTrackInfoHasChanged = " & MyTrackInfoHasChanged.ToString & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
