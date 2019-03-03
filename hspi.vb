@@ -3458,43 +3458,48 @@ NextElement:
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
             If Not AllDevices Is Nothing And AllDevices.Count > 0 Then
                 For Each DLNADevice As MyUPnPDevice In AllDevices
-                    If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
-                        ' check whether this devices was known to us and on-line
-                        ' go find it in the array
-                        Dim NeedsToBeAdded As Boolean = False
-                        If Not (Mid(DLNADevice.UniqueDeviceName, 1, 12) = "uuid:RINCON_" Or Mid(DLNADevice.UniqueDeviceName, 1, 16) = "uuid:DOCKRINCON_") Or SonosDeviceIn Then
-                            For Each UPnPDeviceToDiscover In UPnPDevicesToGoDiscover
-                                If DLNADevice.Type = UPnPDeviceToDiscover.Key Then
-                                    NeedsToBeAdded = True
-                                    Exit For
-                                End If
-                            Next
-                        End If
-                        If SuperDebug Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
-                        If Not NeedsToBeAdded Then GoTo NextElement
-                        If Not GetBooleanIniFile(DLNADevice.UniqueDeviceName, DeviceInfoIndex.diDeviceIsAdded.ToString, False) Then GoTo NextElement ' is not added
-                        Try
-                            UPnPDeviceInfo = FindUPnPDeviceInfo(DLNADevice.UniqueDeviceName)
-                            If UPnPDeviceInfo Is Nothing Then
-                                If g_bDebug Then Log("DoRediscover found New UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
-                                NewDeviceFound(DLNADevice.UniqueDeviceName)
-                            Else
-                                Dim Controller As HSPI = GetAPIByUDN(DLNADevice.UniqueDeviceName)
-                                If Controller Is Nothing Then
-                                    ' this should really not be
-                                    'If g_bDebug Then Log("DoRediscover shouldn''t have found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
-                                    'NewDeviceFound(DLNADevice.UniqueDeviceName)
+                    If DLNADevice IsNot Nothing Then    ' added on 3/3/2019 to prevent errors happening here due to unknown causes
+                        If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
+                            ' check whether this devices was known to us and on-line
+                            ' go find it in the array
+                            Dim NeedsToBeAdded As Boolean = False
+                            If Not (Mid(DLNADevice.UniqueDeviceName, 1, 12) = "uuid:RINCON_" Or Mid(DLNADevice.UniqueDeviceName, 1, 16) = "uuid:DOCKRINCON_") Or SonosDeviceIn Then
+                                For Each UPnPDeviceToDiscover In UPnPDevicesToGoDiscover
+                                    If DLNADevice.Type = UPnPDeviceToDiscover.Key Then
+                                        NeedsToBeAdded = True
+                                        Exit For
+                                    End If
+                                Next
+                            End If
+                            If SuperDebug Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
+                            If Not NeedsToBeAdded Then GoTo NextElement
+                            If Not GetBooleanIniFile(DLNADevice.UniqueDeviceName, DeviceInfoIndex.diDeviceIsAdded.ToString, False) Then GoTo NextElement ' is not added
+                            Try
+                                UPnPDeviceInfo = FindUPnPDeviceInfo(DLNADevice.UniqueDeviceName)
+                                If UPnPDeviceInfo Is Nothing Then
+                                    If g_bDebug Then Log("DoRediscover found New UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                    NewDeviceFound(DLNADevice.UniqueDeviceName)
                                 Else
-                                    If Controller.DeviceStatus.ToUpper <> "ONLINE" Then
-                                        If g_bDebug Then Log("DoRediscover found Known UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
-                                        NewDeviceFound(DLNADevice.UniqueDeviceName)
+                                    Dim Controller As HSPI = GetAPIByUDN(DLNADevice.UniqueDeviceName)
+                                    If Controller Is Nothing Then
+                                        ' this should really not be
+                                        'If g_bDebug Then Log("DoRediscover shouldn''t have found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                        'NewDeviceFound(DLNADevice.UniqueDeviceName)
+                                    Else
+                                        If Controller.DeviceStatus.ToUpper <> "ONLINE" Then
+                                            If g_bDebug Then Log("DoRediscover found Known UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                            NewDeviceFound(DLNADevice.UniqueDeviceName)
+                                        End If
                                     End If
                                 End If
-                            End If
-                        Catch ex As Exception
-                            Log("Error in DoRediscover while finding the DeviceInfo NewUDN = " & DLNADevice.UniqueDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                            GoTo NextElement
-                        End Try
+                            Catch ex As Exception
+                                Log("Error in DoRediscover while finding the DeviceInfo NewUDN = " & DLNADevice.UniqueDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                GoTo NextElement
+                            End Try
+                        End If
+                    Else
+                        If g_bDebug Then Log("Warning in DoRediscover found missing DLNA Object", LogType.LOG_TYPE_WARNING)
+
                     End If
 NextElement:
                 Next
