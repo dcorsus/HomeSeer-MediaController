@@ -57,16 +57,16 @@ Public Class DLNADeviceConfig
                 Log("Error in GetPagePlugin, MusicAPI not found for ZoneUDN = " & MyZoneUDN, LogType.LOG_TYPE_ERROR)
             End If
             ZoneName = MusicAPI.DeviceName
-            If g_bDebug Then Log("GetPagePlugin for Zoneplayer = " & ZoneName & " set ZoneUDN = " & MyZoneUDN, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for Zoneplayer = " & ZoneName & " set ZoneUDN = " & MyZoneUDN, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     ' build and return the actual page
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String, GenerateHeaderFooter As Boolean) As String
-        If g_bDebug Then Log("GetPagePlugin for DLNADeviceControl called for Zoneplayer = " & ZoneName & " with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for DLNADeviceControl called for Zoneplayer = " & ZoneName & " with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
         Dim stb As New StringBuilder
         Me.reset()
-        'If g_bDebug Then Log("GetPagePlugin for DLNADeviceControl called for ZoneUDN = " & MyZoneUDN & " and ZoneName = " & ZoneName & " and PageName = " & MyPageName, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for DLNADeviceControl called for ZoneUDN = " & MyZoneUDN & " and ZoneName = " & ZoneName & " and PageName = " & MyPageName, LogType.LOG_TYPE_INFO)
         Dim DeviceType As String = GetStringIniFile(MyZoneUDN, DeviceInfoIndex.diDeviceType.ToString, "")
         Try
             ' handle any queries like mode=something
@@ -226,7 +226,7 @@ Public Class DLNADeviceConfig
     End Function
 
     Public Overrides Function postBackProc(page As String, data As String, user As String, userRights As Integer) As String
-        'If g_bDebug Then Log("PostBackProc for DLNADeviceControl called  for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostBackProc for DLNADeviceControl called  for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
 
         Dim parts As Collections.Specialized.NameValueCollection
         parts = HttpUtility.ParseQueryString(System.Web.HttpUtility.HtmlDecode(data))
@@ -234,7 +234,7 @@ Public Class DLNADeviceConfig
 
         If parts IsNot Nothing Then
             'Log("PostBackProc for DLNADeviceControl called  for Player = " & ZoneName & " with part = '" & parts.GetKey(0).ToUpper.ToString & "'", LogType.LOG_TYPE_INFO)
-            If (data.ToString.ToUpper <> "ACTION=UPDATETIME") And (g_bDebug = True) Then Log("PostBackProc for DLNADeviceControl called for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+            If (data.ToString.ToUpper <> "ACTION=UPDATETIME") And (PIDebuglevel > DebugLevel.dlErrorsOnly = True) Then Log("PostBackProc for DLNADeviceControl called for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
 
             Try
                 Dim Part As String
@@ -243,8 +243,8 @@ Public Class DLNADeviceConfig
                         Dim ObjectNameParts As String()
                         ObjectNameParts = Split(HttpUtility.UrlDecode(Part), "_")
                         If (data.ToString.ToUpper <> "ACTION=UPDATETIME") Then
-                            If g_bDebug Then Log("postBackProc for DLNADeviceControl for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
-                            If g_bDebug Then Log("postBackProc for DLNADeviceControl for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for DLNADeviceControl for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for DLNADeviceControl for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
                         End If
                         Dim ObjectValue As String = HttpUtility.UrlDecode(parts(Part))
                         'Dim ObjectValue As String = parts(Part)
@@ -258,7 +258,7 @@ Public Class DLNADeviceConfig
                                     'CheckForChanges()
                                 End If
                             Case "TIMEBETWEENPICTURESBOX"
-                                If g_bDebug Then Log("postBackProc issued TimeBetweenPicturesBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued TimeBetweenPicturesBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteIntegerIniFile(MyZoneUDN, DeviceInfoIndex.diTimeBetweenPictures.ToString, Val(ObjectValue.ToString))
                                     MusicAPI.ReadDeviceIniSettings()
@@ -266,7 +266,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving TimeBetweenPicturesBox with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "POLLTRANSPORTCHKBOX"
-                                If g_bDebug Then Log("postBackProc issued PollTransportChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued PollTransportChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteBooleanIniFile(MyZoneUDN, DeviceInfoIndex.diPollTransportChanges.ToString, ObjectValue.ToUpper = "CHECKED")
                                     MusicAPI.ReadDeviceIniSettings()
@@ -274,7 +274,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving PollTransportChkBox flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "POLLVOLUMECHKBOX"
-                                If g_bDebug Then Log("postBackProc issued PollVolumeChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued PollVolumeChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteBooleanIniFile(MyZoneUDN, DeviceInfoIndex.diPollVolumeChanges.ToString, ObjectValue.ToUpper = "CHECKED")
                                     MusicAPI.ReadDeviceIniSettings()
@@ -282,7 +282,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving PollVolumeChkBox flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "CONTENTDEVICENAMEBOX"
-                                If g_bDebug Then Log("postBackProc issued ContentDeviceNameBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued ContentDeviceNameBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteStringIniFile(MyZoneUDN, DeviceInfoIndex.diServerUDN.ToString, ObjectValue.ToString)
                                     MusicAPI.ReadDeviceIniSettings()
@@ -290,7 +290,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving ContentDeviceNameBox with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "PICTURESIZENAMEBOX"
-                                If g_bDebug Then Log("postBackProc issued PictureSizeNameBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued PictureSizeNameBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     Select Case ObjectValue.ToString.ToUpper
                                         Case "DEFAULT"
@@ -309,7 +309,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving PictureSizeNameBox with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "NEXTAVBTN"
-                                If g_bDebug Then Log("postBackProc issued NextAVBtn command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued NextAVBtn command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteBooleanIniFile(MyZoneUDN, DeviceInfoIndex.diUseNextAV.ToString, ObjectValue.ToUpper = "CHECKED")
                                     MusicAPI.ReadDeviceIniSettings()
@@ -317,7 +317,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving NextAVBtn flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "ANNOUNCEMENTDEVICEBOX"
-                                If g_bDebug Then Log("postBackProc issued AnnouncementDeviceBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued AnnouncementDeviceBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteStringIniFile("Speaker Devices", MyZoneUDN, ObjectValue.ToString)
                                     'MusicAPI.ReadDeviceIniSettings()
@@ -325,7 +325,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving AnnouncementDeviceBox. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "MESSAGEDEVICEBOX"
-                                If g_bDebug Then Log("postBackProc issued MessageDeviceBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued MessageDeviceBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteStringIniFile("Message Devices", MyZoneUDN, ObjectValue.ToString)
                                     'MusicAPI.ReadDeviceIniSettings()
@@ -333,7 +333,7 @@ Public Class DLNADeviceConfig
                                     Log("Error in postBackProc for PluginControl saving MessageDeviceBox. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "USEMP3CHKBOX"
-                                If g_bDebug Then Log("postBackProc issued UseMP3ChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued UseMP3ChkBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 Try
                                     WriteBooleanIniFile(MyZoneUDN, DeviceInfoIndex.diAnnouncementMP3.ToString, ObjectValue.ToUpper = "CHECKED")
                                     MusicAPI.ReadDeviceIniSettings()
@@ -342,8 +342,8 @@ Public Class DLNADeviceConfig
                                 End Try
 
                             Case Else
-                                If g_bDebug Then Log("postBackProc for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
-                                If g_bDebug Then Log("postBackProc for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
                         End Select
                     End If
                 Next
@@ -351,7 +351,7 @@ Public Class DLNADeviceConfig
                 Log("Error in postBackProc for Player = " & ZoneName & " processing page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
-            If g_bDebug Then Log("postBackProc for Player = " & ZoneName & " found parts to be empty", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for Player = " & ZoneName & " found parts to be empty", LogType.LOG_TYPE_INFO)
         End If
         Return MyBase.postBackProc(page, data, user, userRights)
     End Function

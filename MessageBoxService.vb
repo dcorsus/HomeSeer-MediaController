@@ -3,7 +3,7 @@
     Public Function PMBAddMessage(MessageID As String, MessageType As String, Message As String) As String
         PMBAddMessage = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("PMBAddMessage called for device " & MyUPnPDeviceName & " and MessageID = " & MessageID & " and MessageType = " & MessageType & " and Message = " & Message, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PMBAddMessage called for device " & MyUPnPDeviceName & " and MessageID = " & MessageID & " and MessageType = " & MessageType & " and Message = " & Message, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(2)
             Dim OutArg(0)
@@ -13,14 +13,14 @@
             MessageBoxService.InvokeAction("AddMessage", InArg, OutArg)
             PMBAddMessage = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in PMBAddMessage for device = " & MyUPnPDeviceName & " and MessageID = " & MessageID & " and MessageType = " & MessageType & " and Message = " & Message & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PMBAddMessage for device = " & MyUPnPDeviceName & " and MessageID = " & MessageID & " and MessageType = " & MessageType & " and Message = " & Message & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function PMBRemoveMessage(MessageID As String) As String
         PMBRemoveMessage = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("PMBRemoveMessage called for device " & MyUPnPDeviceName & " and MessageID = " & MessageID, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PMBRemoveMessage called for device " & MyUPnPDeviceName & " and MessageID = " & MessageID, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
@@ -28,7 +28,7 @@
             MessageBoxService.InvokeAction("RemoveMessage", InArg, OutArg)
             PMBRemoveMessage = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in PMBRemoveMessage for device = " & MyUPnPDeviceName & " and MessageID = " & MessageID & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PMBRemoveMessage for device = " & MyUPnPDeviceName & " and MessageID = " & MessageID & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 

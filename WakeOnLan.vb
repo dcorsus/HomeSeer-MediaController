@@ -14,7 +14,7 @@ Partial Public Class HSPI
     End Function
 
     Public Function GetSubnetMask() As String
-        If g_bDebug Then Log("GetSubnetMask called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask called", LogType.LOG_TYPE_INFO)
         GetSubnetMask = ""
         Try
             Dim LocalIPAddress = hs.GetIPAddress()
@@ -23,25 +23,25 @@ Partial Public Class HSPI
                 Exit Function
             End If
             For Each nic As System.Net.NetworkInformation.NetworkInterface In System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
-                If SuperDebug Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
                 For Each Ipa In nic.GetIPProperties.UnicastAddresses
-                    If SuperDebug Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
-                    'If g_bDebug Then hs.writelog(IFACE_NAME, String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then hs.writelog(IFACE_NAME, String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
                     If Ipa.Address.ToString = LocalIPAddress Then
                         ' OK we found our IPaddress
                         GetSubnetMask = Ipa.IPv4Mask.ToString
-                        If g_bDebug Then Log("GetSubnetMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
                         Exit Function
                     End If
                 Next
             Next
         Catch ex As Exception
         End Try
-        If g_bDebug Then Log("Error in GetSubnetMask, none found", LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSubnetMask, none found", LogType.LOG_TYPE_ERROR)
     End Function
 
     Private Sub SendMagicPacket(MacAddress As String, WANIPAddr As String, LanSubnet As String)
-        If g_bDebug Then Log("SendMagicPacket called for device - " & MyUPnPDeviceName & " and MacAddress = " & MacAddress & " and IPAddress = " & WANIPAddr & " and Subnetmask " & LanSubnet, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMagicPacket called for device - " & MyUPnPDeviceName & " and MacAddress = " & MacAddress & " and IPAddress = " & WANIPAddr & " and Subnetmask " & LanSubnet, LogType.LOG_TYPE_INFO)
         If MacAddress = "" Or WANIPAddr = "" Or LanSubnet = "" Then Exit Sub
         Dim udpClient As System.Net.Sockets.UdpClient = Nothing
         Dim sendBytes As [Byte]() = Nothing
@@ -122,7 +122,7 @@ Partial Public Class HSPI
             Next
 
             myAddress = ip1.ToString & "." & ip2.ToString & "." & ip3.ToString & "." & ip4.ToString
-            If g_bDebug Then Log("SendMagicPacket for device - " & MyUPnPDeviceName & " has Broadcast IPAddress = " & myAddress, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMagicPacket for device - " & MyUPnPDeviceName & " has Broadcast IPAddress = " & myAddress, LogType.LOG_TYPE_INFO)
 
         Catch ex As Exception
             Log("Error in SendMagicPacket for device - " & MyUPnPDeviceName & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)

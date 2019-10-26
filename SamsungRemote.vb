@@ -35,13 +35,14 @@ Partial Public Class HSPI
     Const BLOCK_SIZE As Integer = 16
     Const SHA_DIGEST_LENGTH As Integer = 20
 
-    Private Declare Sub applySamyGOKeyTransform Lib "SamsungCrypto.dll" (ByRef Input As Byte(), ByRef Output As Byte())
+    'Private Declare Sub applySamyGOKeyTransform Lib "SamsungCrypto.dll" (ByRef Input As Byte(), ByRef Output As Byte())    ' removed 5/25/2019, not sure what this was doing here?
+    Private Declare Sub applySamyGOKeyTransform Lib "MediaControllerCrypto.dll" (ByRef Input As Byte(), ByRef Output As Byte())
     <DllImport("MediaControllerCrypto.dll", CallingConvention:=CallingConvention.Cdecl)>
     Private Shared Sub applySamyGOKeyTransform(Input As IntPtr, Output As IntPtr)
     End Sub
 
     Private Sub WriteSamsungKeyInfoToInfoFile()
-        If g_bDebug Then Log("WriteSamsungKeyInfoToInfoFile called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("WriteSamsungKeyInfoToInfoFile called", LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = (gRemoteControlPath)
         WriteStringIniFile(MyUDN & " - Default Codes", "Power", "KEY_POWER" & ":;:-:20", objRemoteFile)
         WriteStringIniFile(MyUDN & " - Default Codes", "PowerOn", "KEY_POWERON" & ":;:-:21", objRemoteFile)
@@ -267,7 +268,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub CreateSamsungRemoteIniFileInfo()
-        If g_bDebug Then Log("CreateSamsungRemoteIniFileInfo called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateSamsungRemoteIniFileInfo called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
         Dim SamsungRemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If SamsungRemoteType = "Samsungiapp" Then
@@ -539,7 +540,7 @@ Partial Public Class HSPI
 
     Private Sub CreateHSSamsungRemoteButtons(ReCreate As Boolean)
 
-        If g_bDebug Then Log("CreateHSSamsungRemoteButtons called for UPnPDevice = " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSSamsungRemoteButtons called for UPnPDevice = " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)
@@ -639,7 +640,7 @@ Partial Public Class HSPI
 
     Private Sub CreateHSSamsungRemoteServices()
 
-        If g_bDebug Then Log("CreateHSSamsungRemoteServices called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSSamsungRemoteServices called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         ' First Create the Status Device
         HSRefServiceRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Status.ToString & "HSCode", -1)
@@ -652,7 +653,7 @@ Partial Public Class HSPI
 
     Private Sub CreateSamsungRemoteServiceButtons(HSRef As Integer)
 
-        If g_bDebug Then Log("CreateSamsungRemoteServiceButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateSamsungRemoteServiceButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim objRemoteFile As String = gRemoteControlPath
         Dim RemoteButtons As New System.Collections.Generic.Dictionary(Of String, String)()
@@ -718,7 +719,7 @@ Partial Public Class HSPI
         ' if eden
         ' {"data":{"data":[{"accelerators":[],"action_type":null,"appId":"com.samsung.tv.store","appType":"volt_app","icon":"/usr/apps/com.samsung.tv.csfs.res.tizen30/shared/res/Resource/apps/apps/sysAppsNromal.png","id":"APPS","isLock":false,"launcherType":"system","mbrIndex":null,"mbrSource":null,"name":"APPS","position":0,"sourceTypeNum":null},{"accelerators":[],"action_type":null,"appId":"org.tizen.browser","appType":"web_app","icon":"/opt/share/webappservice/apps_icon/FirstScreen/webbrowser/245x138.png","id":"org.tizen.browser","isLock":false,"launcherType":"launcher","mbrIndex":null,"mbrSource":null,"name":"Internet","position":1,"sourceTypeNum":null}]},"event":"ed.edenApp.get","from":"host"} 
 
-        If g_bDebug Then Log("SamsungAddAppButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAddAppButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim SeqNbr As Integer = 0
             Dim ButtonIndex As Integer = 200
@@ -779,14 +780,14 @@ Partial Public Class HSPI
                             position = Value
                         ElseIf Entry.Key.ToString = "icon" Then
                             Icon = Value
-                            If g_bDebug Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
                             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""iconPath"":""" & Icon & """,""event"": ""ed.apps.icon"", ""to"":""host""}}"), True) Then
-                                If g_bDebug Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
                             End If
                         End If
                     End If
                 Next
-                If g_bDebug Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " found appID = " & appId & " with type =" & app_type & ", name=" & name & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " found appID = " & appId & " with type =" & app_type & ", name=" & name & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
                 WriteStringIniFile(MyUDN, ButtonIndex.ToString, name & ":;:-:" & "SamsungApp" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & appId & ":;:-:" & "SamsungAppImage_" & MyUDN & "_" & SeqNbr.ToString & ":;:-:" & app_type.ToString, objRemoteFile)
                 If Icon <> "" And appId <> "" And 1 = 2 Then ' this does not work anyway !!!
                     Try
@@ -796,9 +797,9 @@ Partial Public Class HSPI
                             Dim SuccesfullSave As Boolean = False
                             SuccesfullSave = hs.WriteHTMLImage(AppImage, FileArtWorkPath & "SamsungAppImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", True)
                             If Not SuccesfullSave Then
-                                If g_bDebug Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "AppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "AppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_ERROR)
                             Else
-                                If g_bDebug Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " stored App Image at " & FileArtWorkPath & "AppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " stored App Image at " & FileArtWorkPath & "AppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_INFO)
                             End If
                             AppImage.Dispose()
                             SeqNbr += 1
@@ -815,12 +816,12 @@ Partial Public Class HSPI
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Private Sub TreatSetIOExSamsung(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExSamsung called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExSamsung called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             Case psRemoteOff  ' remote off
                 WriteBooleanIniFile("Remote Service by UDN", MyUDN, False)
@@ -857,14 +858,14 @@ Partial Public Class HSPI
                     Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
                     SamsungSendKeyCode(ButtonInfoString)
                 Else
-                    If g_bDebug Then Log("Warning in TreatSetIOExSamsung for UPnPDevice = " & MyUPnPDeviceName & ". The remote is off line", LogType.LOG_TYPE_WARNING)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in TreatSetIOExSamsung for UPnPDevice = " & MyUPnPDeviceName & ". The remote is off line", LogType.LOG_TYPE_WARNING)
                 End If
         End Select
 
     End Sub
 
     Private Function SamsungActivateRemote() As Boolean
-        If g_bDebug Then Log("SamsungActivateRemote called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungActivateRemote called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         SamsungActivateRemote = False
         If Not MyRemoteServiceActive And MyAdminStateActive Then
             If GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then
@@ -874,13 +875,13 @@ Partial Public Class HSPI
                 ' check if we have a pin. Models Y2014 and Y2015
                 If Not SamsungGetIdentifyParms() Then
                     'SamsungSessionID = SamsungAuthenticateUsePIN()
-                    If g_bDebug Then Log("Error in SamsungActivateRemote for UPnPDevice = " & MyUPnPDeviceName & " trying to turn remote on but no authentication credentials available. Go to conf screen and authenticate with PIN", LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungActivateRemote for UPnPDevice = " & MyUPnPDeviceName & " trying to turn remote on but no authentication credentials available. Go to conf screen and authenticate with PIN", LogType.LOG_TYPE_ERROR)
                     Return False
                 End If
                 SamsungSessionID = SamsungAuthenticateUsePIN(GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungRemotePIN.ToString, ""), True)
 
                 If SamsungSessionID = "" Then
-                    If g_bDebug Then Log("Error in SamsungActivateRemote for UPnPDevice = " & MyUPnPDeviceName & " no sessionID", LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungActivateRemote for UPnPDevice = " & MyUPnPDeviceName & " no sessionID", LogType.LOG_TYPE_ERROR)
                     Return False
                 End If
                 SamsungOpenEncryptedWebSocket(SamsungSessionID)
@@ -933,9 +934,9 @@ Partial Public Class HSPI
 
     Private Function ExtractSamsungInfoFromDeviceXML(PageHTML As String) As Boolean
         ExtractSamsungInfoFromDeviceXML = False
-        If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If PageHTML = "" Then
-            If g_bDebug Then Log("Warning in ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName & ". Empty HTML", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName & ". Empty HTML", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
         Dim xmlDoc As New XmlDocument With {.XmlResolver = Nothing}
@@ -944,8 +945,8 @@ Partial Public Class HSPI
 
         Try
             xmlDoc.LoadXml(PageHTML)
-            If SuperDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
-            'If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " while retieving document with URL = " & MyDocumentURL & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
@@ -968,22 +969,22 @@ Partial Public Class HSPI
                                     IPPart = IPPart.Remove(0, 14)
                                     'IPPart.CopyTo(15, Macaddress, 0, IPParts.Length - 15)
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, Macaddress)
-                                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored wifiMac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored wifiMac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
                                 ElseIf TagParts(0) = "eth0MacAddress" Then
                                     Dim Macaddress As String = ""
                                     IPPart = IPPart.Remove(0, 14)
                                     'IPPart.CopyTo(15, Macaddress, 0, IPParts.Length - 15)
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, Macaddress)
-                                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored Mac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored Mac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
                                 End If
                             End If
                         End If
                     Next
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " while parsing sec:X_IPControl with info = " & SamsungIPRemote & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " while parsing sec:X_IPControl with info = " & SamsungIPRemote & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
-            If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found X_IPControl = " & SamsungIPRemote.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found X_IPControl = " & SamsungIPRemote.ToString, LogType.LOG_TYPE_INFO)
             WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "SamsungWebSocket")
             'WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketName.ToString, CapabilityName)
             WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "8001")
@@ -997,7 +998,7 @@ Partial Public Class HSPI
         Try
             Dim SamsungCapabilities As String = xmlDoc.GetElementsByTagName("sec:Capabilities").Item(0).InnerXml
             ' if not found it will go to the exception
-            If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found SamsungTag sec:Capabilities with info = " & SamsungCapabilities, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found SamsungTag sec:Capabilities with info = " & SamsungCapabilities, LogType.LOG_TYPE_INFO)
             If SamsungCapabilities <> "" Then
                 Dim SamsungCapabilitiesxmlDoc As New XmlDocument
                 SamsungCapabilitiesxmlDoc.LoadXml(SamsungCapabilities)
@@ -1006,7 +1007,7 @@ Partial Public Class HSPI
                     Dim CapabilityName As String = SamsungCapabilitiesxmlDoc.GetElementsByTagName("sec:Capability").Item(0).Attributes("name").InnerText
                     Dim CapabilityPort As String = SamsungCapabilitiesxmlDoc.GetElementsByTagName("sec:Capability").Item(0).Attributes("port").InnerText
                     Dim CapabilityLocation As String = SamsungCapabilitiesxmlDoc.GetElementsByTagName("sec:Capability").Item(0).Attributes("location").InnerText
-                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found Capability with Name = " & CapabilityName & ", Port = " & CapabilityPort & ", Location = " & CapabilityLocation, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found Capability with Name = " & CapabilityName & ", Port = " & CapabilityPort & ", Location = " & CapabilityLocation, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "SamsungWebSocket")
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketName.ToString, CapabilityName)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "8001")
@@ -1017,14 +1018,14 @@ Partial Public Class HSPI
                 End Try
                 Try ' sec:deviceID
                     Dim DeviceID As String = xmlDoc.GetElementsByTagName("sec:deviceID").Item(0).InnerXml
-                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found deviceID = " & DeviceID, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found deviceID = " & DeviceID, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungDeviceID.ToString, DeviceID)
                 Catch ex As Exception
                 End Try
                 Try
                     ' sec:ProductCap
                     Dim ProductCap As String = xmlDoc.GetElementsByTagName("sec:ProductCap").Item(0).InnerXml
-                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found ProductCap = " & ProductCap, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found ProductCap = " & ProductCap, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungProductCap.ToString, ProductCap)
                 Catch ex As Exception
                 End Try
@@ -1033,7 +1034,7 @@ Partial Public Class HSPI
             Try
                 Dim ProductCap As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungProductCap.ToString, "") 'xmlDoc.GetElementsByTagName("sec:ProductCap").Item(0).InnerText
                 If ProductCap <> "" Then
-                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found SamsungTag sec:ProductCap with info = " & ProductCap, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found SamsungTag sec:ProductCap with info = " & ProductCap, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketProductCap.ToString, ProductCap)
                     Dim test As String = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, "")
                     If GetStringIniFile(DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then
@@ -1041,16 +1042,16 @@ Partial Public Class HSPI
                             Dim ProductCapParts As String() = Split(ProductCap, ",")
                             For Each Capability As String In ProductCapParts
                                 If Capability.ToUpper = "Y2014" Or Capability.ToUpper = "Y2015" Then
-                                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Samsung TV with PIN remote control. Year = " & Capability, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Samsung TV with PIN remote control. Year = " & Capability, LogType.LOG_TYPE_INFO)
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "SamsungWebSocketPIN")
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "8000")
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungPairingPort.ToString, "8080")
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "socket.io/1/")
                                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungAppId.ToString, "654321")
                                 ElseIf Capability.ToUpper = "Y2017" Then
-                                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Qseries Samsung TV. Year = " & Capability, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Qseries Samsung TV. Year = " & Capability, LogType.LOG_TYPE_INFO)
                                 Else
-                                    If g_bDebug Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Samsung TV Capability = " & Capability, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " found a Samsung TV Capability = " & Capability, LogType.LOG_TYPE_INFO)
                                 End If
                             Next
                         End If
@@ -1099,7 +1100,7 @@ Partial Public Class HSPI
 
         'Dim MyIP As String = "192.168.1.117"
         'Dim MyMac As String = "00-21-9B-23-AA-F7"
-        If g_bDebug Then Log("EstablishTCPConnection called for UPnPDevice = " & MyUPnPDeviceName & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("EstablishTCPConnection called for UPnPDevice = " & MyUPnPDeviceName & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
         Dim MyPort As String = "55000"
         Dim MyAppString As String = "iphone..iapp.samsung"
         Dim MyTVAppString As String = "iphone..iapp.samsung"
@@ -1164,12 +1165,12 @@ Partial Public Class HSPI
         End If
 
         'Dim ReturnString As String = ""
-        If SuperDebug Then Log("EstablishTCPConnection for device - " & MyUPnPDeviceName & " will send Part 1 = " & Encoding.UTF8.GetString(Part1, 0, Part1.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("EstablishTCPConnection for device - " & MyUPnPDeviceName & " will send Part 1 = " & Encoding.UTF8.GetString(Part1, 0, Part1.Length), LogType.LOG_TYPE_INFO)
 
         'If MyRemoteControlHSCode <> "" Then hs.setdeviceValue(MyRemoteControlHSCode, 1)
         MyRemoteServiceActive = True
         Try
-            If g_bDebug Then MySamsungAsyncSocket.Receive()
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then MySamsungAsyncSocket.Receive()
         Catch ex As Exception
             Log("Error in EstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to receive data to Socket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
@@ -1207,7 +1208,7 @@ Partial Public Class HSPI
 
         ' will be 0x02 0x2F 0x00 unknown.livingroom.iapp.samsung0x02 0x00 e0x00  if refused
         ' not sure what this meant 0x02 0x2F 0x00 unknown.livingroom.iapp.samsung0x04 0x00 d0x00 0x01 0x00 0x02 0x2F 0x00 unknown.livingroom.iapp.samsung0x04 0x00 ,0x01 0x02 0x00 
-        If SuperDebug Then Log("EstablishTCPConnection  for device - " & MyUPnPDeviceName & " will send Part 2 = " & Encoding.UTF8.GetString(Part2, 0, Part2.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("EstablishTCPConnection  for device - " & MyUPnPDeviceName & " will send Part 2 = " & Encoding.UTF8.GetString(Part2, 0, Part2.Length), LogType.LOG_TYPE_INFO)
         Try
             If Not MySamsungAsyncSocket.Send(Part2) Then
                 Log("Error in EstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to send data to Socket", LogType.LOG_TYPE_ERROR)
@@ -1230,7 +1231,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SamsungCloseTCPConnection(Force As Boolean)
-        If g_bDebug Then Log("SamsungCloseTCPConnection called for UPnPDevice = " & MyUPnPDeviceName & ", Force = " & Force.ToString & " and RemoteServiceActive = " & MyRemoteServiceActive.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungCloseTCPConnection called for UPnPDevice = " & MyUPnPDeviceName & ", Force = " & Force.ToString & " and RemoteServiceActive = " & MyRemoteServiceActive.ToString, LogType.LOG_TYPE_INFO)
         If Not (MyRemoteServiceActive Or Force) Then Exit Sub
         Dim SamsungRemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If SamsungRemoteType = "Samsungiapp" Then
@@ -1275,7 +1276,7 @@ Partial Public Class HSPI
 
 
     Private Sub SamsungResetIdentityParms()
-        If g_bDebug Then Log("SamsungResetIdentityParms called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungResetIdentityParms called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         SamsungAESKey = Nothing
         SamsungSessionID = ""
         WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
@@ -1287,13 +1288,13 @@ Partial Public Class HSPI
     End Sub
 
     Private Function SamsungGetIdentifyParms() As Boolean
-        If g_bDebug Then Log("SamsungGetIdentifyParms called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungGetIdentifyParms called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         SamsungSessionID = ""
         SamsungAESKey = Nothing
         SamsungAESKey = Convert.FromBase64String(GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungAesKey.ToString, ""))
         SamsungSessionID = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungSessionID.ToString, "")
         SamsungPIN = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungRemotePIN.ToString, "")
-        If g_bDebug Then Log("SamsungGetIdentifyParms called for device - " & MyUPnPDeviceName & " retrieved PIN=" & SamsungPIN & ", SessionID=" & SamsungSessionID & ",AESKey=" & ByteArrayToHexString(SamsungAESKey), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungGetIdentifyParms called for device - " & MyUPnPDeviceName & " retrieved PIN=" & SamsungPIN & ", SessionID=" & SamsungSessionID & ",AESKey=" & ByteArrayToHexString(SamsungAESKey), LogType.LOG_TYPE_INFO)
         If SamsungAESKey IsNot Nothing And SamsungSessionID <> "" And SamsungPIN <> "" Then
             Return True
         Else
@@ -1302,7 +1303,7 @@ Partial Public Class HSPI
     End Function
 
     Public Function SamsungOpenPinPage() As Boolean
-        If g_bDebug Then Log("SamsungOpenPinPage called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenPinPage called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim pairingport As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungPairingPort.ToString, "")
         Dim RequestURL As String = "http://" & MyIPAddress & ":" & pairingport & "/ws/apps/CloudPINPage"
         Dim data = System.Text.ASCIIEncoding.ASCII.GetBytes("pin4")
@@ -1457,13 +1458,13 @@ Partial Public Class HSPI
         '
         '{"auth_data"""}
         '
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN called for device - " & MyUPnPDeviceName & " with PIN = " & Pin, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN called for device - " & MyUPnPDeviceName & " with PIN = " & Pin, LogType.LOG_TYPE_INFO)
         If Pin = "" Then Return ""
 
         If MySamsungWebSocket IsNot Nothing Then
             If MySamsungWebSocket.WebSocketActive Then
                 ' already active
-                If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " already has active websocket", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " already has active websocket", LogType.LOG_TYPE_INFO)
                 Return GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungSessionID.ToString, "")
             End If
         End If
@@ -1479,7 +1480,7 @@ Partial Public Class HSPI
         If WeAlreadyHaveAPIN Then GoTo step1
 step0:
 
-        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=0&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID & "&type=1"
+        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=0&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID & MyMacAddress & "&type=1"
         ReturnHeader = ""
         ReturnBody = ""
 
@@ -1508,23 +1509,23 @@ step1:
         Try
             HelloString = GenerateServerHello(SamsungAppID, Pin, aes_key, data_hash)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " trying to Generate a ServerHello with Error = " & ex.ToString, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " trying to Generate a ServerHello with Error = " & ex.ToString, LogType.LOG_TYPE_ERROR)
             Return ""
         End Try
 
-        If SuperDebug Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & " GeneratorServerHello = " & HelloString, LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & " GeneratorServerHello = " & HelloString, LogType.LOG_TYPE_INFO)  
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & " GeneratorServerHello = " & HelloString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & " GeneratorServerHello = " & HelloString, LogType.LOG_TYPE_INFO)  
 
 
-        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=1&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID ' & "&type=1"
+        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=1&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID & MyMacAddress  ' & "&type=1"
         ReturnHeader = ""
         ReturnBody = ""
         PayLoad = "{""auth_Data"":{""auth_type"":""SPC"",""GeneratorServerHello"":""" & HelloString & """}}"
-        'If SuperDebug Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
+        'If piDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
 
         If Not SendWebRequest(RequestURL, "POST", True, PayLoad, ReturnHeader, ReturnBody) Then
-            If g_bDebug Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful GeneratorServerHello", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful GeneratorServerHello", LogType.LOG_TYPE_INFO)
             Return ""
         End If
 
@@ -1548,13 +1549,13 @@ step1:
         End If
 
 
-        If SuperDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello = " & GeneratorClientHello, LogType.LOG_TYPE_INFO)
-        'If SuperDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin = " & Pin, LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello = " & GeneratorClientHello, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin = " & Pin, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello = " & GeneratorClientHello, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin = " & Pin, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello = " & GeneratorClientHello, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin = " & Pin, LogType.LOG_TYPE_INFO)
 
         If GeneratorClientHello = "" Then
-            If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello is empty. Response was = " & ReturnBody, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " GeneratorClientHello is empty. Response was = " & ReturnBody, LogType.LOG_TYPE_INFO)
             ' I'm going to interpret this as a bad PIN and reset the PIN
             SamsungResetIdentityParms()
             Return ""
@@ -1562,7 +1563,7 @@ step1:
 
 
         If Pin = "" Then
-            If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin is empty", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Pin is empty", LogType.LOG_TYPE_INFO)
             Return ""
         End If
 
@@ -1598,7 +1599,7 @@ step1:
 
 Step2:
 
-        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=2&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID
+        RequestURL = "http://" & MyIPAddress & ":" & PairingPort & "/ws/pairing?step=2&app_id=" & SamsungAppID & "&device_id=" & SamsungDeviceID & MyMacAddress
 
         ReturnHeader = ""
         ReturnBody = ""
@@ -1609,10 +1610,10 @@ Step2:
         Catch ex As Exception
             Return ""
         End Try
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " is sending ServerAckMsg with content = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " is sending ServerAckMsg with content = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
 
         If Not SendWebRequest(RequestURL, "POST", True, PayLoad, ReturnHeader, ReturnBody) Then
-            If g_bDebug Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " unsuccessful sending ServerAckMsg", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " unsuccessful sending ServerAckMsg", LogType.LOG_TYPE_INFO)
             Return ""
         End If
 
@@ -1632,22 +1633,24 @@ Step2:
         Dim ClientAckMsg As String = ""
         Dim SessionID As String = ""
         Dim SessionKey As String = ""
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " received authentication data for ClientAck with content = " & ReturnBody, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " received authentication data for ClientAck with content = " & ReturnBody, LogType.LOG_TYPE_INFO) 'dcor2014
 
         AuthData = FindPairInJSONString(ReturnBody, "auth_data").ToString
-        If AuthData <> "" Then
+        If AuthData IsNot Nothing AndAlso AuthData <> "" Then
             ClientAckMsg = FindPairInJSONString(AuthData, "ClientAckMsg").ToString.Trim("""")
             SessionID = FindPairInJSONString(AuthData, "session_id").ToString.Trim("""")
             SessionKey = FindPairInJSONString(AuthData, "session_key").ToString.Trim("""")
         End If
 
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " ClientAckMsg = " & ClientAckMsg, LogType.LOG_TYPE_INFO) 'dcor2014
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionID = " & SessionID, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionKey = " & SessionKey, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey = " & ByteArrayToHexString(AESKey), LogType.LOG_TYPE_INFO)
+        If SessionID IsNot Nothing Then SessionID = ""
 
-        If ClientAckMsg = "" Then
-            If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful ParseClientAck", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " ClientAckMsg = " & ClientAckMsg, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionID = " & SessionID, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionKey = " & SessionKey, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey = " & ByteArrayToHexString(AESKey), LogType.LOG_TYPE_INFO)
+
+        If ClientAckMsg Is Nothing Or ClientAckMsg = "" Then
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful ParseClientAck", LogType.LOG_TYPE_INFO)
             Return ""
         End If
 
@@ -1659,13 +1662,13 @@ Step2:
 
 
         If AESKey Is Nothing Then
-            If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful retrieval of Key", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful retrieval of Key", LogType.LOG_TYPE_INFO)
             Return ""
         End If
         SamsungAESKey = AESKey
 
-        If SuperDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey = " & System.Text.ASCIIEncoding.ASCII.GetChars(AESKey), LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey Length = " & AESKey.Length.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey = " & System.Text.ASCIIEncoding.ASCII.GetChars(AESKey), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey Length = " & AESKey.Length.ToString, LogType.LOG_TYPE_INFO)
 
         WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungAesKey.ToString, Convert.ToBase64String(AESKey))
         WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungSessionID.ToString, SessionID)
@@ -1747,7 +1750,7 @@ Step2:
             PayLoad = ""
 
             If Not SendWebRequest(RequestURL, "DELETE", True, PayLoad, ReturnHeader, ReturnBody) Then
-                If g_bDebug Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " unsuccessful Delete", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " unsuccessful Delete", LogType.LOG_TYPE_INFO)
                 Return ""
             End If
 
@@ -1761,7 +1764,7 @@ Step2:
 
         End If
 
-        If SessionID <> "" Then
+        If SessionID IsNot Nothing AndAlso SessionID <> "" Then
             SamsungSessionID = SessionID
             If SamsungAESKey IsNot Nothing Then
                 WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
@@ -1772,20 +1775,20 @@ Step2:
     End Function
 
     Public Function SamsungOpenEncryptedWebSocket(SessionID As String) As Boolean
-        If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " called with SessionId = " & SessionID, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " called with SessionId = " & SessionID, LogType.LOG_TYPE_INFO)
         If SamsungAESKey Is Nothing Then
-            If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " has no AESKey", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " has no AESKey", LogType.LOG_TYPE_INFO)
             Return False
         Else
             If SamsungAESKey.Length = 0 Then
-                If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " has no AESKey", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " has no AESKey", LogType.LOG_TYPE_INFO)
                 Return False
             End If
         End If
         If MySamsungWebSocket IsNot Nothing Then
             If MySamsungWebSocket.WebSocketActive Then
                 ' already active
-                If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " already has active websocket", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " already has active websocket", LogType.LOG_TYPE_INFO)
                 Return True
             End If
         End If
@@ -1831,7 +1834,7 @@ Step2:
         Dim WebSocketPort As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")
         Dim WebSocketURL As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "")
         If WebSocketPort = "" Then
-            If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & "; no WebSocketPort info", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & "; no WebSocketPort info", LogType.LOG_TYPE_INFO)
             Return False
         End If
         Dim RequestURL As String = "http://" & MyIPAddress & ":" & WebSocketPort & "/" & WebSocketURL
@@ -1840,7 +1843,7 @@ Step2:
         Dim PayLoad As String = ""
 
         If Not SendWebRequest(RequestURL, "GET", True, PayLoad, ReturnHeader, ReturnBody) Then
-            If g_bDebug Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " unsuccessful get handshakeToken", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for device - " & MyUPnPDeviceName & " unsuccessful get handshakeToken", LogType.LOG_TYPE_INFO)
             Return False
         End If
 
@@ -1947,7 +1950,7 @@ Step2:
 
     Private Sub SamsungOpenUnEncryptedWebSocket(Port As String, Location As String)
 
-        If g_bDebug Then Log("SamsungOpenUnEncryptedWebSocket called for UPnPDevice = " & MyUPnPDeviceName & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket called for UPnPDevice = " & MyUPnPDeviceName & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
 
 
         'key in http://192.168.1.165:8001/api/v2/ and get
@@ -1995,7 +1998,7 @@ Step2:
             webResponse = wRequest.GetResponse
             Dim reader As New StreamReader(webResponse.GetResponseStream())
             StreamText = reader.ReadToEnd()
-            If g_bDebug Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " retrieving info = " & streamText, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " retrieving info = " & StreamText, LogType.LOG_TYPE_INFO)
             reader.Close()
             webResponse.Close()
         Catch ex As Exception
@@ -2023,7 +2026,7 @@ Step2:
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " parsing /api/v2/ response with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " parsing /api/v2/ response with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Try
@@ -2034,7 +2037,7 @@ Step2:
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " parsing isSupport info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " parsing isSupport info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
 
@@ -2056,7 +2059,7 @@ Step2:
         'WebResponse = wRequest.GetResponse
         'Dim reader As New StreamReader(webResponse.GetResponseStream())
         'StreamText = reader.ReadToEnd()
-        'If g_bDebug Then Log("SamsungOpenUnEncryptedWebSocket (TEST) for device - " & MyUPnPDeviceName & " retrieving info = " & StreamText, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket (TEST) for device - " & MyUPnPDeviceName & " retrieving info = " & StreamText, LogType.LOG_TYPE_INFO)
         'reader.Close()
         'WebResponse.Close()
         'Catch ex As Exception
@@ -2090,7 +2093,7 @@ Step2:
         Dim WebSocketKey As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "")
         Dim WebSocketURL As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "")
         If WebSocketPort = "" Then
-            If g_bDebug Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & "; no WebSocketPort info", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & "; no WebSocketPort info", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
         Dim SSLRequired As Boolean = GetBooleanIniFile(MyUDN, DeviceInfoIndex.diSamsungTokenAuthSupport.ToString, False)
@@ -2127,7 +2130,7 @@ Step2:
 
         If SSLRequired And (SSLAuthToken <> "") Then
             WebSocketURL = WebSocketURL & "&token=" & SSLAuthToken
-            If g_bDebug Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " added token = " & WebSocketURL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " added token = " & WebSocketURL, LogType.LOG_TYPE_INFO)
         End If
 
         If Not MySamsungWebSocket.UpgradeWebSocket(WebSocketURL, GetStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, ""), 0, False) Then
@@ -2166,17 +2169,17 @@ Step2:
         Dim RequestURL As String = ""
         Dim ReturnHeader As String = ""
         Dim ReturnBody As String = ""
-        If g_bDebug Then Log("SamsungSendEncryptedKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendEncryptedKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode, LogType.LOG_TYPE_INFO)
         If MySamsungWebSocket Is Nothing Then
             ' either open or go back
             Return False
         End If
 
-        Dim KeyCodeString As String = "{""method"":""POST"",""body"":{""plugin"":""RemoteControl"",""param1"":""uuid:" & SamsungDeviceID & """,""param2"":""Click"",""param3"":""" & KeyCode & """,""param4"":false,""api"":""SendRemoteKey"",""version"":""1.000""}}"
-        If SuperDebug Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
+        Dim KeyCodeString As String = "{""method"":""POST"",""body"":{""plugin"":""RemoteControl"",""param1"":""uuid:" & SamsungDeviceID & MyMacAddress & """,""param2"":""Click"",""param3"":""" & KeyCode & """,""param4"":false,""api"":""SendRemoteKey"",""version"":""1.000""}}"
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
 
         Dim EncryptedKeyCodeBytes As Byte() = AESE(System.Text.ASCIIEncoding.ASCII.GetBytes(KeyCodeString), AESKey)
-        If g_bDebug Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is sending EncryptedKeyCodeBytes Length = " & EncryptedKeyCodeBytes.Length.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is sending EncryptedKeyCodeBytes Length = " & EncryptedKeyCodeBytes.Length.ToString, LogType.LOG_TYPE_INFO)
 
         Dim Body As String = "["
         For i = 0 To EncryptedKeyCodeBytes.Length - 1
@@ -2186,12 +2189,12 @@ Step2:
         Body = Body.Remove(Body.Length - 1, 1) + "]"
         Dim SocketData As Byte() = System.Text.ASCIIEncoding.ASCII.GetBytes("5::/com.samsung.companion:{""name"":""callCommon"",""args"":[{""Session_Id"":" & SessionID & ",""body"":""" & Body & """}]}")
 
-        If SuperDebug Then
+        If PIDebuglevel > DebugLevel.dlEvents Then
             Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is sending CommandInfo = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
             Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " is sending CommandInfo Length = " & SocketData.Length, LogType.LOG_TYPE_INFO)
         End If
         If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-            If g_bDebug Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendEncryptedKeyCode for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
             Return False
         End If
 
@@ -2205,8 +2208,8 @@ Step2:
         Dim xmlDoc As New XmlDocument
         Dim Data As Byte() = Nothing
         SendWebRequest = False
-        If g_bDebug Then Log("SendWebRequest called for Device = " & MyUPnPDeviceName & " with Method = " & Method & " and RequestURL = " & RequestURL, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " called with URL = " & RequestURL & ", Method = " & Method & ", Payload =  " & Payload, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendWebRequest called for Device = " & MyUPnPDeviceName & " with Method = " & Method & " and RequestURL = " & RequestURL, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " called with URL = " & RequestURL & ", Method = " & Method & ", Payload =  " & Payload, LogType.LOG_TYPE_INFO)
 
         If Payload.Length > 0 Then
             Data = System.Text.ASCIIEncoding.ASCII.GetBytes(Payload)
@@ -2234,7 +2237,7 @@ Step2:
                 stream.Close()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendWebRequest for device - " & MyUPnPDeviceName & " creating a webrequest with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendWebRequest for device - " & MyUPnPDeviceName & " creating a webrequest with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
         End Try
 
@@ -2254,8 +2257,8 @@ Step2:
                 strmRdr.Dispose()
                 webStream.Dispose()
                 Try
-                    If g_bDebug Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnHeader, LogType.LOG_TYPE_INFO)
-                    If g_bDebug Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has response body = " & ReturnBody, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnHeader, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has response body = " & ReturnBody, LogType.LOG_TYPE_INFO)
                 Catch ex1 As Exception
                 End Try
             End If
@@ -2267,7 +2270,7 @@ Step2:
         End Try
         Try
             ReturnHeader = webResponse.Headers.ToString()
-            If SuperDebug Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnHeader, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnHeader, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
 
@@ -2279,7 +2282,7 @@ Step2:
                 strmRdr.Dispose()
                 webStream.Dispose()
                 Try
-                    If SuperDebug Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnBody, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("SendWebRequest for device - " & MyUPnPDeviceName & " has Response Header = " & ReturnBody, LogType.LOG_TYPE_INFO)
                 Catch ex1 As Exception
                 End Try
             End If
@@ -2322,7 +2325,7 @@ Step2:
 
 
     Public Sub SamsungSendMessage(MessageID As String, Message As String)
-        If g_bDebug Then Log("SendMessage called with MessageID = " & MessageID & " and Message = " & Message.ToString & " while service active = " & MyMessageServiceActive.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMessage called with MessageID = " & MessageID & " and Message = " & Message.ToString & " while service active = " & MyMessageServiceActive.ToString, LogType.LOG_TYPE_INFO)
         If Not MyMessageServiceActive Then
             Exit Sub
         End If
@@ -2445,7 +2448,7 @@ Step2:
         '</Sender>
         '<Body>Hello World!!!</Body>
         ' <Category>SMS</Category><DisplayType>Maximum</DisplayType><ReceiveTime><Date>2010-05-04</Date><Time>01:02:03</Time></ReceiveTime><Receiver><Number>12345678</Number><Name>Receiver</Name></Receiver><Sender><Number>11111</Number><Name>Sender</Name></Sender><Body>Hello Honey</Body>
-        If g_bDebug Then Log("SendMessage called for UPnP Device = " & MyUPnPDeviceName & " with MessageId = " & MessageID.ToString & " and Message = " & Message.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMessage called for UPnP Device = " & MyUPnPDeviceName & " with MessageId = " & MessageID.ToString & " and Message = " & Message.ToString, LogType.LOG_TYPE_INFO)
         Dim MessageXML As String = ""
         Dim time As DateTime = DateTime.Now
         Dim Dateformat As String = "yyyy-MM-dd"
@@ -2473,7 +2476,7 @@ Step2:
             Dim MessagePart As String = ""
             Dim ReturnString As String = ""
             MessagePart = Chr(0) & Chr(0) & Chr(0) & Chr(ToBase64(KeyCode).Length) & Chr(0) & ToBase64(KeyCode)
-            If g_bDebug Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " and has created code = " & ToBase64(KeyCode), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " and has created code = " & ToBase64(KeyCode), LogType.LOG_TYPE_INFO)
             'Dim FullPart As String = ""
             'FullPart = Chr(1) & Chr(MyTVAppString.Length) & Chr(0) & MyTVAppString & Chr(MessagePart.Length) & Chr(0) & MessagePart
             Dim FullPart As Byte() = System.Text.Encoding.ASCII.GetBytes(Chr(1) & Chr(MyTVAppString.Length) & Chr(0) & MyTVAppString & Chr(MessagePart.Length) & Chr(0) & MessagePart)
@@ -2580,11 +2583,11 @@ Step2:
                         ' use NATIVE_LAUNCH
                         MessagePart = "{""method"":""ms.channel.emit"",""params"":{""event"":""ed.apps.launch"",""to"":""host"",""data"":{""appId"":""" & SamsungAppID & """,""action_type"": ""NATIVE_LAUNCH""}}}"
                     End If
-                    If g_bDebug Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with AppID = " & SamsungAppID & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with AppID = " & SamsungAppID & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
                 ElseIf ButtonInfos(1) = "SamsungWidget" Then
                     Dim SamsungWidget As String = ButtonInfos(2)
                     MessagePart = "{""method"":""ms.channel.emit"",""params"":{""event"":""ed.apps.launch"",""to"":""host"",""data"":{""appId"":""" & SamsungWidget & """,""action_type"": ""NATIVE_LAUNCH""}}}"
-                    If g_bDebug Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " with WidgetID = " & SamsungWidget & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " with WidgetID = " & SamsungWidget & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
                 ElseIf ButtonInfos(1) = "SamsungEnterText" Then
                     ' should I add sending text ie {"method":"ms.remote.control","params":{"Cmd":"$BASE64ENCODEDSTRING$","TypeOfRemote":"SendInputString","DataOfCmd":"base64"}}
                     Dim SamsungText As String = ButtonInfos(4)
@@ -2598,7 +2601,7 @@ Step2:
                     ParseClientHello(GeneratorClientHello, data_hash, aes_key, "654321", skPrime)
                     Exit Sub
                 Else
-                    If g_bDebug Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
                 Log("Error in SamsungSendKeyCode trying to form the message to be sent for UPnPDevice =  " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -2667,21 +2670,21 @@ Step2:
             JSONdataLevel1 = Nothing
             json = Nothing
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " processing response with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " processing response with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        If g_bDebug Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " found name = " & Name, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " found args = " & Args, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " found name = " & Name, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " found args = " & Args, LogType.LOG_TYPE_INFO)
         If Args = "" Then Exit Sub
         If Args.IndexOf("[") <> 0 Then
-            If g_bDebug Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " no [ found, Args = " & Args, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " no [ found, Args = " & Args, LogType.LOG_TYPE_ERROR)
             Exit Sub
         Else
             Args = Args.Remove(0, 1)
         End If
 
         If Args.IndexOf("]") <> Args.Length - 1 Then
-            If g_bDebug Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " no ] found, Args = " & Args, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " no ] found, Args = " & Args, LogType.LOG_TYPE_ERROR)
             Exit Sub
         Else
             Args = Args.Remove(Args.Length - 1, 1)
@@ -2696,14 +2699,14 @@ Step2:
         Dim ReturnVal As Byte() = AESD(ArgsBytes, SamsungAESKey)
 
         Dim ReturnString As String = System.Text.ASCIIEncoding.ASCII.GetChars(ReturnVal)
-        If g_bDebug Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " received decoded Args = " & ReturnString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatTextResponse for device - " & MyUPnPDeviceName & " received decoded Args = " & ReturnString, LogType.LOG_TYPE_INFO)
 
     End Sub
 
     Public Sub HandleSamsungWebSocketDataReceived(sender As Object, e As Byte())
         If e Is Nothing Then Exit Sub
-        If SuperDebug Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " and Line = " & Encoding.UTF8.GetString(e, 0, e.Length), LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & e.Length.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " and Line = " & Encoding.UTF8.GetString(e, 0, e.Length), LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & e.Length.ToString, LogType.LOG_TYPE_INFO)
 
         ' This is either text or binary, not sure it makes a difference
 
@@ -2716,13 +2719,13 @@ Step2:
                 If TextInfo = "1::" Then
                     Dim SocketData As Byte() = System.Text.ASCIIEncoding.ASCII.GetBytes("1::/com.samsung.companion")
                     If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                        If g_bDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send '1::/com.samsung.companion'", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send '1::/com.samsung.companion'", LogType.LOG_TYPE_INFO)
                         Exit Sub
                     End If
                     Exit Sub
                     ' not sure about the purpose of the rest, but leave it in. 
                     Dim KeyCodeString As String = "{""eventType"":""EMP"",""plugin"":""SecondTV""}"
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
 
                     Dim EncryptedKeyCodeBytes As Byte() = AESE(System.Text.ASCIIEncoding.ASCII.GetBytes(KeyCodeString), SamsungAESKey)
 
@@ -2734,14 +2737,14 @@ Step2:
                     Body = Body.Remove(Body.Length - 1, 1) + "]"
                     SocketData = System.Text.ASCIIEncoding.ASCII.GetBytes("5::/com.samsung.companion:{""name"":""registerPush"",""args"":[{""Session_Id"":" & SamsungSessionID & ",""body"":""" & Body & """}]}")
 
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
 
                     If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                        If g_bDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
                     End If
                     wait(0.5)
                     KeyCodeString = "{""eventType"":""EMP"",""plugin"":""RemoteControl""}"
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
 
                     EncryptedKeyCodeBytes = AESE(System.Text.ASCIIEncoding.ASCII.GetBytes(KeyCodeString), SamsungAESKey)
 
@@ -2752,15 +2755,15 @@ Step2:
 
                     Body = Body.Remove(Body.Length - 1, 1) + "]"
                     SocketData = System.Text.ASCIIEncoding.ASCII.GetBytes("5::/com.samsung.companion:{""name"":""registerPush"",""args"":[{""Session_Id"":" & SamsungSessionID & ",""body"":""" & Body & """}]}")
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
 
                     If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                        If g_bDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
                     End If
 
                     wait(0.5)
                     KeyCodeString = "{""method"":""POST"",""body"":{""plugin"":""NNavi"",""api"":""GetDUID"",""version"":""1.000""}}"
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is composing KeyCodeString = " & KeyCodeString, LogType.LOG_TYPE_INFO)
 
                     EncryptedKeyCodeBytes = AESE(System.Text.ASCIIEncoding.ASCII.GetBytes(KeyCodeString), SamsungAESKey)
 
@@ -2771,10 +2774,10 @@ Step2:
 
                     Body = Body.Remove(Body.Length - 1, 1) + "]"
                     SocketData = System.Text.ASCIIEncoding.ASCII.GetBytes("5::/com.samsung.companion:{""name"":""callCommon"",""args"":[{""Session_Id"":" & SamsungSessionID & ",""body"":""" & Body & """}]}")
-                    If SuperDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " is CommandInfo= " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
 
                     If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                        If g_bDebug Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived for device - " & MyUPnPDeviceName & " unsuccessful send Key = " & System.Text.ASCIIEncoding.ASCII.GetChars(SocketData), LogType.LOG_TYPE_INFO)
                     End If
                 ElseIf TextInfo = "2::" Then
                     MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("2::"), True) 'False)
@@ -2792,8 +2795,8 @@ Step2:
     End Sub
 
     Private Sub SamsungTreatJSONResponse(Input As String)
-        If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with Input = " & Input, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with Input = " & Input, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then
             Try
                 Dim json As New JavaScriptSerializer
                 Dim JSONdataLevel1 As Object
@@ -2804,18 +2807,18 @@ Step2:
                 JSONdataLevel1 = Nothing
                 json = Nothing
             Catch ex As Exception
-                If g_bDebug Then Log("Error in SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing response with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing response with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
             End Try
         End If
         Try
             Dim EventInfo As Object = FindPairInJSONString(Input, "event")
-            If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " found EventInfo = " & EventInfo.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " found EventInfo = " & EventInfo.ToString, LogType.LOG_TYPE_INFO)
             If EventInfo.ToString.ToLower = "ms.channel.timeout" Then
                 Log("warning SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received response = " & Input & " probably indicating no authentication. Retry while in front of TV and allow remote control access", LogType.LOG_TYPE_WARNING)
                 WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
                 SamsungCloseTCPConnection(True)
             ElseIf EventInfo.ToString.ToLower = "ms.channel.clientdisconnect" Then
-                If g_bDebug Then Log("warning SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received response = " & Input & " which will set remote to deactivate. New command will try to reopen or use activate", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("warning SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received response = " & Input & " which will set remote to deactivate. New command will try to reopen or use activate", LogType.LOG_TYPE_WARNING)
                 ' WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
                 SamsungCloseTCPConnection(True)
             ElseIf EventInfo.ToString.ToLower = "ms.channel.unauthorized" Then
@@ -2842,7 +2845,7 @@ Step2:
                         If ID <> "" Then WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungClientID.ToString, ID)
                         Dim Token As String = FindPairInJSONString(Data, "token").ToString
                         If Token <> "" Then
-                            If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and stored token = " & Token, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and stored token = " & Token, LogType.LOG_TYPE_INFO)
                             WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungToken.ToString, Token)   ' dcorssl
                         End If
                         'Dim Clients As Object = FindPairInJSONString(Data, "clients")
@@ -2850,7 +2853,7 @@ Step2:
                         'End If
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no token found error was = " & ex.Message, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no token found error was = " & ex.Message, LogType.LOG_TYPE_INFO)
                 End Try
 
                 ' I believe when EDEN_available is set in the isSupport info, we should do a "event":"ed.edednApp.get" else a "ed.installedApp.get"
@@ -2922,11 +2925,11 @@ Step2:
                     If Data IsNot Nothing Then
                         Dim Data64Base As Byte() = Convert.FromBase64String(CType(Data, String))
                         If Data64Base IsNot Nothing Then
-                            If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and imeData = " & System.Text.Encoding.Unicode.GetString(Data64Base), LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and imeData = " & System.Text.Encoding.Unicode.GetString(Data64Base), LogType.LOG_TYPE_INFO)
                         End If
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no token found error was = " & ex.Message, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no token found error was = " & ex.Message, LogType.LOG_TYPE_INFO)
                 End Try
             ElseIf EventInfo.ToString = "ms.remote.imeEnd" Then
                 '{"event":"ms.remote.imeEnd"} 
@@ -2936,29 +2939,29 @@ Step2:
                     Dim Data As Object = FindPairInJSONString(Input, "data")
                     If Data IsNot Nothing Then
                         Dim UpdateType As String = CType(FindPairInJSONString(Data, "update_type"), String)
-                        If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and edenTV update with update_type = " & UpdateType.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and edenTV update with update_type = " & UpdateType.ToString, LogType.LOG_TYPE_INFO)
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no update_type found with error = " & ex.Message, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no update_type found with error = " & ex.Message, LogType.LOG_TYPE_INFO)
                 End Try
             ElseIf EventInfo.ToString = "ms.channel.read" Then
                 'ms.channel.read"
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " couldn't find event info with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " couldn't find event info with error = " & ex.Message & " and Input = " & Input, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Public Sub HandleSamsungTCPDataReceived(sender As Object, e As Byte())
         If e Is Nothing Then Exit Sub
-        If SuperDebug Then Log("HandleSamsungTCPDataReceived called for Device = " & MyUPnPDeviceName & " and Line = " & Encoding.UTF8.GetString(e, 0, e.Length), LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("HandleSamsungTCPDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & e.Length.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungTCPDataReceived called for Device = " & MyUPnPDeviceName & " and Line = " & Encoding.UTF8.GetString(e, 0, e.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungTCPDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & e.Length.ToString, LogType.LOG_TYPE_INFO)
 
     End Sub
 
     Public Sub HandleSamsungSocketClosed(sender As Object)
-        If g_bDebug Then Log("HandleSamsungSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         MyRemoteServiceActive = False
         If MySamsungWebSocket IsNot Nothing Then
             RemoveHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
@@ -2979,17 +2982,17 @@ Step2:
         Try
             Dim AES As New Security.Cryptography.RijndaelManaged
             AES.Padding = Security.Cryptography.PaddingMode.PKCS7
-            If SuperDebug Then Log("AESE for Device = " & MyUPnPDeviceName & " has Key Length =" + key.Length.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESE for Device = " & MyUPnPDeviceName & " has Key Length =" + key.Length.ToString, LogType.LOG_TYPE_INFO)
             AES.Key = key
             AES.Mode = Security.Cryptography.CipherMode.ECB
-            If SuperDebug Then Log("AESE for Device = " & MyUPnPDeviceName & " has Mode       =" + AES.Mode.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("AESE for Device = " & MyUPnPDeviceName & " has Padding is =" + AES.Padding.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("AESE for Device = " & MyUPnPDeviceName & " has Key Size   =" + AES.KeySize.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESE for Device = " & MyUPnPDeviceName & " has Mode       =" + AES.Mode.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESE for Device = " & MyUPnPDeviceName & " has Padding is =" + AES.Padding.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESE for Device = " & MyUPnPDeviceName & " has Key Size   =" + AES.KeySize.ToString, LogType.LOG_TYPE_INFO)
             Dim DESEncrypter As System.Security.Cryptography.ICryptoTransform = AES.CreateEncryptor
             Dim Buffer As Byte() = input
             Return DESEncrypter.TransformFinalBlock(Buffer, 0, Buffer.Length)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AESE for UPnPDevice =  " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AESE for UPnPDevice =  " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
@@ -2997,26 +3000,26 @@ Step2:
     Private Function AESD(ByVal input As Byte(), ByVal key As Byte()) As Byte()
         Try
             Dim AES As New System.Security.Cryptography.RijndaelManaged
-            If SuperDebug Then Log("AESD for Device = " & MyUPnPDeviceName & " has Input lenght =" + input.Length.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("AESD for Device = " & MyUPnPDeviceName & " has Key lenght =" + key.Length.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESD for Device = " & MyUPnPDeviceName & " has Input lenght =" + input.Length.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESD for Device = " & MyUPnPDeviceName & " has Key lenght =" + key.Length.ToString, LogType.LOG_TYPE_INFO)
             AES.Padding = System.Security.Cryptography.PaddingMode.None
             AES.Mode = Security.Cryptography.CipherMode.ECB
             AES.Key = key
-            If SuperDebug Then Log("AESD for Device = " & MyUPnPDeviceName & " has Mode       =" + AES.Mode.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("AESD for Device = " & MyUPnPDeviceName & " has Padding is =" + AES.Padding.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("AESD for Device = " & MyUPnPDeviceName & " has Key Size   =" + AES.KeySize.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESD for Device = " & MyUPnPDeviceName & " has Mode       =" + AES.Mode.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESD for Device = " & MyUPnPDeviceName & " has Padding is =" + AES.Padding.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("AESD for Device = " & MyUPnPDeviceName & " has Key Size   =" + AES.KeySize.ToString, LogType.LOG_TYPE_INFO)
             Dim DESDecrypter As System.Security.Cryptography.ICryptoTransform = AES.CreateDecryptor
             Dim Buffer As Byte() = input
             Return DESDecrypter.TransformFinalBlock(Buffer, 0, Buffer.Length)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AESD for UPnPDevice =  " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AESD for UPnPDevice =  " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
 
     Private Function GenerateServerHello(UserID As String, Pin As String, ByRef aes_key As Byte(), ByRef data_hash As Byte()) As String
         Try
-            If g_bDebug Then Log("GenerateServerHello called for UPnPDevice =  " & MyUPnPDeviceName & " with UserID = " & UserID & " and PIN = " & Pin, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenerateServerHello called for UPnPDevice =  " & MyUPnPDeviceName & " with UserID = " & UserID & " and PIN = " & Pin, LogType.LOG_TYPE_INFO)
 
             ' sha1 = hashlib.sha1()
             Dim sha1 As New System.Security.Cryptography.SHA1Managed
@@ -3024,7 +3027,7 @@ Step2:
             ' sha1.update(pin.encode('utf-8'))
             ' pin_hash = sha1.digest()
             Dim pin_hash As Byte() = sha1.ComputeHash(Encoding.UTF8.GetBytes(Pin)) ' this returns 20 bytes
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated pin_hash = " & ByteArrayToHexString(pin_hash), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated pin_hash = " & ByteArrayToHexString(pin_hash), LogType.LOG_TYPE_INFO)
 
             'aes_key = pin_hash[:16] this takes the first 16 characters
             'Dim aes_key As Byte() = Nothing
@@ -3032,7 +3035,7 @@ Step2:
             Array.Copy(pin_hash, 0, aes_key, 0, 16)
 
             'logger.debug('crypto: aes: ', aes_key)
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated aes_key = " & ByteArrayToHexString(aes_key), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated aes_key = " & ByteArrayToHexString(aes_key), LogType.LOG_TYPE_INFO)
 
             'iv = b"\x00" * BLOCK_SIZE
             Dim iv As Byte() = New Byte(BLOCK_SIZE - 1) {}
@@ -3053,14 +3056,14 @@ Step2:
             Dim encryped As Byte() = DESEncrypter.TransformFinalBlock(buffer, 0, buffer.Length)
 
             'logger.debug('crypto: aes encrypted: ', encrypted.hex())
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated encrypted = " & ByteArrayToHexString(encryped), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated encrypted = " & ByteArrayToHexString(encryped), LogType.LOG_TYPE_INFO)
 
             'swapped = encrypt_parameter_data_with_aes(encrypted)
             Dim swapped As Byte() = encrypt_parameter_data_with_aes(encryped)
             If swapped Is Nothing Then Return Nothing
 
             'logger.debug('crypto: aes swapped: ', swapped)
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated swapped = " & ByteArrayToHexString(swapped), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated swapped = " & ByteArrayToHexString(swapped), LogType.LOG_TYPE_INFO)
 
             'Data = struct.pack(">I", Len(user_id)) + user_id.encode('utf-8') + swapped   pack big endian unsigned integers = 4 bytes
             Dim Data As Byte() = BitConverter.GetBytes(CType(UserID.Length, UInt32))
@@ -3071,7 +3074,7 @@ Step2:
             Data = Data.Concat(swapped).ToArray()
 
             'logger.debug('crypto: data buffer: ', data)
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated data buffer = " & ByteArrayToHexString(Data), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated data buffer = " & ByteArrayToHexString(Data), LogType.LOG_TYPE_INFO)
 
             'sha1 = hashlib.sha1()
             'sha1.update(Data)
@@ -3079,7 +3082,7 @@ Step2:
             data_hash = sha1.ComputeHash(Data)
 
             'logger.debug('crypto: data hash: ', data_hash)
-            If SuperDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated data_hash  = " & ByteArrayToHexString(data_hash), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated data_hash  = " & ByteArrayToHexString(data_hash), LogType.LOG_TYPE_INFO)
 
             'server_hello = (
             'b"\x01\x02" +
@@ -3098,12 +3101,12 @@ Step2:
             server_hello = server_hello.Concat({0, 0, 0, 0, 0}).ToArray()
 
             'Return server_hello, data_hash, aes_key
-            If g_bDebug Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated ServerHello = " & ByteArrayToHexString(server_hello), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " generated ServerHello = " & ByteArrayToHexString(server_hello), LogType.LOG_TYPE_INFO)
 
             Return ByteArrayToHexString(server_hello)
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " with UserID = " & UserID & ", Pin = " & Pin & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GenerateServerHello for UPnPDevice =  " & MyUPnPDeviceName & " with UserID = " & UserID & ", Pin = " & Pin & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
@@ -3143,10 +3146,10 @@ Step2:
             Dim thirdLen As Integer = userIdLen + 132
 
             '    print("thirdLen: "+str(thirdLen))
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " thirdLen: " & thirdLen, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " thirdLen: " & thirdLen, LogType.LOG_TYPE_INFO)
 
             '    Print("hello: " + data.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hello: " & ByteArrayToHexString(data), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hello: " & ByteArrayToHexString(data), LogType.LOG_TYPE_INFO)
 
             '    dest = data[USER_ID_LEN_POS:thirdLen+USER_ID_LEN_POS] + dataHash
             Dim dest As Byte()
@@ -3155,7 +3158,7 @@ Step2:
             dest = dest.Concat(dataHash).ToArray()
 
             '    print("dest: "+dest.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " dest: " & ByteArrayToHexString(dest), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " dest: " & ByteArrayToHexString(dest), LogType.LOG_TYPE_INFO)
 
             '    userId=data[USER_ID_POS:userIdLen+USER_ID_POS]
             Dim userId As Byte()
@@ -3163,7 +3166,7 @@ Step2:
             Array.Copy(data, USER_ID_POS, userId, 0, userIdLen)
 
             '    Print("userId: " + userId.decode('utf-8'))
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " userId: " & ASCIIEncoding.UTF8.GetChars(userId), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " userId: " & ASCIIEncoding.UTF8.GetChars(userId), LogType.LOG_TYPE_INFO)
 
 
             '    pEncWBGx = data[USER_ID_POS+userIdLen:GX_SIZE+USER_ID_POS+userIdLen]
@@ -3172,13 +3175,13 @@ Step2:
             Array.Copy(data, USER_ID_POS + userIdLen, pEncWBGx, 0, GX_SIZE)
 
             '    Print("pEncWBGx: " + pEncWBGx.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pEncWBGx: " & ByteArrayToHexString(pEncWBGx), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pEncWBGx: " & ByteArrayToHexString(pEncWBGx), LogType.LOG_TYPE_INFO)
 
             '    pEncGx = decrypt_parameter_data_with_aes(pEncWBGx)
             Dim pEncGx As Byte() = decrypt_parameter_data_with_aes(pEncWBGx)
 
             '    Print("pEncGx: " + pEncGx.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pEncGx: " & ByteArrayToHexString(pEncGx), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pEncGx: " & ByteArrayToHexString(pEncGx), LogType.LOG_TYPE_INFO)
 
             '    iv = b"\x00" * BLOCK_SIZE
             Dim iv As Byte() = New Byte(BLOCK_SIZE - 1) {}
@@ -3198,7 +3201,7 @@ Step2:
             Dim pGx As Byte() = DESDecrypter.TransformFinalBlock(pEncGx, 0, pEncGx.Length)
 
             '    print("pGx: " + pGx.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pGx: " & ByteArrayToHexString(pGx), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " pGx: " & ByteArrayToHexString(pGx), LogType.LOG_TYPE_INFO)
 
             '    bnPGx = int(pGx.hex(),16)
             Dim TemppGX As Byte() = {}
@@ -3239,7 +3242,7 @@ Step2:
             End If
 
             '    print("secret: " + secret.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " secret: " & ByteArrayToHexString(secret), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " secret: " & ByteArrayToHexString(secret), LogType.LOG_TYPE_INFO)
 
             '    dataHash2 = data[USER_ID_POS+userIdLen+GX_SIZE:USER_ID_POS+userIdLen+GX_SIZE+SHA_DIGEST_LENGTH];
             Dim dataHash2 As Byte()
@@ -3247,7 +3250,7 @@ Step2:
             Array.Copy(data, USER_ID_POS + userIdLen + GX_SIZE, dataHash2, 0, SHA_DIGEST_LENGTH)
 
             '    print("hash2: " + dataHash2.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hash2: " & ByteArrayToHexString(dataHash2), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hash2: " & ByteArrayToHexString(dataHash2), LogType.LOG_TYPE_INFO)
 
             '    secret2 = userId + secret
             Dim secret2 As Byte() = {}
@@ -3255,7 +3258,7 @@ Step2:
             secret2 = secret2.Concat(secret).ToArray()
 
             '    print("secret2: " + secret2.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " secret2: " & ByteArrayToHexString(secret2), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " secret2: " & ByteArrayToHexString(secret2), LogType.LOG_TYPE_INFO)
 
             '    sha1 = hashlib.sha1()
             Dim sha1 As New System.Security.Cryptography.SHA1Managed
@@ -3265,7 +3268,7 @@ Step2:
             Dim dataHash3 As Byte() = sha1.ComputeHash(secret2)
 
             '    print("hash3: " + dataHash3.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hash3: " & ByteArrayToHexString(dataHash3), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " hash3: " & ByteArrayToHexString(dataHash3), LogType.LOG_TYPE_INFO)
 
             '    if dataHash2 != dataHash3:
             '        print("Pin error!!!")
@@ -3282,12 +3285,12 @@ Step2:
                 different = True
             End If
             If different Then
-                If g_bDebug Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Pin error!!! ", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Pin error!!! ", LogType.LOG_TYPE_WARNING)
                 Return Nothing
             End If
 
             '    print("Pin OK :)\n")
-            If g_bDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Pin OK!!! ", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Pin OK!!! ", LogType.LOG_TYPE_INFO)
 
             '    flagPos = userIdLen + USER_ID_POS + GX_SIZE + SHA_DIGEST_LENGTH
             Dim flagPos As Integer = userIdLen + USER_ID_POS + GX_SIZE + SHA_DIGEST_LENGTH
@@ -3296,7 +3299,7 @@ Step2:
             '        print("First flag error!!!")
             '        return False
             If data(flagPos) <> 0 Then
-                If g_bDebug Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " First flag error!!! ", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " First flag error!!! ", LogType.LOG_TYPE_WARNING)
                 Return Nothing
             End If
 
@@ -3313,7 +3316,7 @@ Step2:
             End If
             Dim TempInt As Integer = BitConverter.ToInt32(TempArray, 0)
             If TempInt <> 0 Then
-                If g_bDebug Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Second flag error!!! ", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Second flag error!!! ", LogType.LOG_TYPE_WARNING)
                 Return Nothing
             End If
 
@@ -3323,7 +3326,7 @@ Step2:
             Dim dest_hash As Byte() = sha1.ComputeHash(dest)
 
             '    print("dest_hash: " + dest_hash.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " dest_hash: " & ByteArrayToHexString(dest_hash), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " dest_hash: " & ByteArrayToHexString(dest_hash), LogType.LOG_TYPE_INFO)
 
             '    finalBuffer = userId + gUserId.encode('utf-8') + pGx + bytes.fromhex(keys.publicKey) + secret
             Dim finalBuffer As Byte() = {}
@@ -3340,7 +3343,7 @@ Step2:
             SKPrime = sha1.ComputeHash(finalBuffer)
 
             '    print("SKPrime: " + SKPrime.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " SKPrime: " & ByteArrayToHexString(SKPrime), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " SKPrime: " & ByteArrayToHexString(SKPrime), LogType.LOG_TYPE_INFO)
 
             '    sha1 = hashlib.sha1()
             '    sha1.update(SKPrime+b"\x00")
@@ -3348,7 +3351,7 @@ Step2:
             Dim SKPrimeHash As Byte() = sha1.ComputeHash(SKPrime.Concat({0}).ToArray)
 
             '    print("SKPrimeHash: " + SKPrimeHash.hex())
-            If SuperDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " SKPrimeHash: " & ByteArrayToHexString(SKPrimeHash), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " SKPrimeHash: " & ByteArrayToHexString(SKPrimeHash), LogType.LOG_TYPE_INFO)
 
             '    ctx = applySamyGOKeyTransform(SKPrimeHash[:16])
 
@@ -3374,14 +3377,14 @@ Step2:
 
 
 
-            If g_bDebug Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " ctx: " & ByteArrayToHexString(ctx), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " ctx: " & ByteArrayToHexString(ctx), LogType.LOG_TYPE_INFO)
 
             '    return {"ctx": ctx, "SKPrime": SKPrime}
 
             Return ctx
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " with clientHello = " & clientHello & ", dataHash = " & ByteArrayToHexString(dataHash) & ", aesKey = " & ByteArrayToHexString(aesKey) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " with clientHello = " & clientHello & ", dataHash = " & ByteArrayToHexString(dataHash) & ", aesKey = " & ByteArrayToHexString(aesKey) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
@@ -3394,14 +3397,14 @@ Step2:
             'sha1.update(SKPrime + b"\x01")
             'SKPrimeHash = sha1.digest()
             Dim SKPrimeHash As Byte() = sha1.ComputeHash(SKPrime.Concat({1}).ToArray)
-            'If g_bDebug Then Log("generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " generated SKPrimeHash = " & ByteArrayToHexString(SKPrimeHash), LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " generated SKPrimeHash = " & ByteArrayToHexString(SKPrimeHash), LogType.LOG_TYPE_INFO)
 
             'Return "0103000000000000000014" + SKPrimeHash.hex().upper() + "0000000000"
             Dim ReturnString As String = "0103000000000000000014" + ByteArrayToHexString(SKPrimeHash).ToUpper + "0000000000"
-            If g_bDebug Then Log("generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " generated returnString = " & ReturnString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " generated returnString = " & ReturnString, LogType.LOG_TYPE_INFO)
             Return ReturnString
         Catch ex As Exception
-            If g_bDebug Then Log("Error in generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " with SKPrime = " & ByteArrayToHexString(SKPrime) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in generateServerAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " with SKPrime = " & ByteArrayToHexString(SKPrime) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return ""
         End Try
     End Function
@@ -3418,15 +3421,15 @@ Step2:
             '   tmpClientAck = "0104000000000000000014" + SKPrimeHash.hex().upper() + "0000000000"
             Dim tmpClientAck As String = "0104000000000000000014" + ByteArrayToHexString(SKPrimeHash).ToUpper() + "0000000000"
             If clientAck = tmpClientAck Then
-                If g_bDebug Then Log("parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " returned true!!", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " returned true!!", LogType.LOG_TYPE_INFO)
                 Return True
             Else
-                If g_bDebug Then Log("Warning in parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " returned false!!", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " returned false!!", LogType.LOG_TYPE_WARNING)
                 Return False
             End If
             '   Return clientAck == tmpClientAck
         Catch ex As Exception
-            If g_bDebug Then Log("Error in parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " with clientAck = " & clientAck & " and SKPrime = " & ByteArrayToHexString(SKPrime) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in parseClientAcknowledge for UPnPDevice =  " & MyUPnPDeviceName & " with clientAck = " & clientAck & " and SKPrime = " & ByteArrayToHexString(SKPrime) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
         End Try
     End Function
@@ -3436,7 +3439,7 @@ Step2:
 
     Private Function encrypt_parameter_data_with_aes(input As Byte()) As Byte()
         Try
-            If SuperDebug Then Log("encrypt_parameter_data_with_aes called for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(input), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("encrypt_parameter_data_with_aes called for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(input), LogType.LOG_TYPE_INFO)
             'iv = b"\x00" * BLOCK_SIZE
             Dim iv As Byte() = New Byte(BLOCK_SIZE - 1) {}
             For i = 0 To BLOCK_SIZE - 1
@@ -3466,14 +3469,14 @@ Step2:
             Next
             Return output
         Catch ex As Exception
-            If g_bDebug Then Log("Error in encrypt_parameter_data_with_aes for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(input) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in encrypt_parameter_data_with_aes for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(input) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
 
     Private Function decrypt_parameter_data_with_aes(Input As Byte()) As Byte()
         Try
-            If SuperDebug Then Log("encrypt_parameter_data_with_aes called for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(Input), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("encrypt_parameter_data_with_aes called for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(Input), LogType.LOG_TYPE_INFO)
             'iv = b"\x00" * BLOCK_SIZE
             Dim iv As Byte() = New Byte(BLOCK_SIZE - 1) {}
             For i = 0 To BLOCK_SIZE - 1
@@ -3503,7 +3506,7 @@ Step2:
             Next
             Return output
         Catch ex As Exception
-            If g_bDebug Then Log("Error in decrypt_parameter_data_with_aes for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(Input) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in decrypt_parameter_data_with_aes for UPnPDevice =  " & MyUPnPDeviceName & " with input = " & ByteArrayToHexString(Input) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return Nothing
         End Try
     End Function
@@ -3527,7 +3530,7 @@ Step2:
         'Dim encryptor As System.Security.Cryptography.ICryptoTransform = r.CreateEncryptor(r.Key, r.IV)
         Dim encryptor As System.Security.Cryptography.ICryptoTransform = r.CreateEncryptor()
         Dim Tempresult As Byte() = encryptor.TransformFinalBlock(transKeyArray, 0, transKeyArray.Length)
-        If SuperDebug Then Log("applySamyGOKeyTransform for UPnPDevice =  " & MyUPnPDeviceName & " Tempctx: " & ByteArrayToHexString(Tempresult), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("applySamyGOKeyTransform for UPnPDevice =  " & MyUPnPDeviceName & " Tempctx: " & ByteArrayToHexString(Tempresult), LogType.LOG_TYPE_INFO)
 
         Return encryptor.TransformFinalBlock(Input, 0, Input.Length)
 

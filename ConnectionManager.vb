@@ -19,16 +19,16 @@
 
 
     Private Sub ConnectionManagerStateChange(ByVal StateVarName As String, ByVal Value As Object) Handles myConnectionManagerCallback.ControlStateChange
-        'If SuperDebug Then log( "ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName & " Value = " & Value.ToString)
-        'If g_bDebug And Not SuperDebug Then log( "ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName)
+        'If piDebuglevel > DebugLevel.dlEvents Then log( "ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName & " Value = " & Value.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly And Not piDebuglevel > DebugLevel.dlEvents Then log( "ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName)
         If StateVarName = "CurrentConnectionIDs" Then
-            If g_bDebug And Not SuperDebug Then Log("ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly And Not PIDebuglevel > DebugLevel.dlEvents Then Log("ConnectionManager Change callback for device = " & MyUPnPDeviceName & ". Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
         ElseIf StateVarName = "SinkProtocolInfo" Then
             ExtractSinkProtocolInfo(Value)
         ElseIf StateVarName = "SourceProtocolInfo" Then
             ExtractSourceProtocolInfo(Value)
         Else
-            If g_bDebug Then Log("Warning : ConnectionManager Change callback for device = " & MyUPnPDeviceName & " received an unknown Variable = " & StateVarName & " and data = " & Value.ToString, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning : ConnectionManager Change callback for device = " & MyUPnPDeviceName & " received an unknown Variable = " & StateVarName & " and data = " & Value.ToString, LogType.LOG_TYPE_WARNING)
         End If
     End Sub
 
@@ -44,11 +44,11 @@
 
 
     Private Sub ExtractSourceProtocolInfo(Info As String)
-        If g_bDebug Then Log("ExtractSourceProtocolInfo called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSourceProtocolInfo called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Info = Trim(Info)
         If Info = "" Then Exit Sub
         MySourceProtocolInfo = Split(Info, ",")
-        If SuperDebug Then
+        If PIDebuglevel > DebugLevel.dlEvents Then
             If Not MySourceProtocolInfo Is Nothing Then
                 For Each SourceProtocol In MySourceProtocolInfo
                     Log("ExtractSourceProtocolInfo found Protocol = " & SourceProtocol.ToString, LogType.LOG_TYPE_INFO)
@@ -58,11 +58,11 @@
     End Sub
 
     Private Sub ExtractSinkProtocolInfo(Info As String)
-        If g_bDebug Then Log("ExtractSinkProtocolInfo called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSinkProtocolInfo called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Info = Trim(Info)
         If Info = "" Then Exit Sub
         MySinkProtocolInfo = Split(Info, ",")
-        If SuperDebug Then
+        If PIDebuglevel > DebugLevel.dlEvents Then
             If Not MySinkProtocolInfo Is Nothing Then
                 For Each SinkProtocol In MySinkProtocolInfo
                     Log("ExtractSinkProtocolInfo found Protocol = " & SinkProtocol.ToString, LogType.LOG_TYPE_INFO)
@@ -72,7 +72,7 @@
     End Sub
 
     Private Function CheckForProtocol(Source As Boolean, Protocol As String) As Boolean
-        If SuperDebug Then Log("CheckForProtocol called for device - " & MyUPnPDeviceName & " with SourceFlag = " & Source.ToString & " and Protocol = " & Protocol.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("CheckForProtocol called for device - " & MyUPnPDeviceName & " with SourceFlag = " & Source.ToString & " and Protocol = " & Protocol.ToString, LogType.LOG_TYPE_INFO)
         ' the format is <protocol>“:”<network>“:”<contentFormat>“:”<additionalInfo> where each of the 4 elements MAY be a wildcard “*”.
         ' we apparantly need to check for the additional info when available as well. Looks as follows DLNA.ORG_PN=AVC_MP4_BL_L31_HD_AAC;DLNA.ORG_FLAGS=8d700000000000000000000000000000 
         CheckForProtocol = False
@@ -106,7 +106,7 @@
                         End If
                     End If
                 Catch ex As Exception
-                    log("Error in CheckForProtocol for device - " & MyUPnPDeviceName & " and Protocol = " & Protocol.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    Log("Error in CheckForProtocol for device - " & MyUPnPDeviceName & " and Protocol = " & Protocol.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     Exit Function
                 End Try
             Next
@@ -121,14 +121,14 @@
                     For Each AdditionalSourceSinkInfo In AdditionalSourceSinkInfos
                         If AdditionalSourceSinkInfo.IndexOf("DLNA.ORG_PN=") <> -1 Then
                             AdditionalSourceSinkInfo = AdditionalSourceSinkInfo.Remove(0, AdditionalSourceSinkInfo.IndexOf("=") + 1)
-                            'If g_bDebug Then log( "CheckForProtocol found Additional SourceSinkProtocolInfo for device - " & MyUPnPDeviceName & " with Additional Protocol = " & AdditionalSourceSinkInfo & " and Protocol = " & Protocol.ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CheckForProtocol found Additional SourceSinkProtocolInfo for device - " & MyUPnPDeviceName & " with Additional Protocol = " & AdditionalSourceSinkInfo & " and Protocol = " & Protocol.ToString)
                             Dim AdditionalProtocolInfos As String()
                             AdditionalProtocolInfos = Split(ProtocolInfo(3).ToString, ";")
                             Dim AdditionalProtocolInfo As String
                             For Each AdditionalProtocolInfo In AdditionalProtocolInfos
                                 If AdditionalProtocolInfo.IndexOf("DLNA.ORG_PN=") <> -1 Then
                                     AdditionalProtocolInfo = AdditionalProtocolInfo.Remove(0, AdditionalProtocolInfo.IndexOf("=") + 1)
-                                    'If g_bDebug Then log( "CheckForProtocol found Additional ProtocolInfo for device - " & MyUPnPDeviceName & " with Additional Protocol = " & AdditionalSourceSinkInfo & " and Protocol = " & Protocol.ToString)
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CheckForProtocol found Additional ProtocolInfo for device - " & MyUPnPDeviceName & " with Additional Protocol = " & AdditionalSourceSinkInfo & " and Protocol = " & Protocol.ToString)
                                     If AdditionalProtocolInfo <> AdditionalSourceSinkInfo Then
                                         ' keep this 
                                         CheckForProtocol = False
@@ -141,13 +141,13 @@
                 End If
 TheyAreDifferent:
                 If CheckForProtocol Then
-                    'If g_bDebug Then log( "CheckForProtocol found Protocol for device - " & MyUPnPDeviceName & " with Protocol = " & Protocol & " and SourceProtocol = " & SourceProtocol.ToString)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CheckForProtocol found Protocol for device - " & MyUPnPDeviceName & " with Protocol = " & Protocol & " and SourceProtocol = " & SourceProtocol.ToString)
                     Exit Function
                 End If
 
             End If
         Next
-        'If g_bDebug Then log( "Warning CheckForProtocol did not find Protocol for device - " & MyUPnPDeviceName & " with Protocol = " & Protocol)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Warning CheckForProtocol did not find Protocol for device - " & MyUPnPDeviceName & " with Protocol = " & Protocol)
     End Function
 
 
@@ -155,7 +155,7 @@ TheyAreDifferent:
     Public Function CMGetCurrentConnectionInfo(Optional ConnectionID As Integer = 0) As String
         CMGetCurrentConnectionInfo = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("CMGetCurrentConnectionInfo called for device " & MyUPnPDeviceName & " and ConnectionID = " & ConnectionID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CMGetCurrentConnectionInfo called for device " & MyUPnPDeviceName & " and ConnectionID = " & ConnectionID.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(6)
@@ -168,7 +168,7 @@ TheyAreDifferent:
             MyPeerConnectionID = OutArg(4)      ' String
             MyDirection = OutArg(5)             ' String
             MyStatus = OutArg(6)                ' String
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Log("CMGetCurrentConnectionInfo : MyRCSID                 = " & MyRCSID.ToString, LogType.LOG_TYPE_INFO)
                 Log("CMGetCurrentConnectionInfo : MyAVTransportID         = " & MyAVTransportID.ToString, LogType.LOG_TYPE_INFO)
                 Log("CMGetCurrentConnectionInfo : MyProtocolInfo          = " & MyProtocolInfo.ToString, LogType.LOG_TYPE_INFO)
@@ -179,14 +179,14 @@ TheyAreDifferent:
             End If
             CMGetCurrentConnectionInfo = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in CMGetCurrentConnectionInfo for device = " & MyUPnPDeviceName & " and ConnectionID = " & ConnectionID.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CMGetCurrentConnectionInfo for device = " & MyUPnPDeviceName & " and ConnectionID = " & ConnectionID.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function CMGetProtocolInfo() As String
         CMGetProtocolInfo = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("CMGetProtocolInfo called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CMGetProtocolInfo called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(1)
@@ -195,31 +195,31 @@ TheyAreDifferent:
             MySink = OutArg(1)   ' String
             ExtractSourceProtocolInfo(MySource)
             ExtractSinkProtocolInfo(MySink)
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Log("CMGetProtocolInfo : MySource = " & MySource.ToString, LogType.LOG_TYPE_INFO)
                 'log( "CMGetProtocolInfo : MySink   = " & MySink.ToString)
             End If
             CMGetProtocolInfo = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in CMGetProtocolInfo for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CMGetProtocolInfo for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function CMGetCurrentConnectionIDs() As String
         CMGetCurrentConnectionIDs = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("CMGetCurrentConnectionIDs called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CMGetCurrentConnectionIDs called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
             ConnectionManager.InvokeAction("GetCurrentConnectionIDs", InArg, OutArg)
             MyConnectionIDs = OutArg(0) ' String
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Log("CMGetCurrentConnectionIDs : MyConnectionIDs = " & MyConnectionIDs.ToString, LogType.LOG_TYPE_INFO)
             End If
             CMGetCurrentConnectionIDs = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in CMGetCurrentConnectionIDs for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CMGetCurrentConnectionIDs for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 

@@ -85,7 +85,7 @@ Partial Public Class HSPI
         '   <app id="9161" version="1.1.1">Tested</app>
         '</apps>
         RokuRetrieveDIALAppList = False
-        If g_bDebug Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Function
         ' the URL to the DIAL information is returned in the header with a header field = "Application-URL"
         ' So first do get on the Location Info
@@ -124,7 +124,7 @@ Partial Public Class HSPI
                 Else '
                     MyApplicationURL = URLDoc
                 End If
-                If SuperDebug Then Log(" RokuRetrieveDIALAppList for device = " & MyUPnPDeviceName & " found Application-URL = " & MyApplicationURL.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log(" RokuRetrieveDIALAppList for device = " & MyUPnPDeviceName & " found Application-URL = " & MyApplicationURL.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 MyApplicationURL = URLDoc
             End Try
@@ -150,7 +150,7 @@ Partial Public Class HSPI
             Else
                 RequestUri = New Uri(URLDoc & "/query/device-info")
             End If
-            If g_bDebug Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the device-info with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the device-info with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
             Dim p = ServicePointManager.FindServicePoint(RequestUri)
             p.Expect100Continue = False
             Dim wRequest As System.Net.HttpWebRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
@@ -243,23 +243,23 @@ Partial Public Class HSPI
                     For Each Entry As XmlNode In DeviceInfo.ChildNodes
                         TagName = Entry.Name
                         TagContent = Entry.InnerText
-                        If g_bDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found device-info TagName = " & TagName & ", TagContent = " & TagContent, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found device-info TagName = " & TagName & ", TagContent = " & TagContent, LogType.LOG_TYPE_INFO)
                         If TagName.ToLower = "Is-tv" Then
                             If TagContent.ToLower = "true" Then isTV = True
-                            If g_bDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found isTV", LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found isTV", LogType.LOG_TYPE_INFO)
                         ElseIf TagName.ToLower = "ethernet-mac" Then
                             WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, TagContent)
-                            If g_bDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found eMAC = " & TagContent, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found eMAC = " & TagContent, LogType.LOG_TYPE_INFO)
                         ElseIf TagName.ToLower = "wifi-mac" Then
                             WriteStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, TagContent)
-                            If g_bDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found WifiMAC = " & TagContent, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found WifiMAC = " & TagContent, LogType.LOG_TYPE_INFO)
 
                         End If
                     Next
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in RokuRetrieveDIALAppList for UPnPDevice = " & MyUPnPDeviceName & "  processing device-info XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RokuRetrieveDIALAppList for UPnPDevice = " & MyUPnPDeviceName & "  processing device-info XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Try
@@ -268,7 +268,7 @@ Partial Public Class HSPI
             Else
                 RequestUri = New Uri(URLDoc & "/query/apps")
             End If
-            If g_bDebug Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the app-info with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the app-info with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
             Dim p = ServicePointManager.FindServicePoint(RequestUri)
             p.Expect100Continue = False
             Dim wRequest As System.Net.HttpWebRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
@@ -383,8 +383,8 @@ Partial Public Class HSPI
             Try
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     Dim AppName As String = ""
@@ -392,8 +392,8 @@ Partial Public Class HSPI
                     'AppName = outerNode.Attributes("app").InnerText
                     AppName = outerNode.InnerText
                     AppID = outerNode.Attributes("id").Value
-                    If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> App Name: " & AppName, LogType.LOG_TYPE_INFO)
-                    If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> App ID: " & AppID, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> App Name: " & AppName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> App ID: " & AppID, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN & " - Default Codes", AppName, "/launch/" & AppID & ":;:-:" & ButtonIndex.ToString, objRemoteFile)
                     WriteStringIniFile(MyUDN, ButtonIndex.ToString, AppName & ":;:-:" & "/launch/" & AppID & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString, objRemoteFile)
                     Try
@@ -403,9 +403,9 @@ Partial Public Class HSPI
                             Dim SuccesfullSave As Boolean = False
                             SuccesfullSave = hs.WriteHTMLImage(ChannelImage, FileArtWorkPath & "RokuChannelImage_" & AppID.ToString & ".png", True)
                             If Not SuccesfullSave Then
-                                If g_bDebug Then Log("Error in RokuRetrieveDIALAppList for Device = " & MyUPnPDeviceName & " had error storing Roku Channel Image at " & FileArtWorkPath & "RokuChannelImage_" & AppID.ToString & ".png", LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RokuRetrieveDIALAppList for Device = " & MyUPnPDeviceName & " had error storing Roku Channel Image at " & FileArtWorkPath & "RokuChannelImage_" & AppID.ToString & ".png", LogType.LOG_TYPE_ERROR)
                             Else
-                                If g_bDebug Then Log("RokuRetrieveDIALAppList for Device = " & MyUPnPDeviceName & " stored Roku Channel Image at " & FileArtWorkPath & "RokuChannelImage_" & AppID.ToString & ".png", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for Device = " & MyUPnPDeviceName & " stored Roku Channel Image at " & FileArtWorkPath & "RokuChannelImage_" & AppID.ToString & ".png", LogType.LOG_TYPE_INFO)
                             End If
                             ChannelImage.Dispose()
                         End If
@@ -436,7 +436,7 @@ Partial Public Class HSPI
             Else
                 RequestUri = New Uri(URLDoc & "/query/tv-channels")
             End If
-            If g_bDebug Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the tv-channels with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " is retrieving the tv-channels with URL = " & RequestUri.ToString, LogType.LOG_TYPE_INFO)
             Dim p = ServicePointManager.FindServicePoint(RequestUri)
             p.Expect100Continue = False
             Dim wRequest As System.Net.HttpWebRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
@@ -468,7 +468,7 @@ Partial Public Class HSPI
                         Dim ChannelUserHidden As String = ""
                         TagName = Channel.Name
                         TagContent = Channel.InnerText
-                        If g_bDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found channel-info TagName = " & TagName & ", TagContent = " & TagContent, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found channel-info TagName = " & TagName & ", TagContent = " & TagContent, LogType.LOG_TYPE_INFO)
                         If TagName.ToLower = "number" Then
                             ChannelNumber = TagContent
                         ElseIf TagName.ToLower = "name" Then
@@ -479,8 +479,8 @@ Partial Public Class HSPI
                             ChannelUserHidden = TagContent
                         End If
                         If ChannelName <> "" And ChannelNumber = "" Then
-                            If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> Channel Name: " & ChannelName, LogType.LOG_TYPE_INFO)
-                            If SuperDebug Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> Channel Number: " & ChannelName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> Channel Name: " & ChannelName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & "------> Channel Number: " & ChannelName, LogType.LOG_TYPE_INFO)
                             WriteStringIniFile(MyUDN & " - Default Codes", ChannelName, "/launch/tvinput.dtv?ch=" & ChannelName & ":;:-:" & ButtonIndex.ToString, objRemoteFile)
                             WriteStringIniFile(MyUDN, ButtonIndex.ToString, ChannelName & ":;:-:" & "/launch/tvinput.dtv?ch=" & ChannelName & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString, objRemoteFile)
                             ButtonIndex = ButtonIndex + 1
@@ -494,7 +494,7 @@ Partial Public Class HSPI
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in RokuRetrieveDIALAppList for UPnPDevice = " & MyUPnPDeviceName & "  processing channel-info XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RokuRetrieveDIALAppList for UPnPDevice = " & MyUPnPDeviceName & "  processing channel-info XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         xmlDoc = Nothing
@@ -503,7 +503,7 @@ Partial Public Class HSPI
 
 
     Private Sub CreateHSRokuRemoteButtons(ReCreate As Boolean)
-        If g_bDebug Then Log("CreateHSRokuRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSRokuRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)
@@ -574,7 +574,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatSetIOExRoku(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExRoku called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExRoku called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             'Case psRemoteOff ' Remote Off
             '    SetAdministrativeStateRemote(False)
@@ -584,7 +584,7 @@ Partial Public Class HSPI
                 CreateHSRokuRemoteButtons(True)
                 CreateRemoteButtons(HSRefRemote)
             Case Else
-                If g_bDebug Then Log("TreatSetIOExRoku called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExRoku called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
                 If UCase(DeviceStatus) = "ONLINE" Then
                     Dim objRemoteFile As String = gRemoteControlPath
                     Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
@@ -600,7 +600,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub PostToRoku(KeyCode As String)
-        If g_bDebug Then Log("PostToRoku called for device - " & MyUPnPDeviceName & " with KeyCode = " & KeyCode.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostToRoku called for device - " & MyUPnPDeviceName & " with KeyCode = " & KeyCode.ToString, LogType.LOG_TYPE_INFO)
         If KeyCode = "" Then Exit Sub
         Dim RequestUri = New Uri(MyApplicationURL & KeyCode) ' need to fix this to take / into account 
         Try

@@ -3,7 +3,7 @@
 Partial Public Class HSPI
 
     Private Sub TreatSetIOExRemoteControl(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExRemoteControl called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExRemoteControl called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Dim RemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         Select Case RemoteType.ToUpper
             Case "SAMSUNGIAPP", "SAMSUNGWEBSOCKET", "SAMSUNGWEBSOCKETPIN"
@@ -21,7 +21,7 @@ Partial Public Class HSPI
 
     Private Sub CreateRemoteButtons(HSRef As Integer)
 
-        If g_bDebug Then Log("CreateRemoteButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateRemoteButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim objRemoteFile As String = gRemoteControlPath
         Dim RemoteButtons As New System.Collections.Generic.Dictionary(Of String, String)()
@@ -79,7 +79,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub CreateButtonInfoInInifile()
-        If g_bDebug Then Log("CreateButtonInfoInInifile called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateButtonInfoInInifile called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
         Dim RemoteButtons As New System.Collections.Generic.Dictionary(Of String, String)()
         Dim RowIndex As Integer = 1

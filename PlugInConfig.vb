@@ -16,8 +16,7 @@ Public Class PlugInConfig
 
     Private stb As New StringBuilder
 
-    Private DebugChkBox As clsJQuery.jqCheckBox
-    Private SuperDebugChkBox As clsJQuery.jqCheckBox
+    Private PIDebugLevelDropList As clsJQuery.jqDropList
     Private UPnPDebugLevelDropList As clsJQuery.jqDropList
     Private LogErrorOnlyChkBox As clsJQuery.jqCheckBox
     Private LogToDiskChkBox As clsJQuery.jqCheckBox
@@ -40,10 +39,8 @@ Public Class PlugInConfig
     Public Sub New(ByVal pagename As String)
         MyBase.New(pagename)
         MyPageName = pagename
-        DebugChkBox = New clsJQuery.jqCheckBox("DebugChkBox", " Debug Flag", MyPageName, True, False)
-        DebugChkBox.toolTip = "Turn normal debug logging on or off"
-        SuperDebugChkBox = New clsJQuery.jqCheckBox("SuperDebugChkBox", " Super Debug Flag", MyPageName, True, False)
-        SuperDebugChkBox.toolTip = "Turn very detailed debug logging on or off. Set this on top of the normal debug log"
+        PIDebugLevelDropList = New clsJQuery.jqDropList("PIDebugLvlBox", MyPageName, False)
+        PIDebugLevelDropList.toolTip = "Set the level of debug logging for the plugin functions"
         UPnPDebugLevelDropList = New clsJQuery.jqDropList("UPnPDebugLvlBox", MyPageName, False)
         UPnPDebugLevelDropList.toolTip = "Set the level of debug logging for the UPnP functions"
         LogErrorOnlyChkBox = New clsJQuery.jqCheckBox("LogErrorOnlyChkBox", " Log Error Only Flag", MyPageName, True, False)
@@ -88,7 +85,7 @@ Public Class PlugInConfig
 
     ' build and return the actual page
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String) As String
-        If g_bDebug Then Log("GetPagePlugin for PlugInConfig called with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for PlugInConfig called with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
 
         Dim stb As New StringBuilder
         Dim stbPlayerTable As New StringBuilder
@@ -111,9 +108,12 @@ Public Class PlugInConfig
 
             ' specific page starts here
 
-            DebugChkBox.checked = GetBooleanIniFile("Options", "Debug", False)
-            SuperDebugChkBox.checked = GetBooleanIniFile("Options", "SuperDebug", False)
-            LogErrorOnlyChkBox.checked = GetBooleanIniFile("Options", "LogErrorOnly", False)
+            Dim PIdeblevel As DebugLevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlOff)
+            PIDebugLevelDropList.ClearItems()
+            PIDebugLevelDropList.AddItem("Off", DebugLevel.dlOff, PIdeblevel = DebugLevel.dlOff)
+            PIDebugLevelDropList.AddItem("Errors Only", DebugLevel.dlErrorsOnly, PIdeblevel = DebugLevel.dlErrorsOnly)
+            PIDebugLevelDropList.AddItem("Events and Errors", DebugLevel.dlEvents, PIdeblevel = DebugLevel.dlEvents)
+            PIDebugLevelDropList.AddItem("Verbose", DebugLevel.dlVerbose, PIdeblevel = DebugLevel.dlVerbose)
             LogToDiskChkBox.checked = GetBooleanIniFile("Options", "LogToDisk", False)
             Dim UPNPdeblevel As DebugLevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
             UPnPDebugLevelDropList.ClearItems()
@@ -142,15 +142,11 @@ Public Class PlugInConfig
             stb.Append(clsPageBuilder.DivEnd)
 
 
-            stb.Append(DebugChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(SuperDebugChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(LogToDiskChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(LogErrorOnlyChkBox.Build)
+            stb.Append(PIDebugLevelDropList.Build & " Plugin Functions Debug Level")
             stb.Append("</br>")
             stb.Append(UPnPDebugLevelDropList.Build & " UPnP Functions Debug Level")
+            stb.Append("</br>")
+            stb.Append(LogToDiskChkBox.Build)
             stb.Append("<hr /> ")
 
             stb.Append(clsPageBuilder.DivStart("UPnPSettingPanel", "style=""color:#0000FF"" "))
@@ -398,7 +394,7 @@ Public Class PlugInConfig
     End Function
 
     Public Overrides Function postBackProc(page As String, data As String, user As String, userRights As Integer) As String
-        If g_bDebug Then Log("PostBackProc for PluginControl called with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostBackProc for PluginControl called with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
 
         Dim parts As Collections.Specialized.NameValueCollection
         parts = HttpUtility.ParseQueryString(data)
@@ -410,29 +406,24 @@ Public Class PlugInConfig
                     If Part IsNot Nothing Then
                         Dim ObjectNameParts As String()
                         ObjectNameParts = Split(Part, "_")
-                        If g_bDebug Then Log("postBackProc for PluginControl found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
-                        If g_bDebug Then Log("postBackProc for PluginControl found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PluginControl found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PluginControl found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
                         Dim ObjectValue As String = parts(Part)
                         Select Case ObjectNameParts(0).ToString
-                            Case "DebugChkBox"
+                            Case "PIDebugLvlBox"
                                 Try
-                                    WriteBooleanIniFile("Options", "Debug", ObjectValue.ToUpper = "CHECKED")
+                                    WriteIntegerIniFile("Options", "PIDebugLevel", Val(ObjectValue))
                                 Catch ex As Exception
-                                    Log("Error in postBackProc for PluginControl saving Debug flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                    Log("Error in postBackProc for PluginControl saving PIDebugLevel with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
-                            Case "SuperDebugChkBox"
-                                Try
-                                    WriteBooleanIniFile("Options", "SuperDebug", ObjectValue.ToUpper = "CHECKED")
-                                Catch ex As Exception
-                                    Log("Error in postBackProc for PluginControl saving SuperDebug flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                                End Try
+                                UPnPDebuglevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlErrorsOnly)
                             Case "UPnPDebugLvlBox"
                                 Try
                                     WriteIntegerIniFile("Options", "UPnPDebugLevel", Val(ObjectValue))
                                 Catch ex As Exception
                                     Log("Error in postBackProc for PluginControl saving UPnPDebugLevel with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
-                                UPnPDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
+                                UPnPDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
                             Case "LogToDiskChkBox"
                                 Try
                                     WriteBooleanIniFile("Options", "LogToDisk", ObjectValue.ToUpper = "CHECKED")
@@ -440,12 +431,6 @@ Public Class PlugInConfig
                                     If gLogToDisk Then OpenLogFile(DebugLogFileName) Else CloseLogFile()
                                 Catch ex As Exception
                                     Log("Error in postBackProc for PluginControl saving LogToDisk flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                                End Try
-                            Case "LogErrorOnlyChkBox"
-                                Try
-                                    WriteBooleanIniFile("Options", "LogErrorOnly", ObjectValue.ToUpper = "CHECKED")
-                                Catch ex As Exception
-                                    Log("Error in postBackProc for PluginControl saving LogErrorOnly flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "VolumeStepBox"
                                 Try
@@ -503,10 +488,10 @@ Public Class PlugInConfig
                                 End Try
                             Case "myPlayerListSlide"
                                 If ObjectValue = "myPlayerListSlide_name_open" Then
-                                    If g_bDebug Then Log("postBackProc has open slider", LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc has open slider", LogType.LOG_TYPE_INFO)
                                     WriteBooleanIniFile("Options", "PlayerListSliderOpen", True)
                                 ElseIf ObjectValue = "myPlayerListSlide_name_close" Then
-                                    If g_bDebug Then Log("postBackProc has closed slider", LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc has closed slider", LogType.LOG_TYPE_INFO)
                                     WriteBooleanIniFile("Options", "PlayerListSliderOpen", False)
                                 End If
                             Case "AddPlayerBtn"
@@ -582,7 +567,7 @@ Public Class PlugInConfig
                 Log("Error in postBackProc for PluginControl calling Plugin to update values with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
-            If g_bDebug Then Log("postBackProc for PluginControl found parts to be empty", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PluginControl found parts to be empty", LogType.LOG_TYPE_INFO)
         End If
 
         Return MyBase.postBackProc(page, data, user, userRights)
@@ -601,7 +586,7 @@ Public Class PlugInConfig
     End Enum
 
     Public Sub ItemChange(DeviceTableItem As DeviceTableItems, Value As String, RowIndex As Integer)
-        If g_bDebug Then Log("ItemChange called with DeviceTableItems = " & DeviceTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ItemChange called with DeviceTableItems = " & DeviceTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString, LogType.LOG_TYPE_INFO)
         Value = Trim(Value)
         Dim KeyValue As New System.Collections.Generic.KeyValuePair(Of String, String)
 
@@ -688,7 +673,7 @@ Public Class PlugInConfig
     End Sub
 
     Public Sub DeletePlayerClick(PlayerTableItem As Integer)
-        If g_bDebug Then Log("DeletePlayerClick called with tableItem = " & PlayerTableItem.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeletePlayerClick called with tableItem = " & PlayerTableItem.ToString, LogType.LOG_TYPE_INFO)
         PlayerTableItem = Trim(PlayerTableItem)
         ' go find the UDN
         Dim IndexCount As Integer = 0
@@ -711,7 +696,7 @@ Public Class PlugInConfig
     End Sub
 
     Public Sub DeleteAllPlayersClick()
-        If g_bDebug Then Log("DeleteAllPlayersClick called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteAllPlayersClick called", LogType.LOG_TYPE_INFO)
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info") '  As Dictionary(Of String, String)
         For Each DLNADevice In DLNADevices
@@ -728,7 +713,7 @@ Public Class PlugInConfig
                     End If
                     DeleteIniSection(DLNADevice.Key)
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in DeleteAllPlayersClick with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DeleteAllPlayersClick with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
         Next
@@ -751,7 +736,7 @@ Public Class PlugInConfig
 
     Private Function GetZoneNameByIndex(index As Integer) As String
         GetZoneNameByIndex = ""
-        If g_bDebug Then Log("GetZoneNameByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneNameByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info")
         Try
@@ -773,7 +758,7 @@ Public Class PlugInConfig
 
     Private Function GetZoneUDNByIndex(index As Integer) As String
         GetZoneUDNByIndex = ""
-        If g_bDebug Then Log("GetZoneUDNByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneUDNByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info")
         Try

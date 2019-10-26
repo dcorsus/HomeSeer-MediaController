@@ -16,7 +16,7 @@ Partial Public Class HSPI
     Const MaxButtonCollumns = 6
 
     Private Sub CreateLGRemoteIniFileInfo()
-        If g_bDebug Then Log("CreateLGRemoteIniFileInfo called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteIniFileInfo called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
         Dim SamsungRemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
 
@@ -86,7 +86,7 @@ Partial Public Class HSPI
 
     Private Sub CreateHSLGRemoteButtons(ReCreate As Boolean)
 
-        If g_bDebug Then Log("CreateHSLGRemoteButtons called for UPnPDevice = " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSLGRemoteButtons called for UPnPDevice = " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)
@@ -184,7 +184,7 @@ Partial Public Class HSPI
 
     Private Sub CreateHSLGRemoteServices()
 
-        If g_bDebug Then Log("CreateHSLGRemoteServices called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSLGRemoteServices called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         ' First Create the Status Device
         HSRefServiceRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Status.ToString & "HSCode", -1)
@@ -215,7 +215,7 @@ Partial Public Class HSPI
 
     Private Sub CreateLGRemoteServiceButtons(HSRef As Integer)
 
-        If g_bDebug Then Log("CreateLGRemoteServiceButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim objRemoteFile As String = gRemoteControlPath
         Dim RemoteButtons As New System.Collections.Generic.Dictionary(Of String, String)()
@@ -257,8 +257,8 @@ Partial Public Class HSPI
                                     vg.Graphic = ImagesPath & "Artwork/" & RemoteButtonInfos(6) & ".png"
                                     vg.Set_Value = RemoteButtonValue
                                     hs.DeviceVGP_AddPair(HSRef, vg)
-                                    pair.PairButtonImageType = Enums.CAPIControlButtonImage.Use_Custom
-                                    pair.PairButtonImage = ImagesPath & "Artwork/" & RemoteButtonInfos(6) & ".png"
+                                    Pair.PairButtonImageType = Enums.CAPIControlButtonImage.Use_Custom
+                                    Pair.PairButtonImage = ImagesPath & "Artwork/" & RemoteButtonInfos(6) & ".png"
                                 End If
                                 hs.DeviceVSP_AddPair(HSRef, Pair)
                             ElseIf RemoteButtonInfos(1).IndexOf("LGsetinput") = 0 Then
@@ -420,7 +420,7 @@ Partial Public Class HSPI
 
 
     Private Sub CreateLGAppandInputButtons(HSRefRemote As Integer)
-        If g_bDebug Then Log("CreateLGAppandInputButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGAppandInputButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         LGSendCommand("listLaunchPoints_0", "request", "ssap://com.webos.applicationManager/listLaunchPoints", "", "", True)
         LGSendCommand("getexternalinputlist_0", "request", "ssap://tv/getExternalInputList", "", "", True)
         LGSendCommand("channellist_0", "request", "ssap://tv/getChannelList", "", "", True)
@@ -465,7 +465,7 @@ Partial Public Class HSPI
         '        }
         '   },
         '   "returnValue":true
-        If g_bDebug Then Log("LGAddAppButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGAddAppButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim SeqNbr As Integer = 0
             Dim ButtonIndex As Integer = 100
@@ -496,7 +496,7 @@ Partial Public Class HSPI
                         Icon = Entry.value.ToString
                     End If
                 Next
-                If g_bDebug Then Log("LGAddAppButtons for Device = " & MyUPnPDeviceName & " found app = " & Title & " with id=" & id & ", LaunchpointID=" & LaunchpointID & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGAddAppButtons for Device = " & MyUPnPDeviceName & " found app = " & Title & " with id=" & id & ", LaunchpointID=" & LaunchpointID & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
                 WriteStringIniFile(MyUDN, ButtonIndex.ToString, Title & ":;:-:" & "LGlaunch" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & id & ":;:-:" & LaunchpointID & ":;:-:" & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString, objRemoteFile)
                 If Icon <> "" And id <> "" Then
                     Try
@@ -506,9 +506,9 @@ Partial Public Class HSPI
                             Dim SuccesfullSave As Boolean = False
                             SuccesfullSave = hs.WriteHTMLImage(AppImage, FileArtWorkPath & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", True)
                             If Not SuccesfullSave Then
-                                If g_bDebug Then Log("Error in LGAddAppButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in LGAddAppButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_ERROR)
                             Else
-                                If g_bDebug Then Log("LGAddAppButtons for Device = " & MyUPnPDeviceName & " stored LG App Image at " & FileArtWorkPath & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGAddAppButtons for Device = " & MyUPnPDeviceName & " stored LG App Image at " & FileArtWorkPath & "LGAppImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ".png", LogType.LOG_TYPE_INFO)
                             End If
                             AppImage.Dispose()
                             SeqNbr += 1
@@ -525,7 +525,7 @@ Partial Public Class HSPI
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in LGAddAppButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in LGAddAppButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -624,7 +624,7 @@ Partial Public Class HSPI
         '                "TSID":0,
         '                "SVCID":0
         '            },
-        If g_bDebug Then Log("AddInputButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInputButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Try
             Dim SeqNbr As Integer = 0
@@ -658,7 +658,7 @@ Partial Public Class HSPI
                         Port = Entry.value.ToString
                     End If
                 Next
-                If g_bDebug Then Log("AddInputButtons for Device = " & MyUPnPDeviceName & " found device = " & Label & " with id=" & id & ", AppID=" & AppID & ", Port=" & Port & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInputButtons for Device = " & MyUPnPDeviceName & " found device = " & Label & " with id=" & id & ", AppID=" & AppID & ", Port=" & Port & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
                 WriteStringIniFile(MyUDN, ButtonIndex.ToString, Label & ":;:-:" & "LGsetinput" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & id & ":;:-:" & Port & ":;:-:" & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString.ToString, objRemoteFile)
                 If Icon <> "" And id <> "" Then
                     Try
@@ -668,9 +668,9 @@ Partial Public Class HSPI
                             Dim SuccesfullSave As Boolean = False
                             SuccesfullSave = hs.WriteHTMLImage(AppImage, FileArtWorkPath & "LGDeviceImage_" & SeqNbr.ToString & ".png", True)
                             If Not SuccesfullSave Then
-                                If g_bDebug Then Log("Error in AddInputButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddInputButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_ERROR)
                             Else
-                                If g_bDebug Then Log("AddInputButtons for Device = " & MyUPnPDeviceName & " stored LG InputDevice Image at " & FileArtWorkPath & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInputButtons for Device = " & MyUPnPDeviceName & " stored LG InputDevice Image at " & FileArtWorkPath & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_INFO)
                             End If
                             AppImage.Dispose()
                             SeqNbr += 1
@@ -687,13 +687,13 @@ Partial Public Class HSPI
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AddInputButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddInputButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Private Sub AddChannelButtons(Payload As Object)
-        If g_bDebug Then Log("AddChannelButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddChannelButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Try
             Dim SeqNbr As Integer = 0
@@ -721,7 +721,7 @@ Partial Public Class HSPI
                         imgUrl = Entry.value.ToString
                     End If
                 Next
-                If g_bDebug Then Log("AddChannelButtons for Device = " & MyUPnPDeviceName & " found ChannelNumber = " & channelNumber & " with id=" & channelId & " and imgUrl=" & imgUrl, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddChannelButtons for Device = " & MyUPnPDeviceName & " found ChannelNumber = " & channelNumber & " with id=" & channelId & " and imgUrl=" & imgUrl, LogType.LOG_TYPE_INFO)
                 WriteStringIniFile(MyUDN, ButtonIndex.ToString, channelNumber & ":;:-:" & "LGsetchannel" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & channelId & ":;:-:" & "LGChannelImage_" & MyUDN & "_" & SeqNbr.ToString, objRemoteFile)
                 If imgUrl <> "" And channelId <> "" Then
                     Try
@@ -731,9 +731,9 @@ Partial Public Class HSPI
                             Dim SuccesfullSave As Boolean = False
                             SuccesfullSave = hs.WriteHTMLImage(AppImage, FileArtWorkPath & "LGChannelImage_" & SeqNbr.ToString & ".png", True)
                             If Not SuccesfullSave Then
-                                If g_bDebug Then Log("Error in AddChannelButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGChannelImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddChannelButtons for Device = " & MyUPnPDeviceName & " had error storing Image at " & FileArtWorkPath & "LGChannelImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_ERROR)
                             Else
-                                If g_bDebug Then Log("AddChannelButtons for Device = " & MyUPnPDeviceName & " stored LG channel Image at " & FileArtWorkPath & "LGChannelImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddChannelButtons for Device = " & MyUPnPDeviceName & " stored LG channel Image at " & FileArtWorkPath & "LGChannelImage_" & MyUDN & "_" & SeqNbr.ToString & ".png", LogType.LOG_TYPE_INFO)
                             End If
                             AppImage.Dispose()
                             SeqNbr += 1
@@ -750,20 +750,20 @@ Partial Public Class HSPI
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AddChannelButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddChannelButtons for Device = " & MyUPnPDeviceName & " while processing response with error = " & ex.Message & " with Payload = " & Payload.ToString, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Private Sub TreatRegistered(inBytes As Byte())
         ' great, we registered successfully, now retrieve the client-key in the payload
-        If g_bDebug Then Log("TreatRegistered called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatRegistered called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
         If Payload Is Nothing Then Exit Sub
         Dim ClientKey As String = FindPairInJSONString(Payload, "client-key").ToString.Trim("""")
         If ClientKey <> "" Then
-            If g_bDebug Then Log("HandleLGDataReceived received a ClientKey for Device = " & MyUPnPDeviceName & " with ClientKey = " & ClientKey, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived received a ClientKey for Device = " & MyUPnPDeviceName & " with ClientKey = " & ClientKey, LogType.LOG_TYPE_INFO)
             ' save it!
             WriteStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, ClientKey)
             WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
@@ -794,7 +794,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatPointerInputSocket(Payload As Object)
-        If g_bDebug Then Log("TreatPointerInputSocket called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatPointerInputSocket called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         '{"type":"response","id":"1","payload":{"socketPath":"ws://192.168.1.69:3000/resources/9b7d24a4862c409499865f0acfc2edd12aaee2db/netinput.pointer.sock","returnValue":true}}
         ' or over SSL
         ' {"type":"response","id":"getpointerinputsocket_0","payload":{"socketPath":"wss://192.168.1.183:3001/resources/d33c9903271be293c3576fbcbe90cc195184d720/netinput.pointer.sock","returnValue":true}} 
@@ -841,12 +841,12 @@ Partial Public Class HSPI
             End If
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatPointerInputSocket called for Device = " & MyUPnPDeviceName & " and Payload = " & Payload.ToString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatPointerInputSocket called for Device = " & MyUPnPDeviceName & " and Payload = " & Payload.ToString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Private Sub TreatHelloReceived(Payload As Byte())
-        If g_bDebug Then Log("TreatHelloReceived called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"protocolVersion":1,"deviceType":"tv","deviceOS":"webOS","deviceOSVersion":"4.1.0","deviceOSReleaseVersion":"3.0.0","deviceUUID":"05ee840a-cf71-15a1-12d8-11e0eb21437c","pairingTypes":["PIN","PROMPT","COMBINED"]}}
         Try
             Dim PairingTypes As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(Payload), "pairingTypes")
@@ -870,10 +870,10 @@ Partial Public Class HSPI
             End If
 
             Dim SocketData As Byte() = System.Text.ASCIIEncoding.ASCII.GetBytes(JSONRegisterString)
-            If g_bDebug Then Log("TreatHelloReceived send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
 
             If Not LGWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                If g_bDebug Then Log("TreatHelloReceived for device - " & MyUPnPDeviceName & " unsuccessful sending registration_0", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived for device - " & MyUPnPDeviceName & " unsuccessful sending registration_0", LogType.LOG_TYPE_INFO)
                 Exit Sub
             End If
             ' expected response inHandleLGDataREceived
@@ -881,13 +881,13 @@ Partial Public Class HSPI
             ' {"type": "registered","id":"register_0","payload":{"client-key":"5e738846a5e1d5ca08df28c4d955e8b8"}}
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatHelloReceived called for Device = " & MyUPnPDeviceName & " and Payload = " & ASCIIEncoding.ASCII.GetChars(Payload) & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatHelloReceived called for Device = " & MyUPnPDeviceName & " and Payload = " & ASCIIEncoding.ASCII.GetChars(Payload) & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Private Sub TreatSetIOExLG(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExLG called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExLG called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             Case psRemoteOff  ' remote off
                 WriteBooleanIniFile("Remote Service by UDN", MyUDN, False)
@@ -926,22 +926,22 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatServicesInfo(payload As Object)
-        If g_bDebug Then Log("TreatServicesInfo called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatServicesInfo called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"services_0","payload":{"returnValue":true,"services":[{"name":"api","version":1},{"name":"audio","version":1},{"name":"config","version":1},{"name":"media.controls","version":1},{"name":"media.viewer","version":1},{"name":"pairing","version":1},{"name":"settings","version":1},{"name":"system","version":1},{"name":"system.launcher","version":1},{"name":"system.notifications","version":1},{"name":"timer","version":1},{"name":"tv","version":1},{"name":"user","version":1},{"name":"webapp","version":2}]}} 
     End Sub
 
     Private Sub TreatChannelInfoEvent(Payload As Object)
-        If g_bDebug Then Log("TreatChannelInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatChannelInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"channels_0","payload":{"returnValue":true,"valueList":"","dataSource":0,"dataType":1,"cableAnalogSkipped":false,"scannedChannelCount":{"terrestrialAnalogCount":2,"terrestrialDigitalCount":0,"cableAnalogCount":0,"cableDigitalCount":0,"satelliteDigitalCount":0},"deviceSourceIndex":1,"channelListCount":2,"channelLogoServerUrl":"","ipChanInteractiveUrl":"","channelList":[{"channelId":"0_2_2_0_0_0_0","programId":"0_2_2_0_0_0_0","signalChannelId":"0_2_2_0_0_0_0","chanCode":"UNKNOWN","channelMode":"Terrestrial","channelModeId":0,"channelType":"Terrestrial Analog TV","channelTypeId":0,"channelNumber":"2-0","majorNumber":2,"minorNumber":0,"channelName":"","skipped":false,"locked":false,"descrambled":true,"scrambled":false,"serviceType":0,"favoriteGroup":[],"imgUrl":"","display":1,"satelliteName":" ","fineTuned":false,"Frequency":0,"shortCut":0,"Bandwidth":0,"HDTV":false,"Invisible":false,"TV":true,"DTV":false,"ATV":true,"Data":false,"Radio":false,"Numeric":false,"PrimaryCh":true,"specialService":false,"CASystemIDList":{},"CASystemIDListCount":0,"groupIdList":[0],"channelGenreCode":"UNKNOWN","favoriteIdxA":250,"favoriteIdxB":250,"favoriteIdxC":250,"favoriteIdxD":250,"imgUrl2":"","channelLogoSize":"UNKNOWN","ipChanServerUrl":"","payChan":false,"IPChannelCode":"UNKNOWN","ipCallNumber":"UNKNOWN","otuFlag":false,"favoriteIdxE":250,"favoriteIdxF":250,"favoriteIdxG":250,"favoriteIdxH":250,"satelliteLcn":false,"waterMarkUrl":"","channelNameSortKey":"","ipChanType":"UNKNOWN","adultFlag":0,"ipChanCategory":"UNKNOWN","ipChanInteractive":false,"callSign":"UNKNOWN","adFlag":0,"configured":false,"lastUpdated":"","ipChanCpId":"UNKNOWN","isFreeviewPlay":1,"playerService":"com.webos.service.tv","TSID":0,"SVCID":0},{"channelId":"0_3_3_0_0_0_0","programId":"0_3_3_0_0_0_0","signalChannelId":"0_3_3_0_0_0_0","chanCode":"UNKNOWN","channelMode":"Terrestrial","channelModeId":0,"channelType":"Terrestrial Analog TV","channelTypeId":0,"channelNumber":"3-0","majorNumber":3,"minorNumber":0,"channelName":"","skipped":false,"locked":false,"descrambled":true,"scrambled":false,"serviceType":0,"favoriteGroup":[],"imgUrl":"","display":1,"satelliteName":" ","fineTuned":false,"Frequency":0,"shortCut":0,"Bandwidth":0,"HDTV":false,"Invisible":false,"TV":true,"DTV":false,"ATV":true,"Data":false,"Radio":false,"Numeric":false,"PrimaryCh":true,"specialService":false,"CASystemIDList":{},"CASystemIDListCount":0,"groupIdList":[0],"channelGenreCode":"UNKNOWN","favoriteIdxA":250,"favoriteIdxB":250,"favoriteIdxC":250,"favoriteIdxD":250,"imgUrl2":"","channelLogoSize":"UNKNOWN","ipChanServerUrl":"","payChan":false,"IPChannelCode":"UNKNOWN","ipCallNumber":"UNKNOWN","otuFlag":false,"favoriteIdxE":250,"favoriteIdxF":250,"favoriteIdxG":250,"favoriteIdxH":250,"satelliteLcn":false,"waterMarkUrl":"","channelNameSortKey":"","ipChanType":"UNKNOWN","adultFlag":0,"ipChanCategory":"UNKNOWN","ipChanInteractive":false,"callSign":"UNKNOWN","adFlag":0,"configured":false,"lastUpdated":"","ipChanCpId":"UNKNOWN","isFreeviewPlay":1,"playerService":"com.webos.service.tv","TSID":0,"SVCID":0}],"subscribed":true}}
     End Sub
 
     Private Sub TreatExternalInputInfoEvent(Payload As Object)
-        If g_bDebug Then Log("TreatExternalInputInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatExternalInputInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"externalinput_0","payload":{"devices":[{"id":"AV_1","label":"AV","port":1,"appId":"com.webos.app.externalinput.av1","icon":"http://192.168.1.69:3000/resources/ab9b4e9c4bffbdd51f410c2221b8c2a3102f6420/av.png","modified":false,"subList":[],"subCount":0,"connected":false,"favorite":false},{"id":"HDMI_1","label":"Set-Top Box","port":1,"appId":"com.webos.app.hdmi1","icon":"http://192.168.1.69:3000/resources/ed950809c417e52569bc0c8aeed67d50163ac551/settopbox.png","modified":true,"spdProductDescription":"TiVo","spdVendorName":"Broadcom","spdSourceDeviceInfo":"Digital STB","lastUniqueId":255,"subList":[{"id":"URCU","serviceType":"settop","connectedInput":"HDMI_1","serviceName":"Comcast(Saratoga)","serviceId":"10","serviceArea":"","manufacturerName":"Samsung","manufacturerId":"10210002","settopCode":"C-CA67102","settopOption":"","irType":"C"}],"subCount":1,"connected":true,"favorite":true},{"id":"HDMI_2","label":"HDMI2","port":2,"appId":"com.webos.app.hdmi2","icon":"http://192.168.1.69:3000/resources/0604a74a61bc0f940cf1372169add19b2f7b3a70/HDMI_2.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":true},{"id":"HDMI_3","label":"HDMI3","port":3,"appId":"com.webos.app.hdmi3","icon":"http://192.168.1.69:3000/resources/33f30cb550c0ad1a09d2188030803ce8c99b96c7/HDMI_3.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":false},{"id":"HDMI_4","label":"HDMI4","port":4,"appId":"com.webos.app.hdmi4","icon":"http://192.168.1.69:3000/resources/46e19792c140226a116692add4677cd9c1c74efe/HDMI_4.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":false}],"subscribed":true}}
     End Sub
 
     Private Sub TreatAudioInfoEvent(Payload As Object)
-        If g_bDebug Then Log("TreatAudioInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatAudioInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"audiostatus_0","payload":{"returnValue":true,"volumeMax":100,"scenario":"mastervolume_ext_speaker_optical","subscribed":true,"volume":-1,"action":"requested","active":false,"mute":false}}
         Try
             Dim MuteInfo As Object = FindPairInJSONString(Payload, "mute")
@@ -962,22 +962,22 @@ Partial Public Class HSPI
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatAudioInfoEvent called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatAudioInfoEvent called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Private Sub TreatVolumeInfoEvent(Payload As Object)
-        If g_bDebug Then Log("TreatVolumeInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatVolumeInfoEvent called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"volumestatus_0","payload":{"returnValue":true,"volumeMax":100,"muted":false,"scenario":"mastervolume_ext_speaker_optical","subscribed":true,"volume":-1,"action":"requested","active":false}} 
     End Sub
 
     Private Sub TreatSetAppResponse(Payload As Object)
-        If g_bDebug Then Log("TreatSetAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"14","payload":{"returnValue":true,"id":"com.showtime.app.showtimeanytime","sessionId":"Y29tLnNob3d0aW1lLmFwcC5zaG93dGltZWFueXRpbWU="}}
     End Sub
 
     Private Sub TreatForegroundAppResponse(Payload As Object)
-        If g_bDebug Then Log("TreatSetTreatForegroundAppResponseAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetTreatForegroundAppResponseAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"foregroundapp_0","payload":{"subscribed":true,"appId":"netflix","returnValue":true,"windowId":"","processId":""}} 
         Try
             Dim AppId As Object = FindPairInJSONString(Payload, "appId")
@@ -992,7 +992,7 @@ Partial Public Class HSPI
             Try
                 RemoteButtons = GetIniSection(MyUDN, objRemoteFile) '  As Dictionary(Of String, String)
                 If RemoteButtons Is Nothing Then
-                    If g_bDebug Then Log("Error in TreatSetAppResponse for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatSetAppResponse for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
                     Exit Try
                 Else
                     Dim RemoteButtonString As String = ""
@@ -1025,13 +1025,13 @@ Partial Public Class HSPI
             End Try
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatForegroundAppResponse called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatForegroundAppResponse called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
 
         End Try
     End Sub
 
     Private Sub TreatCurrentChannelResponse(Payload As Object)
-        If g_bDebug Then Log("TreatCurrentChannelResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatCurrentChannelResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"currentchannel_2","payload":{"channelId":"0_2_2_0_0_0_0","dualChannel":{"dualChannelId":null,"dualChannelTypeName":null,"dualChannelTypeId":null,"dualChannelNumber":null},"isScrambled":false,"channelTypeName":"Terrestrial Analog TV","isLocked":false,"isChannelChanged":false,"channelModeName":"Terrestrial","channelNumber":"2-0","isFineTuned":false,"channelTypeId":0,"isDescrambled":false,"isSkipped":false,"isHEVCChannel":false,"hybridtvType":null,"isInvisible":false,"favoriteGroup":null,"channelName":"","channelModeId":0,"signalChannelId":"0_2_2_0_0_0_0"}} 
         Try
             Dim channelId As Object = FindPairInJSONString(Payload, "channelId")
@@ -1043,7 +1043,7 @@ Partial Public Class HSPI
             Try
                 RemoteButtons = GetIniSection(MyUDN, objRemoteFile) '  As Dictionary(Of String, String)
                 If RemoteButtons Is Nothing Then
-                    If g_bDebug Then Log("Error in TreatCurrentChannelResponse for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatCurrentChannelResponse for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
                     Exit Try
                 Else
                     Dim RemoteButtonString As String = ""
@@ -1076,7 +1076,7 @@ Partial Public Class HSPI
             End Try
 
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatCurrentChannelResponse called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatCurrentChannelResponse called for Device = " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
 
         End Try
 
@@ -1110,7 +1110,7 @@ Partial Public Class HSPI
 
 
     Private Function LGActivateRemote() As Boolean
-        If g_bDebug Then Log("LGActivateRemote called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGActivateRemote called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         LGActivateRemote = False
         If Not MyRemoteServiceActive Then
             LGActivateRemote = SendLGRegistration()
@@ -1121,7 +1121,7 @@ Partial Public Class HSPI
     Private Function SendLGRegistration() As Boolean
 
         SendLGRegistration = False
-        If g_bDebug Then Log("SendLGRegistration called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendLGRegistration called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim ReturnJSON As String = ""
         Dim SecWebSocketKey As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "")
         Dim Port As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")
@@ -1201,8 +1201,8 @@ Partial Public Class HSPI
     End Function
 
     Public Sub HandleLGDataReceived(send As Object, inBytes As Byte())
-        If g_bDebug Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & inBytes.Length.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & inBytes.Length.ToString, LogType.LOG_TYPE_INFO)
         Dim Type As String = ""
         Dim Id As String = ""
         Try
@@ -1220,7 +1220,7 @@ Partial Public Class HSPI
                         TreatRegistered(inBytes)
                     End If
                 Case "response"
-                    ' If g_bDebug Then Log("HandleLGDataReceived received a response     for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
+                    ' If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived received a response     for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
                     Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
                     If Payload Is Nothing Then Exit Sub
                     Dim returnValue As Object = Nothing
@@ -1271,7 +1271,7 @@ Partial Public Class HSPI
                     Catch ex As Exception
                         ReturnError = ""
                     End Try
-                    If g_bDebug Then Log("HandleLGDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
                     If Id = "register_0" Then
                         ' we registered unsuccessfully
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, "")
@@ -1293,7 +1293,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub HandleLGSocketClosed(sender As Object)
-        If g_bDebug Then Log("HandleLGSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         MyRemoteServiceActive = False
         Try
             If LGWebSocket IsNot Nothing Then
@@ -1314,7 +1314,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub HandleLGPointerDataReceived(send As Object, inBytes As Byte())
-        If g_bDebug Then Log("HandleLGPointerDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
         Dim Type As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "type").ToString.Trim("""")
         If Type = "" Then Exit Sub
         Dim Id As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "id").ToString.Trim("""")
@@ -1327,13 +1327,13 @@ Partial Public Class HSPI
                 If returnValue.ToString.ToLower <> "true" Then Exit Sub
             Case "error"
                 Dim ReturnError As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "error").ToString.Trim("""")
-                If g_bDebug Then Log("HandleLGPointerDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
         End Select
 
     End Sub
 
     Public Sub HandleLGPointerSocketClosed(sender As Object)
-        If g_bDebug Then Log("HandleLGPointerSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             If LGWebPointerSocket IsNot Nothing Then
                 RemoveHandler LGWebPointerSocket.DataReceived, AddressOf HandleLGPointerDataReceived
@@ -1345,7 +1345,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub LGCloseWebSocket()
-        If g_bDebug Then Log("LGCloseWebSocket called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGCloseWebSocket called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         'If Not MyRemoteServiceActive Then Exit Sub
 
         If LGWebSocket IsNot Nothing Then
@@ -1401,7 +1401,7 @@ Partial Public Class HSPI
         '{"type""response","id":"status_3", ...}
 
         'This Is used so that a request can be matched with a response.
-        If g_bDebug Then Log("LGSendCommand called for device - " & MyUPnPDeviceName & " with Prefix = " & Prefix & ", MsgType = " & Msgtype & ", URI = " & Uri & ", Payload = " & Payload, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendCommand called for device - " & MyUPnPDeviceName & " with Prefix = " & Prefix & ", MsgType = " & Msgtype & ", URI = " & Uri & ", Payload = " & Payload, LogType.LOG_TYPE_INFO)
 
         LGCommandCount += 1
         Dim SendCommandString As String = ""
@@ -1422,7 +1422,7 @@ Partial Public Class HSPI
         SendCommandString &= "}"
         Try
             If Not LGWebSocket.SendDataOverWebSocket(OpcodeText, System.Text.ASCIIEncoding.ASCII.GetBytes(SendCommandString), True) Then
-                If g_bDebug Then Log("LGSendCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
                 Return False
             End If
         Catch ex As Exception
@@ -1450,7 +1450,7 @@ Partial Public Class HSPI
 
         ' msg := "type:" + btype + "\n" + "name:" + bname + "\n\n"
         ' Return ps.writeMessage(websocket.TextMessage, []byte(msg))
-        If g_bDebug Then Log("LGSendPointerCommand called for device - " & MyUPnPDeviceName & " with bType = " & bType & " and Message = " & Message, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendPointerCommand called for device - " & MyUPnPDeviceName & " with bType = " & bType & " and Message = " & Message, LogType.LOG_TYPE_INFO)
         Dim SendCommandString As String = ""
 
         Select Case bType
@@ -1462,7 +1462,7 @@ Partial Public Class HSPI
 
         Try
             If Not LGWebPointerSocket.SendDataOverWebSocket(OpcodeText, System.Text.ASCIIEncoding.ASCII.GetBytes(SendCommandString), True) Then
-                If g_bDebug Then Log("LGSendPointerCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendPointerCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
                 Return False
             End If
         Catch ex As Exception
@@ -1477,7 +1477,7 @@ Partial Public Class HSPI
             Try
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceValueByRef(HSRefServiceRemote, Value, True)
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceString(HSRefServiceRemote, ValueString, True)
-                '   If SuperDebug Then Log("HS updated in UpdateTransportState. HSRef = " & HSRefPlayer & " and MyTransportStateHasChanged = " & MyTransportStateHasChanged.ToString & ", MyTrackInfoHasChanged = " & MyTrackInfoHasChanged.ToString & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
+                '   If piDebuglevel > DebugLevel.dlEvents Then Log("HS updated in UpdateTransportState. HSRef = " & HSRefPlayer & " and MyTransportStateHasChanged = " & MyTransportStateHasChanged.ToString & ", MyTrackInfoHasChanged = " & MyTrackInfoHasChanged.ToString & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
                 'End If
             Catch ex As Exception
                 Log("Error in UpdateLGREmoteState updating HS with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1490,7 +1490,7 @@ Partial Public Class HSPI
 
     Public Function LGSendKeyCode(KeyCode As String, Optional Param1 As String = "", Optional Param2 As String = "") As Boolean
         LGSendKeyCode = False
-        If g_bDebug Then Log("LGSendKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode, LogType.LOG_TYPE_INFO)
 
         ' a key
         ' {"type":"response","id":"status_0","payload":{"scenario":"mastervolume_tv_speaker","active":false,"action":"requested","volume":0,"returnValue":true,"subscribed":true,"mute":false}}
@@ -1508,7 +1508,7 @@ Partial Public Class HSPI
         '  send_command("", "request", "ssap://system.notifications/createToast", '{"message": "MSG"}'.replace('MSG', text), fn);
 
         If LGWebSocket Is Nothing Then
-            If g_bDebug Then Log("Warning LGSendKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode & " but no Open Socket", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning LGSendKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode & " but no Open Socket", LogType.LOG_TYPE_WARNING)
             Return False
         End If
 
@@ -1654,7 +1654,7 @@ Partial Public Class HSPI
     End Function
 
     Public Sub LGSendMessage(Message As String)
-        If g_bDebug Then Log("LGSendMessage called with Message = " & Message.ToString & " while service active = " & MyMessageServiceActive.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendMessage called with Message = " & Message.ToString & " while service active = " & MyMessageServiceActive.ToString, LogType.LOG_TYPE_INFO)
         LGSendKeyCode("showfloat", Message)
     End Sub
 End Class

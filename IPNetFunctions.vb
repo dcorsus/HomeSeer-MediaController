@@ -46,13 +46,13 @@ Partial Public Class HSPI
     Public Function GetMACAddress(IPAddress As String) As String
         GetMACAddress = ""
         If IPAddress = "" Then Exit Function
-        If g_bDebug Then Log("GetMACAddress called with IPAddress = " & IPAddress, LogType.LOG_TYPE_INFO) ' changed in v38
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMACAddress called with IPAddress = " & IPAddress, LogType.LOG_TYPE_INFO) ' changed in v38
         If ImRunningOnLinux Then Return "" ' changed in v.38
         Try
             If IPAddress = hs.GetIPAddress() Or IPAddress = "127.0.0.1" Then
                 'local address
                 GetMACAddress = ConvertMacAddress(GetLocalMacAddress())
-                If g_bDebug Then Log("GetMACAddress found local IPAddress = " & IPAddress.ToString & " and MACAddress = " & GetMACAddress.ToString, LogType.LOG_TYPE_INFO) ' changed in v38
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMACAddress found local IPAddress = " & IPAddress.ToString & " and MACAddress = " & GetMACAddress.ToString, LogType.LOG_TYPE_INFO) ' changed in v38
                 Exit Function
             End If
         Catch ex As Exception
@@ -104,7 +104,7 @@ Partial Public Class HSPI
                     If (IPAddress = _ipAddress.ToString) Then
                         Dim macAddress As String = ConvertMacAddress(table(index).dwPhysAddr)
                         If macAddress <> "00-00-00-00-00-00" Then    'added in v.45 because zero addresses are in the arp table based on other interfaces
-                            If g_bDebug Then Log("GetMACAddress found entry with IPAddress = " & IPAddress.ToString & " and MACAddress = " & macAddress.ToString, LogType.LOG_TYPE_INFO) ' changed v38
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMACAddress found entry with IPAddress = " & IPAddress.ToString & " and MACAddress = " & macAddress.ToString, LogType.LOG_TYPE_INFO) ' changed v38
                             GetMACAddress = macAddress.ToString
                             ' Release the memory.
                             Marshal.FreeCoTaskMem(Buffer)
@@ -126,57 +126,57 @@ Partial Public Class HSPI
             Marshal.FreeCoTaskMem(Buffer)
         Catch ex As Exception
         End Try
-        If g_bDebug Then Log("Warning in GetMACAddress. IPAddress = " & IPAddress & " wasn't found", LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in GetMACAddress. IPAddress = " & IPAddress & " wasn't found", LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetLocalMacAddress() As String
-        If SuperDebug Then Log("GetLocalMacAddress called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetLocalMacAddress called", LogType.LOG_TYPE_INFO)
         GetLocalMacAddress = ""
         Dim LocalMacAddress As String = ""
-        Dim LocalIPAddress = hs.getIpAddress()
+        Dim LocalIPAddress = hs.GetIPAddress()
         If LocalIPAddress = "" Then
             Log("Error in GetLocalMacAddress trying to get own IP address", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each nic As System.Net.NetworkInformation.NetworkInterface In System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
-            If SuperDebug Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
             For Each Ipa In nic.GetIPProperties.UnicastAddresses
-                If SuperDebug Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then log( String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
+                If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
                 If Ipa.Address.ToString = LocalIPAddress Then
                     ' OK we found our IPaddress
                     LocalMacAddress = nic.GetPhysicalAddress().ToString
-                    If SuperDebug Then Log("GetLocalMacAddress found local MAC address = " & LocalMacAddress, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetLocalMacAddress found local MAC address = " & LocalMacAddress, LogType.LOG_TYPE_INFO)
                     GetLocalMacAddress = LocalMacAddress
                     Exit Function
                 End If
             Next
         Next
-        If g_bDebug Then Log("Error in GetLocalMacAddress trying to get own MAC address, none found", LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetLocalMacAddress trying to get own MAC address, none found", LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetIPMask() As String
-        If SuperDebug Then Log("GetIPMask called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetIPMask called", LogType.LOG_TYPE_INFO)
         GetIPMask = ""
-        Dim LocalIPAddress = hs.getIpAddress()
+        Dim LocalIPAddress = hs.GetIPAddress()
         If LocalIPAddress = "" Then
             Log("Error in GetIPMask trying to get own IP address", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each nic As System.Net.NetworkInformation.NetworkInterface In System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
-            If SuperDebug Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
             For Each Ipa In nic.GetIPProperties.UnicastAddresses
-                If SuperDebug Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then log( String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
+                If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
                 If Ipa.Address.ToString = LocalIPAddress Then
                     ' OK we found our IPaddress
                     GetIPMask = Ipa.IPv4Mask.ToString
-                    If SuperDebug Then Log("GetIPMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetIPMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
             Next
         Next
-        If g_bDebug Then Log("Error in GetIPMask, none found", LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetIPMask, none found", LogType.LOG_TYPE_ERROR)
     End Function
 
 

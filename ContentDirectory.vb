@@ -38,7 +38,7 @@ Partial Public Class HSPI
 
     Private Sub ContentDirectoryStateChange(ByVal StateVarName As String, ByVal Value As Object) Handles myContentDirectoryCallback.ControlStateChange 'ContentDirectoryStateChange
         ' ContentDirectoryControlStateChange
-        'If g_bDebug Then log( "ContentDirectoryStateChange for UPnPDevice = " & MyUPnPDeviceName & ": Var Name = " & StateVarName & " Value = " & Value.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "ContentDirectoryStateChange for UPnPDevice = " & MyUPnPDeviceName & ": Var Name = " & StateVarName & " Value = " & Value.ToString)
         'log( "ContentDirectoryStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString)
         ProcessContentDirectory(StateVarName, Value)
     End Sub
@@ -76,48 +76,48 @@ Partial Public Class HSPI
 
         Select Case VariableName
             Case "Browseable"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (Browseable) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (Browseable) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "RecentlyPlayedUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (RecentlyPlayedUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (RecentlyPlayedUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "ShareListUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (ShareListUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (ShareListUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "SavedQueuesUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (SavedQueuesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (SavedQueuesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "RadioLocationUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (RadioLocationUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (RadioLocationUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "RadioFavoritesUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (RadioFavoritesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (RadioFavoritesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "FavoritePresetsUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (FavoritePresetsUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (FavoritePresetsUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "FavoritesUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (FavoritesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (FavoritesUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "UserRadioUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (UserRadioUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (UserRadioUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "ShareIndexLastError"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (ShareIndexLastError) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (ShareIndexLastError) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "ShareIndexInProgress"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (ShareIndexInProgress) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (ShareIndexInProgress) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "ContainerUpdateIDs"
                 TreatContainerUpdateIDs(VariableValue.ToString)
             Case "TransferIDs"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (TransferIDs) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (TransferIDs) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "SystemUpdateID"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (SystemUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (SystemUpdateID) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
                 TreatSystemUpdateID(VariableValue.ToString)
             Case "RemoteSharingEnabled"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (RemoteSharingEnabled) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (RemoteSharingEnabled) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "ShareListRefreshState"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (ShareListRefreshState) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (ShareListRefreshState) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "X_RemoteSharingEnabled"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (X_RemoteSharingEnabled) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (X_RemoteSharingEnabled) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "SearchCapabilities"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (SearchCapabilities) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (SearchCapabilities) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
                 MySearchCapabilities = VariableValue
             Case "SortCapabilities"
-                If g_bDebug Then Log(MyUPnPDeviceName & " received (SortCapabilities) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " received (SortCapabilities) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
                 MySortCapabilities = VariableValue
             Case Else
-                If g_bDebug Then Log("Warning " & MyUPnPDeviceName & " received Not Implemented (" & VariableName & ") = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning " & MyUPnPDeviceName & " received Not Implemented (" & VariableName & ") = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
         End Select
     End Sub
 
@@ -127,27 +127,27 @@ Partial Public Class HSPI
             WriteStringIniFile(MyUDN, DeviceInfoIndex.diSystemUpdateID.ToString, SystemUpdateID)
             MySystemUpdateID = SystemUpdateID
             'MyTimeoutActionArray(TOProcessBuildDB) = TOProcessBuildDBValue tobe fixed dcor
-            If g_bDebug Then Log("TreatSystemUpdateID for device - " & MyUPnPDeviceName & " set Update flag", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSystemUpdateID for device - " & MyUPnPDeviceName & " set Update flag", LogType.LOG_TYPE_INFO)
         End If
 
     End Sub
 
     Private Sub TreatContainerUpdateIDs(ContainerUpdateIDs As String)
-        'If g_bDebug Then log( MyUPnPDeviceName & " received (ContainerUpdateIDs) = " & ContainerUpdateIDs.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( MyUPnPDeviceName & " received (ContainerUpdateIDs) = " & ContainerUpdateIDs.ToString)
         Try
             Dim ContainerObjects As String() = Split(ContainerUpdateIDs, ",")
             ' the format is ObjectId - comma - updatedID - comma
 
             Dim NbrofUpdates As Integer = UBound(ContainerObjects, 1)
             If NbrofUpdates > 0 Then NbrofUpdates = NbrofUpdates + 1
-            If g_bDebug Then Log("TreatContainerUpdateIDs for device - " & MyUPnPDeviceName & " received " & NbrofUpdates.ToString & " ContainerUpdateIDs", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatContainerUpdateIDs for device - " & MyUPnPDeviceName & " received " & NbrofUpdates.ToString & " ContainerUpdateIDs", LogType.LOG_TYPE_INFO)
             'For Index = 0 To (UBound(ContainerObjects, 1) - 1)
             '   Dim ObjectID As String = ContainerObjects(Index)
             '   Dim UpdateID As String = ContainerObjects(Index + 1)
             '   Index = Index + 2
             'Next
         Catch ex As Exception
-            If g_bDebug Then log("Error in TreatContainerUpdateIDs for device - " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatContainerUpdateIDs for device - " & MyUPnPDeviceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
@@ -155,7 +155,7 @@ Partial Public Class HSPI
     Private Function SearchForSearchCapability(Field As String) As Boolean
         SearchForSearchCapability = False
         If MySearchCapabilities = "" Then Exit Function
-        If g_bDebug Then Log("SearchForSearchCapability called for Device - " & MyUPnPDeviceName & " with Name = " & Field.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchForSearchCapability called for Device - " & MyUPnPDeviceName & " with Name = " & Field.ToString, LogType.LOG_TYPE_INFO)
         Dim SearchCaps As String()
         SearchCaps = Split(MySearchCapabilities, ",")
         For Each SearchCap In SearchCaps
@@ -176,7 +176,7 @@ Partial Public Class HSPI
         GetSystemUpdateID = ""
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        If g_bDebug Then Log("GetSystemUpdateID called for device " & MyUPnPDeviceName & " and ID = " & Id.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSystemUpdateID called for device " & MyUPnPDeviceName & " and ID = " & Id.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
@@ -185,7 +185,7 @@ Partial Public Class HSPI
             MySystemUpdateID = OutArg(0)
             GetSystemUpdateID = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in GetSystemUpdateID for device = " & MyUPnPDeviceName & " and ID = " & Id.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSystemUpdateID for device = " & MyUPnPDeviceName & " and ID = " & Id.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -206,7 +206,7 @@ Partial Public Class HSPI
         Search = ""
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        If g_bDebug Then Log("Search called for device " & MyUPnPDeviceName & " with ContainerID = " & ContainerID.ToString & " and SearchCriteria = " & SearchCriteria.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Search called for device " & MyUPnPDeviceName & " with ContainerID = " & ContainerID.ToString & " and SearchCriteria = " & SearchCriteria.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(5)
             Dim OutArg(3)
@@ -223,7 +223,7 @@ Partial Public Class HSPI
             MySearchUpdateID = OutArg(3)
             Search = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in Search for device = " & MyUPnPDeviceName & " and ContainerID = " & ContainerID.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Search for device = " & MyUPnPDeviceName & " and ContainerID = " & ContainerID.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -231,16 +231,16 @@ Partial Public Class HSPI
         GetSearchCapabilities = ""
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        'If g_bDebug Then Log("GetSearchCapabilities called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSearchCapabilities called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
             ContentDirectory.InvokeAction("GetSearchCapabilities", InArg, OutArg)
             GetSearchCapabilities = "OK"
             MySearchCapabilities = OutArg(0)
-            If g_bDebug Then Log("GetSearchCapabilities for device = " & MyUPnPDeviceName & " returned = " & MySearchCapabilities, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSearchCapabilities for device = " & MyUPnPDeviceName & " returned = " & MySearchCapabilities, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in GetSearchCapabilities for device = " & MyUPnPDeviceName & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSearchCapabilities for device = " & MyUPnPDeviceName & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -248,16 +248,16 @@ Partial Public Class HSPI
         GetSortCapabilities = ""
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        'If g_bDebug Then Log("GetSortCapabilities called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSortCapabilities called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
             ContentDirectory.InvokeAction("GetSortCapabilities", InArg, OutArg)
             GetSortCapabilities = "OK"
             MySortCapabilities = OutArg(0)
-            If g_bDebug Then Log("GetSortCapabilities for device = " & MyUPnPDeviceName & " returned = " & MySortCapabilities, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSortCapabilities for device = " & MyUPnPDeviceName & " returned = " & MySortCapabilities, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in GetSortCapabilities for device = " & MyUPnPDeviceName & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSortCapabilities for device = " & MyUPnPDeviceName & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -265,7 +265,7 @@ Partial Public Class HSPI
         Browse = Nothing
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        If g_bDebug Then Log("Browse called for device " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & ", Browseflag=" & BrowseFlag & ", filter=" & Filter & ", StartingIndex=" & StartingIndex.ToString & ", requestedcount=" & RequestedCount.ToString & ", Sortcriteria=" & SortCriteria.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Browse called for device " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & ", Browseflag=" & BrowseFlag & ", filter=" & Filter & ", StartingIndex=" & StartingIndex.ToString & ", requestedcount=" & RequestedCount.ToString & ", Sortcriteria=" & SortCriteria.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(5)
             Dim OutArg(3)
@@ -282,7 +282,7 @@ Partial Public Class HSPI
             MyBrowseUpdateID = OutArg(3)
             Browse = OutArg
         Catch ex As Exception
-            If g_bDebug Then log("Error in Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -290,7 +290,7 @@ Partial Public Class HSPI
         X_BrowseByLetter = ""
         If DeviceStatus = "Offline" Then Exit Function
         If ContentDirectory Is Nothing Then Exit Function
-        If g_bDebug Then Log("X_BrowseByLetter called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("X_BrowseByLetter called for device " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(5)
             Dim OutArg(4)
@@ -308,7 +308,7 @@ Partial Public Class HSPI
             MYX_browseStartingIndex = OutArg(4)
             X_BrowseByLetter = "OK"
         Catch ex As Exception
-            If g_bDebug Then log("Error in X_BrowseByLetter for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in X_BrowseByLetter for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
     ' 
@@ -329,7 +329,7 @@ Partial Public Class HSPI
     ' GetBrowseable
 
     Public Sub SetBrowsable(Browse As Boolean)
-        If g_bDebug Then Log("SetBrowsable called for device = " & MyUPnPDeviceName & " and Browse flag = " & Browse.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetBrowsable called for device = " & MyUPnPDeviceName & " and Browse flag = " & Browse.ToString, LogType.LOG_TYPE_INFO)
         If ContentDirectory Is Nothing Then Exit Sub
         Dim InArg(0)
         Dim OutArg(0)
@@ -368,7 +368,7 @@ Partial Public Class HSPI
             'RecordSet("Desc") = ""
             'RecordSet("Resolution") = ""
         Catch ex As Exception
-            log("Error in InitNewRecordSet for device = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in InitNewRecordSet for device = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
@@ -400,16 +400,16 @@ Partial Public Class HSPI
             'log( "PrintRecordSet (Desc)         = " & RecordSet("Desc").value, LogType.LOG_TYPE_INFO)
             'log( "PrintRecordSet (Resolution)   = " & RecordSet("Resolution").value, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
-            log("Error in PrintRecordSet for device = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in PrintRecordSet for device = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Public Function GetContainerFromServer(ObjectID As String, MetaDataOnly As Boolean) As DBRecord()
-        If g_bDebug Then Log("GetContainerFromServer called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and MetaDataOnly = " & MetaDataOnly.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and MetaDataOnly = " & MetaDataOnly.ToString, LogType.LOG_TYPE_INFO)
         GetContainerFromServer = Nothing
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("GetContainerFromServer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
 
@@ -457,7 +457,7 @@ Partial Public Class HSPI
             NumberReturned = OutArg(1)
             TotalMatches = OutArg(2)
 
-            If g_bDebug Then Log("GetContainerFromServer found " & TotalMatches.ToString & " and returned " & NumberReturned.ToString & " entries, at Index = " & StartIndex.ToString & " for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer found " & TotalMatches.ToString & " and returned " & NumberReturned.ToString & " entries, at Index = " & StartIndex.ToString & " for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
 
             If NumberReturned = 0 Then
                 GetContainerFromServer = SList
@@ -468,7 +468,7 @@ Partial Public Class HSPI
             Dim xmlData As XmlDocument = New XmlDocument
             Try
                 xmlData.LoadXml(OutArg(0).ToString)
-                If SuperDebug Then Log("XML=" & OutArg(0).ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("XML=" & OutArg(0).ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in GetContainerFromServer at level = " & MyMaxDepthCounter.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  loading XML. Error = " & ex.Message & ". XML = " & OutArg(0).ToString, LogType.LOG_TYPE_ERROR)
                 GetContainerFromServer = SList
@@ -486,10 +486,10 @@ Partial Public Class HSPI
             Try
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlData.DocumentElement.ChildNodes
-                If SuperDebug Then Log("GetContainerFromServer Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) ' this starts with <Event>
-                If SuperDebug Then Log("GetContainerFromServer Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then Log("GetContainerFromServer Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) ' this starts with <Event> 
-                'If g_bDebug Then Log("GetContainerFromServer Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetContainerFromServer Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) ' this starts with <Event>
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetContainerFromServer Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) ' this starts with <Event> 
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 Dim WaitLoopCounter As Integer = 0
                 For Each outerNode As XmlNode In nodelist
@@ -534,8 +534,8 @@ Partial Public Class HSPI
                         'ReDim Preserve SList(RecordIndex)
                         SList(RecordIndex) = NewRecord
                         'End If
-                        If SuperDebug Then Log("Container Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO)
-                        'If g_bDebug Then Log("Container Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO) 
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("Container Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Container Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO) 
                         RecordIndex = RecordIndex + 1
                     ElseIf UCase(outerNode.Name) = "ITEM" Then
                         Dim NewRecord = New DBRecord
@@ -606,18 +606,18 @@ Partial Public Class HSPI
                         End Try
                         SList(RecordIndex) = NewRecord
                         'End If
-                        If SuperDebug Then Log("Item Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO)
-                        'If g_bDebug Then Log("Item Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO) 
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("Item Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Item Record #" & RecordIndex.ToString & " with value " & NewRecord.Title & " and ObjectID = " & NewRecord.Id, LogType.LOG_TYPE_INFO) 
                         RecordIndex = RecordIndex + 1
                     Else
-                        If g_bDebug Then Log("Error in GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_ERROR)
                     End If
                     WaitLoopCounter += 1
                     If WaitLoopCounter >= 100 Then
                         WaitLoopCounter = 0
                         elapsed_time = DateTime.Now.Subtract(StartTime)
                         If elapsed_time.TotalSeconds > MaxWaitTimeRetrievingContainer Then
-                            If g_bDebug Then Log("GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " exceeded maximum wait time", LogType.LOG_TYPE_WARNING)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " exceeded maximum wait time", LogType.LOG_TYPE_WARNING)
                             Exit Do
                         End If
                     End If
@@ -633,7 +633,7 @@ Partial Public Class HSPI
 
             elapsed_time = DateTime.Now.Subtract(StartTime)
             If elapsed_time.TotalSeconds > MaxWaitTimeRetrievingContainer Then
-                If g_bDebug Then Log("GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " exceeded maximum wait time", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " exceeded maximum wait time", LogType.LOG_TYPE_WARNING)
                 Exit Do
             End If
 
@@ -646,15 +646,15 @@ Partial Public Class HSPI
         GetContainerFromServer = SList
         SList = Nothing
 
-        If g_bDebug Then Log("GetContainerFromServer for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " Server records ", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerFromServer for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " Server records ", LogType.LOG_TYPE_INFO)
 
     End Function
 
     Public Function GetObjectFromServer(ObjectID As String, DCTitle As String) As DBRecord()
-        If g_bDebug Then Log("GetObjectFromServer called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetObjectFromServer called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID, LogType.LOG_TYPE_INFO)
         GetObjectFromServer = Nothing
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("GetObjectFromServer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetObjectFromServer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
         Dim SList As DBRecord() = Nothing
@@ -764,16 +764,16 @@ Partial Public Class HSPI
         GetObjectFromServer = SList
         SList = Nothing
 
-        If g_bDebug Then Log("GetObjectFromServer for device - " & MyUPnPDeviceName & " returned 1 Item", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetObjectFromServer for device - " & MyUPnPDeviceName & " returned 1 Item", LogType.LOG_TYPE_INFO)
 
     End Function
 
 
     Public Function GetContainerAtLevel(PlayerUDN As String, StartingLevel As Integer) As DBRecord()
-        If g_bDebug Then Log("GetContainerAtLevel called for device - " & MyUPnPDeviceName & " with UDN = " & PlayerUDN & " and StartingLevel = " & StartingLevel.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerAtLevel called for device - " & MyUPnPDeviceName & " with UDN = " & PlayerUDN & " and StartingLevel = " & StartingLevel.ToString, LogType.LOG_TYPE_INFO)
         GetContainerAtLevel = Nothing
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("GetContainerAtLevel called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerAtLevel called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
 
@@ -810,7 +810,7 @@ Partial Public Class HSPI
             If ObjectTitle = "" Then
                 ' we're at the end
                 GetContainerAtLevel = GetContainerFromServer(ObjectID, False)
-                If g_bDebug Then Log("GetContainerAtLevel for device - " & MyUPnPDeviceName & " reached end at level = " & LevelIndex.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerAtLevel for device - " & MyUPnPDeviceName & " reached end at level = " & LevelIndex.ToString, LogType.LOG_TYPE_INFO)
                 Exit Function
             End If
 
@@ -837,7 +837,7 @@ Partial Public Class HSPI
                 End Try
                 TotalMatches = OutArg(2)
                 NumberReturned = OutArg(1)
-                If g_bDebug Then Log("GetContainerAtLevel for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & " and got " & TotalMatches.ToString & " matches", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerAtLevel for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & " and got " & TotalMatches.ToString & " matches", LogType.LOG_TYPE_INFO)
                 If NumberReturned = 0 Then
                     Log("ERROR in GetContainerAtLevel for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and zero returned items", LogType.LOG_TYPE_ERROR)
                     Exit Function
@@ -864,7 +864,7 @@ Partial Public Class HSPI
                         If xmlData.GetElementsByTagName("dc:title").Item(ItemIndex - 1).InnerText = ObjectTitle Then
                             ' OK this is mine
                             ObjectID = xmlData.GetElementsByTagName("container").Item(ItemIndex - 1).Attributes("id").Value
-                            If g_bDebug Then Log("GetContainerAtLevel at level = " & LevelIndex.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found title = " & ObjectTitle, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetContainerAtLevel at level = " & LevelIndex.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found title = " & ObjectTitle, LogType.LOG_TYPE_INFO)
                             Found = True
                             Exit Do
                         End If
@@ -886,13 +886,13 @@ Partial Public Class HSPI
     End Function
 
     Public Function NavigateIntoContainer(NavigationObject As String, NavigationString As String, ByRef inNavigationPart As String, ByRef inEndOfTree As Boolean) As DBRecord()
-        If g_bDebug Then Log("NavigateIntoContainer called for device - " & MyUPnPDeviceName & " and NavigationObject = " & NavigationObject & " and NavigationString = " & NavigationString & " and inEndofTree= " & inEndOfTree.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer called for device - " & MyUPnPDeviceName & " and NavigationObject = " & NavigationObject & " and NavigationString = " & NavigationString & " and inEndofTree= " & inEndOfTree.ToString, LogType.LOG_TYPE_INFO)
         NavigateIntoContainer = Nothing
         inNavigationPart = ""
         inEndOfTree = False
 
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("NavigateIntoContainer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
 
@@ -931,7 +931,7 @@ Partial Public Class HSPI
                         Dim StartIndex As Integer = 0
                         Dim NumberReturned As Integer = 0
                         Dim TotalMatches As Integer = 0
-                        If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " is retrieving ObjectID = " & ObjectID & " and looking for ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " is retrieving ObjectID = " & ObjectID & " and looking for ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_WARNING)
                         Dim InArg(5) As String
                         Dim OutArg(3) As String
                         InArg(0) = ObjectID                 ' Object ID     String 
@@ -949,7 +949,7 @@ Partial Public Class HSPI
                         End Try
                         TotalMatches = Val(OutArg(2))
                         NumberReturned = Val(OutArg(1))
-                        If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved for ObjectID = " & ObjectID & " TotalMatches = " & TotalMatches.ToString & " and NbrReturned = " & NumberReturned.ToString, LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved for ObjectID = " & ObjectID & " TotalMatches = " & TotalMatches.ToString & " and NbrReturned = " & NumberReturned.ToString, LogType.LOG_TYPE_WARNING)
                         If NumberReturned = 0 Then
                             Log("ERROR in NavigateIntoContainer for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and zero returned items", LogType.LOG_TYPE_ERROR)
                             Exit Function
@@ -958,7 +958,7 @@ Partial Public Class HSPI
                             Log("ERROR in NavigateIntoContainer for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and no matches for NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
                             Exit Function
                         End If
-                        If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved MetaData for ObjectID = " & ObjectID & " XML = " & OutArg(0).ToString, LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved MetaData for ObjectID = " & ObjectID & " XML = " & OutArg(0).ToString, LogType.LOG_TYPE_WARNING)
 
                         Dim xmlData As XmlDocument = New XmlDocument
                         Try
@@ -972,25 +972,25 @@ Partial Public Class HSPI
                         Try
                             TitleInXML = xmlData.GetElementsByTagName("dc:title").Item(0).InnerText
                         Catch ex As Exception
-                            If g_bDebug Then Log("Warning in NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & ". No Title Tag found in MetaData. Not GOOD!! XML = " & OutArg(0).ToString.ToString, LogType.LOG_TYPE_WARNING)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & ". No Title Tag found in MetaData. Not GOOD!! XML = " & OutArg(0).ToString.ToString, LogType.LOG_TYPE_WARNING)
                         End Try
                         Dim UPnPClass As String = ""
                         Try
                             UPnPClass = xmlData.GetElementsByTagName("upnp:class").Item(0).InnerText
                         Catch ex As Exception
-                            If g_bDebug Then Log("Warning in NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & ". No Class Tag found in MetaData. Not GOOD!! XML = " & OutArg(0).ToString.ToString, LogType.LOG_TYPE_WARNING)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & ". No Class Tag found in MetaData. Not GOOD!! XML = " & OutArg(0).ToString.ToString, LogType.LOG_TYPE_WARNING)
                         End Try
                         Try
                             If IsRoot Then ' added the NavigationObject = ""  here to fix issue with PLEX server having root with dc:title = empty
                                 ' this must be the root, pick up the title and return it!
-                                If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " hit root and exiting function", LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " hit root and exiting function", LogType.LOG_TYPE_WARNING)
                                 ObjectTitle = TitleInXML
                                 NavigateIntoContainer = GetContainerFromServer("0", False)
                                 inNavigationPart = ObjectTitle & ";::--" & ObjectID
                                 Exit Function
                             ElseIf (TitleInXML = ObjectTitle) Or SkipTitleCheck Then ' dcoreventissue
                                 ' OK this is mine
-                                If g_bDebug Then Log("NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found ObjectTitle = " & ObjectTitle & " and UPnPClass = " & UPnPClass, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found ObjectTitle = " & ObjectTitle & " and UPnPClass = " & UPnPClass, LogType.LOG_TYPE_INFO)
                                 Dim ObjectClass As String() = Split(UPnPClass, ".")
                                 If Not ObjectClass Is Nothing Then
                                     If UBound(ObjectClass) > 0 Then
@@ -1021,7 +1021,7 @@ Partial Public Class HSPI
         If NavigationObject = "" Then ' either start @ root, up-level or end-of-selection has the NavigationObject set to empty
             ' we're at the end
             NavigateIntoContainer = GetContainerFromServer(ObjectID, False)
-            If g_bDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
 
@@ -1055,7 +1055,7 @@ Partial Public Class HSPI
                 End Try
                 TotalMatches = OutArg(2)
                 NumberReturned = OutArg(1)
-                If g_bDebug Then Log("NavigateIntoContainer for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & " and got " & TotalMatches.ToString & " matches" & " and NbrReturned = " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & " and got " & TotalMatches.ToString & " matches" & " and NbrReturned = " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
                 If NumberReturned = 0 Then
                     Log("ERROR in NavigateIntoContainer for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and zero returned items", LogType.LOG_TYPE_ERROR)
                     Exit Function
@@ -1064,7 +1064,7 @@ Partial Public Class HSPI
                     Log("ERROR in NavigateIntoContainer for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and no matches for NavigationObject = " & NavigationObject, LogType.LOG_TYPE_ERROR)
                     Exit Function
                 End If
-                If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved ChildData for ObjectID = " & ObjectID & " XML = " & OutArg(0).ToString, LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " retrieved ChildData for ObjectID = " & ObjectID & " XML = " & OutArg(0).ToString, LogType.LOG_TYPE_WARNING)
 
                 Dim xmlData As XmlDocument = New XmlDocument
                 Try
@@ -1082,7 +1082,7 @@ Partial Public Class HSPI
                         If xmlData.GetElementsByTagName("dc:title").Item(ItemIndex - 1).InnerText = NavigationObject Then
                             ' OK this is what we are looking for
                             Dim UPnPClass As String = xmlData.GetElementsByTagName("upnp:class").Item(ItemIndex - 1).InnerText
-                            If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found upnp:class = " & UPnPClass.ToString, LogType.LOG_TYPE_WARNING)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found upnp:class = " & UPnPClass.ToString, LogType.LOG_TYPE_WARNING)
                             Dim ObjectClass As String() = Split(UPnPClass, ".")
                             If Not ObjectClass Is Nothing Then
                                 If UBound(ObjectClass) > 0 Then
@@ -1097,17 +1097,17 @@ Partial Public Class HSPI
                                     ObjectID = xmlData.GetElementsByTagName("item").Item(ItemIndex - 1).Attributes("id").Value
                                 Catch ex As Exception
                                 End Try
-                                If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found item ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found item ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_WARNING)
                             Else
                                 Try
                                     ObjectID = xmlData.GetElementsByTagName("container").Item(ItemIndex - 1).Attributes("id").Value
                                 Catch ex As Exception
                                 End Try
-                                If SuperDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found container ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " for dc:title = " & NavigationObject & " found container ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_WARNING)
                             End If
                             If ObjectID <> "" Then
                                 inNavigationPart = NavigationObject & ";::--" & ObjectID
-                                If g_bDebug Then Log("NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found NavigationObject = " & NavigationObject, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & " found NavigationObject = " & NavigationObject, LogType.LOG_TYPE_INFO)
                                 Found = True
                                 Exit Do
                             End If
@@ -1133,17 +1133,17 @@ Partial Public Class HSPI
         If ObjectID <> "" Then
             ' we're at the end
             NavigateIntoContainer = GetContainerFromServer(ObjectID, inEndOfTree)
-            If g_bDebug Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainer for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
         End If
 
     End Function
 
     Public Function NavigateIntoContainerByTitle(NavigationString As String) As DBRecord()
-        If g_bDebug Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " and NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " and NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
         NavigateIntoContainerByTitle = Nothing
 
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
 
@@ -1156,11 +1156,11 @@ Partial Public Class HSPI
         Else
             ObjectNavigationParts = Split(NavigationString, ";--::")
             If ObjectNavigationParts Is Nothing Then
-                If g_bDebug Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no ObjectNavigation parts in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no ObjectNavigation parts in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
             If ObjectNavigationParts.Count = 0 Then
-                If g_bDebug Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no ObjectNavigation parts in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle called for device - " & MyUPnPDeviceName & " but no ObjectNavigation parts in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         End If
@@ -1202,18 +1202,18 @@ Partial Public Class HSPI
                                 Try
                                     ContentDirectory.InvokeAction("Browse", InArg, OutArg)
                                 Catch ex As Exception
-                                    If g_bDebug Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                     Exit Function
                                 End Try
                                 TotalMatches = OutArg(2)
                                 NumberReturned = OutArg(1)
-                                If g_bDebug Then Log("NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and got " & TotalMatches.ToString & " matches", LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " retrieved ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and got " & TotalMatches.ToString & " matches", LogType.LOG_TYPE_INFO)
                                 If NumberReturned = 0 Then
-                                    If g_bDebug Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and zero returned items", LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and zero returned items", LogType.LOG_TYPE_ERROR)
                                     Exit Function
                                 End If
                                 If TotalMatches = 0 Then
-                                    If g_bDebug Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ERROR in NavigateIntoContainerByTitle for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_ERROR)
                                     Exit Function
                                 End If
 
@@ -1221,7 +1221,7 @@ Partial Public Class HSPI
                                 Try
                                     xmlData.LoadXml(OutArg(0).ToString)
                                 Catch ex As Exception
-                                    If g_bDebug Then Log("Error in NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & "  loading XML. Error = " & ex.Message & ". XML = " & OutArg(0).ToString, LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & "  loading XML. Error = " & ex.Message & ". XML = " & OutArg(0).ToString, LogType.LOG_TYPE_ERROR)
                                     Exit Function
                                 End Try
 
@@ -1235,7 +1235,7 @@ Partial Public Class HSPI
                                             Try
                                                 ObjectID = xmlData.GetElementsByTagName("container").Item(ItemIndex - 1).Attributes("id").Value
                                                 If ObjectID <> "" Then
-                                                    If g_bDebug Then Log("NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " found container with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " for NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
+                                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " found container with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " for NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
                                                     IsContainer = True
                                                     Exit Do
                                                 End If
@@ -1244,7 +1244,7 @@ Partial Public Class HSPI
                                             Try
                                                 ObjectID = xmlData.GetElementsByTagName("item").Item(ItemIndex - 1).Attributes("id").Value
                                                 If ObjectID <> "" Then
-                                                    If g_bDebug Then Log("NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " found Item with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " for NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
+                                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & " found Item with ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " for NavigationString = " & NavigationString, LogType.LOG_TYPE_INFO)
                                                     IsContainer = False
                                                     Try
                                                         ClassType = xmlData.GetElementsByTagName("upnp:class").Item(ItemIndex - 1).InnerText
@@ -1261,7 +1261,7 @@ Partial Public Class HSPI
 
                                 StartIndex = StartIndex + NumberReturned
                                 If StartIndex >= TotalMatches Then
-                                    If g_bDebug Then Log("Error in NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & ", ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and NavigationString = " & NavigationString & " wasn't found", LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in NavigateIntoContainerByTitle for UPnPDevice = " & MyUPnPDeviceName & ", ObjectID = " & ObjectID.ToString & ", ObjectTitle = " & ObjectTitle & " and NavigationString = " & NavigationString & " wasn't found", LogType.LOG_TYPE_ERROR)
                                     Exit Function
                                 End If
                                 wait(0.25)
@@ -1305,7 +1305,7 @@ NextPart:
                 SList = Nothing
             End If
 
-            If g_bDebug Then Log("NavigateIntoContainerByTitle for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigateIntoContainerByTitle for device - " & MyUPnPDeviceName & " reached end successfully", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
 
@@ -1335,15 +1335,15 @@ NextPart:
                 Next
             Next
         Catch ex As Exception
-            log("Error in PrintOutXML for UPnPDevice = " & MyUPnPDeviceName & " processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in PrintOutXML for UPnPDevice = " & MyUPnPDeviceName & " processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Function SearchObjects(ByVal ObjectID As String, SearchString As String, SearchOperator As SearchOperatorTypes, Optional ByVal DownToItems As Boolean = False) As DBRecord()
-        If g_bDebug Then Log("SearchObjects called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and SearchString = " & SearchString & " and Searchoperator = " & SearchOperator.ToString & " and DownToItems = " & DownToItems.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchObjects called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and SearchString = " & SearchString & " and Searchoperator = " & SearchOperator.ToString & " and DownToItems = " & DownToItems.ToString, LogType.LOG_TYPE_INFO)
         SearchObjects = Nothing
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("SearchObjects called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchObjects called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
 
@@ -1365,14 +1365,14 @@ NextPart:
         Try
             ContentDirectory.InvokeAction("Browse", InArg, OutArg)
         Catch ex As Exception
-            log("ERROR in SearchObjects/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("ERROR in SearchObjects/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
 
-        If g_bDebug Then Log("SearchObjects found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchObjects found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
         If TotalMatches = 0 Then Exit Function
 
         StartIndex = 0
@@ -1384,7 +1384,7 @@ NextPart:
             Try
                 ContentDirectory.InvokeAction("Browse", InArg, OutArg)
             Catch ex As Exception
-                log("ERROR in SearchObjects for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("ERROR in SearchObjects for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 SearchObjects = SList
                 SList = Nothing
                 Exit Function
@@ -1411,15 +1411,15 @@ NextPart:
             Try
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlData.DocumentElement.ChildNodes
-                If SuperDebug Then Log("SearchObjects Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If SuperDebug Then Log("SearchObjects Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchObjects Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchObjects Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     If UCase(outerNode.Name) = "CONTAINER" Then
                         Dim RecordTitle As String = ""
                         Try
                             RecordTitle = outerNode.Item("dc:title").InnerText
-                            'If g_bDebug Then log( "SearchObjects found a container with title: " & RecordTitle)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchObjects found a container with title: " & RecordTitle)
                         Catch ex As Exception
                         End Try
                         If SearchInString(RecordTitle, SearchString, SearchOperator) Then
@@ -1457,14 +1457,14 @@ NextPart:
                                 ReDim Preserve SList(RecordIndex)
                                 SList(RecordIndex) = NewRecord
                             End If
-                            If SuperDebug Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
                             RecordIndex = RecordIndex + 1
                         End If
                     ElseIf UCase(outerNode.Name) = "ITEM" Then
                         Dim RecordTitle As String = ""
                         Try
                             RecordTitle = outerNode.Item("dc:title").InnerText
-                            'If g_bDebug Then log( "SearchObjects found an Item with title: " & RecordTitle)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchObjects found an Item with title: " & RecordTitle)
                         Catch ex As Exception
                         End Try
                         If SearchInString(RecordTitle, SearchString, SearchOperator) Then
@@ -1502,15 +1502,15 @@ NextPart:
                                 ReDim Preserve SList(RecordIndex)
                                 SList(RecordIndex) = NewRecord
                             End If
-                            If SuperDebug Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
                             RecordIndex = RecordIndex + 1
                         End If
                     Else
-                        If g_bDebug Then Log("Error in SearchObjects for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SearchObjects for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_ERROR)
                     End If
                 Next
             Catch ex As Exception
-                log("Error in SearchObjects at level = " & MyMaxDepthCounter.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in SearchObjects at level = " & MyMaxDepthCounter.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             StartIndex = StartIndex + NumberReturned
             If StartIndex >= TotalMatches Then
@@ -1522,29 +1522,29 @@ NextPart:
         SearchObjects = SList
         SList = Nothing
 
-        If g_bDebug Then Log("SearchObjects for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " records ", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchObjects for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " records ", LogType.LOG_TYPE_INFO)
 
     End Function
 
     Private Function SearchInString(inString As String, inSearchString As String, SearchOperator As SearchOperatorTypes) As Boolean
-        'If g_bDebug Then log( "SearchInString called for device - " & MyUPnPDeviceName & " with string = " & inString & " and SearchString = " & inSearchString & " and Searchoperator = " & SearchOperator.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchInString called for device - " & MyUPnPDeviceName & " with string = " & inString & " and SearchString = " & inSearchString & " and Searchoperator = " & SearchOperator.ToString)
         SearchInString = False
         If Trim(inString) = "" Or Trim(inSearchString) = "" Then Exit Function
         Dim SearchStrings As String()
         If inSearchString <> "" Then
             SearchStrings = Split(inSearchString, ",")
             For Each sString In SearchStrings
-                'If g_bDebug Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper)
                 Select Case SearchOperator
                     Case SearchOperatorTypes.soContains
                         If inString.ToUpper.IndexOf(Trim(sString).ToUpper) <> -1 Then
-                            'If g_bDebug Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper & " and concluded TRUE")
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper & " and concluded TRUE")
                             SearchInString = True
                         End If
                     Case SearchOperatorTypes.soIsEqual
                         inString = Trim(inString)
                         If inString.ToUpper = Trim(sString).ToUpper Then
-                            'If g_bDebug Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper & " and concluded TRUE")
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchInString called for device - " & MyUPnPDeviceName & " is comparing string = " & inString.ToUpper & " and SearchString = " & sString.ToUpper & " and concluded TRUE")
                             SearchInString = True
                         End If
                 End Select
@@ -1553,7 +1553,7 @@ NextPart:
     End Function
 
     Public Function SearchForContainers(ByVal ObjectID As String, SearchString As String, SearchOperator As SearchOperatorTypes, ByRef Records As DBRecord(), Optional ByVal DownToItems As Boolean = False) As String
-        If g_bDebug Then Log("SearchForContainers called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and SearchString = " & SearchString & " and Searchoperator = " & SearchOperator.ToString & " and DownToItems = " & DownToItems.ToString & " and depth counter = " & MySearchMaxDepthCounter.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchForContainers called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID & " and SearchString = " & SearchString & " and Searchoperator = " & SearchOperator.ToString & " and DownToItems = " & DownToItems.ToString & " and depth counter = " & MySearchMaxDepthCounter.ToString, LogType.LOG_TYPE_INFO)
         SearchForContainers = ""
         MySearchMaxDepthCounter = MySearchMaxDepthCounter - 1
         If MySearchMaxDepthCounter <= 0 Then
@@ -1561,7 +1561,7 @@ NextPart:
             Exit Function
         End If
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("SearchForContainers called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchForContainers called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
             MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
             Exit Function
         End If
@@ -1584,7 +1584,7 @@ NextPart:
         Try
             ContentDirectory.InvokeAction("Browse", InArg, OutArg)
         Catch ex As Exception
-            log("ERROR in SearchForContainers/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("ERROR in SearchForContainers/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
             Exit Function
         End Try
@@ -1592,7 +1592,7 @@ NextPart:
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
 
-        If g_bDebug Then Log("SearchForContainers found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchForContainers found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
         If TotalMatches = 0 Then
             MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
             Exit Function
@@ -1608,7 +1608,7 @@ NextPart:
             Try
                 ContentDirectory.InvokeAction("Browse", InArg, OutArg)
             Catch ex As Exception
-                log("ERROR in SearchForContainers for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("ERROR in SearchForContainers for device = " & MyUPnPDeviceName & " with ObjectID = " & ObjectID.ToString & " and UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 SearchForContainers = "NOK"
                 MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
                 Exit Function
@@ -1635,8 +1635,8 @@ NextPart:
             Try
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlData.DocumentElement.ChildNodes
-                If SuperDebug Then Log("SearchForContainers Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If SuperDebug Then Log("SearchForContainers Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchForContainers Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchForContainers Document root node: " & xmlData.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     Dim RefObjectID As String = ""
@@ -1675,31 +1675,31 @@ NextPart:
                             Dim RecordTitle As String = ""
                             Try
                                 RecordTitle = outerNode.Item("dc:title").InnerText
-                                'If g_bDebug Then log( "SearchForContainers found a container with title: " & RecordTitle)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchForContainers found a container with title: " & RecordTitle)
                             Catch ex As Exception
                             End Try
                             Dim Artist As String = ""
                             Try
                                 Artist = outerNode.Item("upnp:artist").InnerText
-                                'If g_bDebug Then log( "SearchForContainers found a container with title: " & RecordTitle)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchForContainers found a container with title: " & RecordTitle)
                             Catch ex As Exception
                             End Try
                             Dim Album As String = ""
                             Try
                                 Album = outerNode.Item("upnp:album").InnerText
-                                'If g_bDebug Then log( "SearchForContainers found a container with title: " & RecordTitle)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchForContainers found a container with title: " & RecordTitle)
                             Catch ex As Exception
                             End Try
                             Dim Genre As String = ""
                             Try
                                 Genre = outerNode.Item("upnp:genre").InnerText
-                                'If g_bDebug Then log( "SearchForContainers found a container with title: " & RecordTitle)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchForContainers found a container with title: " & RecordTitle)
                             Catch ex As Exception
                             End Try
                             Dim ObjectClass As String = ""
                             Try
                                 ObjectClass = outerNode.Item("upnp:class").InnerText
-                                'If g_bDebug Then log( "SearchForContainers found a container with class: " & ObjectClass)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SearchForContainers found a container with class: " & ObjectClass)
                             Catch ex As Exception
                             End Try
                             Dim NewRecord = New DBRecord
@@ -1722,7 +1722,7 @@ NextPart:
                                 ReDim Preserve Records(RecordIndex)
                                 Records(RecordIndex) = NewRecord
                             End If
-                            If SuperDebug Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("Record #" & RecordIndex.ToString & " with value " & NewRecord.Title, LogType.LOG_TYPE_INFO)
                             RecordIndex = RecordIndex + 1
                         End If
                         If DownToItems And Not ClassFound Then
@@ -1734,11 +1734,11 @@ NextPart:
                         MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
                         Exit Function
                     Else
-                        If g_bDebug Then Log("Error in SearchForContainers for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SearchForContainers for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes found node = " & outerNode.Name.ToString, LogType.LOG_TYPE_INFO)
                     End If
                 Next
             Catch ex As Exception
-                log("Error in SearchForContainers at level = " & MyMaxDepthCounter.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in SearchForContainers at level = " & MyMaxDepthCounter.ToString & " for UPnPDevice = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString & "  processing Childnodes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             StartIndex = StartIndex + NumberReturned
             If StartIndex >= TotalMatches Then
@@ -1750,16 +1750,16 @@ NextPart:
 
         SearchForContainers = "OK"
 
-        If g_bDebug Then Log("SearchForContainers for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " records ", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchForContainers for device - " & MyUPnPDeviceName & " returned " & RecordIndex.ToString & " records ", LogType.LOG_TYPE_INFO)
         MySearchMaxDepthCounter = MySearchMaxDepthCounter + 1
 
     End Function
 
     Public Function GetDescriptionFromObject(ByVal ObjectID As String) As String
-        If g_bDebug Then Log("GetDescriptionFromObject called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetDescriptionFromObject called for device - " & MyUPnPDeviceName & " with ObjectID=" & ObjectID, LogType.LOG_TYPE_INFO)
         GetDescriptionFromObject = ""
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("GetDescriptionFromObject called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetDescriptionFromObject called for device - " & MyUPnPDeviceName & " but no handle to ContentDirectory", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
         If ObjectID = "" Then Exit Function
@@ -1780,15 +1780,15 @@ NextPart:
         Try
             ContentDirectory.InvokeAction("Browse", InArg, OutArg)
         Catch ex As Exception
-            log("ERROR in GetDescriptionFromObject/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("ERROR in GetDescriptionFromObject/Browse for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
 
-        If g_bDebug Then Log("GetDescriptionFromObject found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("GetDescriptionFromObject found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and MetaData = " & OutArg(0).ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetDescriptionFromObject found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and ObjectID = " & ObjectID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetDescriptionFromObject found " & TotalMatches.ToString & " entries for device = " & MyUPnPDeviceName & " and MetaData = " & OutArg(0).ToString, LogType.LOG_TYPE_INFO)
         If TotalMatches = 0 Then Exit Function
         Dim xmlData As XmlDocument = New XmlDocument
         Try
@@ -1912,7 +1912,7 @@ NextPart:
 
         If ReturnString <> "" Then ReturnString = ReturnString & "</td>"
         GetDescriptionFromObject = ReturnString
-        If g_bDebug Then Log("GetDescriptionFromObject for device - " & MyUPnPDeviceName & " returned " & GetDescriptionFromObject.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetDescriptionFromObject for device - " & MyUPnPDeviceName & " returned " & GetDescriptionFromObject.ToString, LogType.LOG_TYPE_INFO)
         xmlData = Nothing
 
     End Function

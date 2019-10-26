@@ -60,12 +60,12 @@ Public Class HSPI
         ' Normally we would do a search on plug-in actions, triggers, devices, etc. for the string provided, using
         '   the string as a regular expression if RegEx is True.
         '
-        If g_bDebug Then Log("Search called for instance = " & instance & " and SearchString = " & SearchString & " and RegEx = " & RegEx.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Search called for instance = " & instance & " and SearchString = " & SearchString & " and RegEx = " & RegEx.ToString, LogType.LOG_TYPE_INFO)
         Return Nothing
     End Function
     Public Function PluginFunction(ByVal proc As String, ByVal parms() As Object) As Object Implements IPlugInAPI.PluginFunction
         Try
-            If g_bDebug Then Log("PluginFunction called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginFunction called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         Try
@@ -83,7 +83,7 @@ Public Class HSPI
     End Function
     Public Function PluginPropertyGet(ByVal proc As String, parms() As Object) As Object Implements IPlugInAPI.PluginPropertyGet
         Try
-            If g_bDebug Then Log("PluginPropertyGet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginPropertyGet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         Try
@@ -101,7 +101,7 @@ Public Class HSPI
     End Function
     Public Sub PluginPropertySet(ByVal proc As String, value As Object) Implements IPlugInAPI.PluginPropertySet
         Try
-            If g_bDebug Then Log("PluginPropertySet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginPropertySet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         Try
@@ -130,7 +130,7 @@ Public Class HSPI
     End Property
 
     Public Function Capabilities() As Integer Implements HomeSeerAPI.IPlugInAPI.Capabilities
-        If g_bDebug And gIOEnabled Then Log("Capabilities called. Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("Capabilities called. Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
         If gInterfaceStatus = ERR_NONE Then '  ' 	generate some event from all players to get ipad/iphone clients updated when they come back on-line
             CapabilitiesCalledFlag = True      ' the time procedure will pick up on this flag, send the events and reset the flag
         End If
@@ -177,7 +177,7 @@ Public Class HSPI
     End Function
 
     Public Function InstanceFriendlyName() As String Implements HomeSeerAPI.IPlugInAPI.InstanceFriendlyName
-        If g_bDebug Then Log("InstanceFriendlyName called for instance = " & instance, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InstanceFriendlyName called for instance = " & instance, LogType.LOG_TYPE_INFO)
         If instance <> "" And (Not isRoot) Then
             Return GetDeviceGivenNameByUDN(instance)
         Else
@@ -200,7 +200,7 @@ Public Class HSPI
                         Exit Function
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in InitIO for Instance = " & instance & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO for Instance = " & instance & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
             Try
@@ -211,21 +211,21 @@ Public Class HSPI
                         CurrentAppPath.Remove(CurrentAppPath.Length - 1, 1)
                     End If
                 End If
-                If g_bDebug Then Log("InitIO for Instance = " & instance & " found CurrentAppPath = " & CurrentAppPath, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found CurrentAppPath = " & CurrentAppPath, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine the current directory path this plugin is running in.", LogType.LOG_TYPE_ERROR)
                 CurrentAppPath = hs.GetAppPath
             End Try
             Try
                 HSisRunningOnLinux = (hs.GetOSType() = eOSType.linux)
-                If g_bDebug Then Log("InitIO for Instance = " & instance & " found HS running on Linux = " & HSisRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found HS running on Linux = " & HSisRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine what OS HS is running on.", LogType.LOG_TYPE_ERROR)
             End Try
             Try
                 Log("InitIO Called for Instance = " & instance & " and running on OS = " & Environment.OSVersion.Platform.ToString, LogType.LOG_TYPE_INFO)
                 ImRunningOnLinux = Type.GetType("Mono.Runtime") IsNot Nothing
-                If g_bDebug Then Log("InitIO for Instance = " & instance & " found this plugin running on Linux = " & ImRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found this plugin running on Linux = " & ImRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine what OS this plugin is running on.", LogType.LOG_TYPE_ERROR)
             End Try
@@ -250,6 +250,18 @@ Public Class HSPI
             Try
                 PlugInIPAddress = hs.GetIPAddress
                 PluginIPPort = hs.GetINISetting("Settings", "gWebSvrPort", "")
+                ' added this code on 9/7/2019 in v3.1.0.54 to be in line with the Sonos PI functions
+                Dim HSServerIPBinding = hs.GetINISetting("Settings", "gServerAddressBind", "")
+                If HSServerIPBinding <> "" Then
+                    If HSServerIPBinding.ToLower <> "(no binding)" Then
+                        ' HS has a non default setting
+                        If HSServerIPBinding = PlugInIPAddress Then
+                            ' all cool here
+                        Else
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in InitIO for Instance = " & instance & " received (" & PlugInIPAddress & "), which is a different IP adress from it's server binding (" & HSServerIPBinding & ")", LogType.LOG_TYPE_WARNING)
+                        End If
+                    End If
+                End If
                 If ServerIPAddress <> "" Then
                     ImRunningLocal = CheckLocalIPv4Address(hs.GetIPAddress)
                     If Not ImRunningLocal Then
@@ -260,7 +272,7 @@ Public Class HSPI
                 Log("Error in InitIO Called for Instance = " & instance & ". Unable to retrieve IP address info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
 
-            If g_bDebug Then Log("InitIO Called for Instance = " & instance, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO Called for Instance = " & instance, LogType.LOG_TYPE_INFO)
 
             If Not isRoot Then
                 gIOEnabled = True
@@ -419,7 +431,7 @@ Public Class HSPI
                     If Not File.Exists(CurrentAppPath & "/Config/" & tIFACE_NAME & ".ini") Then
                         Try
                             WriteBooleanIniFile("Options", "Debug", False)
-                            WriteBooleanIniFile("Options", "SuperDebug", False)
+                            WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
                         Catch ex As Exception
                             Log("Error in InitIO. Unable to create /Config/" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -428,7 +440,7 @@ Public Class HSPI
                     If Not File.Exists(CurrentAppPath & "\Config\" & tIFACE_NAME & ".ini") Then
                         Try
                             WriteBooleanIniFile("Options", "Debug", False)
-                            WriteBooleanIniFile("Options", "SuperDebug", False)
+                            WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
                         Catch ex As Exception
                             Log("Error in InitIO. Unable to create \Config\" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -647,10 +659,10 @@ Public Class HSPI
     End Function
 
     Public Sub SetIOMulti(colSend As System.Collections.Generic.List(Of HomeSeerAPI.CAPI.CAPIControl)) Implements HomeSeerAPI.IPlugInAPI.SetIOMulti
-        If g_bDebug Then Log("SetIOMulti called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOMulti called", LogType.LOG_TYPE_INFO)
         Dim CC As CAPIControl
         For Each CC In colSend
-            If g_bDebug Then Log("SetIOMulti set value: " & CC.ControlValue.ToString & "->ref:" & CC.Ref.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOMulti set value: " & CC.ControlValue.ToString & "->ref:" & CC.Ref.ToString, LogType.LOG_TYPE_INFO)
             SetIOEx(CC)
         Next
     End Sub
@@ -660,8 +672,8 @@ Public Class HSPI
         'Dim Cmd As String = ""
 
         If Not CC Is Nothing Then
-            If g_bDebug Then Log("SetIOEx called for Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString & _
-                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString & _
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOEx called for Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString &
+                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString &
                   ", Label = " & CC.Label.ToString, LogType.LOG_TYPE_INFO)
         Else
             Exit Sub    ' Not ours.
@@ -710,19 +722,19 @@ Public Class HSPI
     End Function
 
     Public Function GenPage(ByVal link As String) As String Implements HomeSeerAPI.IPlugInAPI.GenPage
-        If g_bDebug Then Log("GenPage called with link = " & link.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenPage called with link = " & link.ToString, LogType.LOG_TYPE_INFO)
         Return ""
     End Function
 
     Public Function PagePut(ByVal data As String) As String Implements HomeSeerAPI.IPlugInAPI.PagePut
-        If g_bDebug Then Log("PagePut called with data = " & data.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PagePut called with data = " & data.ToString, LogType.LOG_TYPE_INFO)
         Return ""
     End Function
 
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String) As String Implements HomeSeerAPI.IPlugInAPI.GetPagePlugin
         'If you have more than one web page, use pageName to route it to the proper GetPagePlugin
         GetPagePlugin = ""
-        If g_bDebug Then Log("hspi.GetPagePlugin called for instance = " & instance & " and pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("hspi.GetPagePlugin called for instance = " & instance & " and pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
         Try
             If pageName.IndexOf(ConfigPage) = 0 Then
                 Return ConfigurationPage.GetPagePlugin(pageName, user, userRights, queryString)
@@ -752,7 +764,7 @@ Public Class HSPI
 
     Public Function PostBackProc(ByVal pageName As String, ByVal data As String, ByVal user As String, ByVal userRights As Integer) As String Implements HomeSeerAPI.IPlugInAPI.PostBackProc
         'If you have more than one web page, use pageName to route it to the proper postBackProc
-        'If g_bDebug Then Log("hspi.PostBackProc called for instance = " & instance & " with pageName = " & pageName.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("hspi.PostBackProc called for instance = " & instance & " with pageName = " & pageName.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
 
         PostBackProc = ""
         Try
@@ -817,14 +829,14 @@ Public Class HSPI
 #Region "Action Properties"
 
     Public Function ActionCount() As Integer Implements HomeSeerAPI.IPlugInAPI.ActionCount
-        'If g_bDebug Then Log("ActionCount called", LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionCount called", LogType.LOG_TYPE_INFO)
         If Not isRoot Then Return 0
         Return 1
     End Function
 
     Public ReadOnly Property ActionName(ByVal ActionNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.ActionName
         Get
-            'If g_bDebug Then Log("ActionName called with ActionNumber = " & ActionNumber.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionName called with ActionNumber = " & ActionNumber.ToString, LogType.LOG_TYPE_INFO)
             Select Case ActionNumber
                 Case 1
                     If MainInstance <> "" Then
@@ -839,18 +851,18 @@ Public Class HSPI
 
     Public Property ActionAdvancedMode As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionAdvancedMode
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("ActionAdvancedMode Set called with Value = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionAdvancedMode Set called with Value = " & value.ToString, LogType.LOG_TYPE_INFO)
             mvarActionAdvanced = value
         End Set
         Get
-            If g_bDebug Then Log("ActionAdvancedMode Get called and returned = " & mvarActionAdvanced, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionAdvancedMode Get called and returned = " & mvarActionAdvanced, LogType.LOG_TYPE_INFO)
             Return mvarActionAdvanced
         End Get
     End Property
 
     Public Function ActionBuildUI(ByVal sUnique As String, ByVal ActInfo As IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.ActionBuildUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("ActionBuildUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim PlayerList As New clsJQuery.jqDropList("PlayerListAction" & sUnique, ActionsPageName, True)
         Dim CommandList As New clsJQuery.jqDropList("CommandListAction" & sUnique, ActionsPageName, True)
         Dim ServerList As New clsJQuery.jqDropList("ServerListAction" & sUnique, ActionsPageName, True)
@@ -890,11 +902,11 @@ Public Class HSPI
             End If
 
             For Each sKey In action.Keys
-                'If g_bDebug Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerIndex = action(sKey)
-                        'If g_bDebug Then Log("ActionBuildUI found PlayerIndex with Actioninfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI found PlayerIndex with Actioninfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
                     Case InStr(sKey, "ServerListAction") > 0
                         ServerIndex = action(sKey)
                     Case InStr(sKey, "CommandListAction") > 0
@@ -917,7 +929,7 @@ Public Class HSPI
                         InputString = action(sKey)
                 End Select
             Next
-            If g_bDebug Then Log("ActionBuildUI found Command = " & CommandIndex & " and PlayerUDN = " & PlayerIndex & " and Text = " & InputIndex, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI found Command = " & CommandIndex & " and PlayerUDN = " & PlayerIndex & " and Text = " & InputIndex, LogType.LOG_TYPE_INFO)
 
             Dim InputBox As New clsJQuery.jqTextBox("InputBoxAction" & sUnique, "text", InputIndex, ActionsPageName, 40, True)
             CommandList.AddItem("Play Item", "Play Item", CommandIndex = "Play Item")
@@ -1090,7 +1102,7 @@ Public Class HSPI
     End Function
 
     Public Function ActionConfigured(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionConfigured
-        If g_bDebug Then Log("ActionConfigured called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim Configured As Boolean = False
         Dim sKey As String
         Dim itemsConfigured As Integer = 0
@@ -1114,7 +1126,7 @@ Public Class HSPI
         Try
             DeSerializeObject(ActInfo.DataIn, action)
             For Each sKey In action.Keys
-                If g_bDebug Then Log("ActionConfigured found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0 AndAlso action(sKey) <> ""
                         itemsConfigured += 1
@@ -1164,11 +1176,11 @@ Public Class HSPI
                     If itemsConfigured = 3 Then Configured = True
                 Case "Set Track Position"
                     If itemsConfigured <> 3 Then
-                        If g_bDebug Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
                         Return False
                     End If
                     If Val(InputBox) <> 0 Then
-                        If g_bDebug Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
                         Return True ' valid integer
                     End If
                     Dim Index As Integer
@@ -1177,10 +1189,10 @@ Public Class HSPI
                         If InputBox(Index) = ":" Then Counter += 1
                     Next
                     If Counter <> 2 Then
-                        If g_bDebug Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
                         Return False
                     Else
-                        If g_bDebug Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
                         Return True
                     End If
                 Case "Play URL"
@@ -1190,13 +1202,13 @@ Public Class HSPI
         Catch ex As Exception
             Log("Error in ActionConfigured with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("ActionConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
         Return Configured
 
     End Function
 
     Public Function ActionReferencesDevice(ByVal ActInfo As IPlugInAPI.strTrigActInfo, ByVal dvRef As Integer) As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionReferencesDevice
-        If g_bDebug Then Log("ActionReferencesDevice called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionReferencesDevice called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
         '
         ' Actions in the sample plug-in do not reference devices, but for demonstration purposes we will pretend they do, 
         '   and that ALL actions reference our sample devices.
@@ -1207,7 +1219,7 @@ Public Class HSPI
 
     Public Function ActionFormatUI(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.ActionFormatUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("ActionFormatUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If ActInfo.DataIn Is Nothing Then
             ' no info, can't be good
             Return ""
@@ -1237,17 +1249,17 @@ Public Class HSPI
 
 
             For Each sKey In action.Keys
-                'If g_bDebug Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerUDN = action(sKey)
-                        If g_bDebug Then Log("ActionFormatUI found PlayerIndex with Actioninfo = " & PlayerUDN.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found PlayerIndex with Actioninfo = " & PlayerUDN.ToString, LogType.LOG_TYPE_INFO)
                         If PlayerUDN <> "" Then
                             PlayerName = GetDeviceGivenNameByUDN(PlayerUDN)
                         End If
                     Case InStr(sKey, "ServerListAction") > 0
                         ServerUDN = action(sKey)
-                        If g_bDebug Then Log("ActionFormatUI found ServerIndex with Actioninfo = " & ServerUDN.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found ServerIndex with Actioninfo = " & ServerUDN.ToString, LogType.LOG_TYPE_INFO)
                         If ServerUDN <> "" Then
                             ServerName = GetDeviceGivenNameByUDN(ServerUDN)
                         End If
@@ -1320,7 +1332,7 @@ Public Class HSPI
 
     Public Function ActionProcessPostUI(ByVal PostData As Collections.Specialized.NameValueCollection, ByVal ActInfoIN As IPlugInAPI.strTrigActInfo) As IPlugInAPI.strMultiReturn Implements HomeSeerAPI.IPlugInAPI.ActionProcessPostUI
         Dim Ret As New HomeSeerAPI.IPlugInAPI.strMultiReturn
-        If g_bDebug Then Log("ActionProcessPostUI called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI called", LogType.LOG_TYPE_INFO)
 
         Ret.sResult = ""
         ' We cannot be passed info ByRef from HomeSeer, so turn right around and return this same value so that if we want, 
@@ -1345,7 +1357,7 @@ Public Class HSPI
         parts = PostData
         Try
             For Each sKey In parts.Keys
-                If g_bDebug Then Log("ActionProcessPostUI found sKey " & sKey.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI found sKey " & sKey.ToString, LogType.LOG_TYPE_INFO)
                 If sKey Is Nothing Then Continue For
                 If String.IsNullOrEmpty(sKey.Trim) Then Continue For
                 Select Case True
@@ -1360,7 +1372,7 @@ Public Class HSPI
                         Action.Add(CObj(parts(sKey)), sKey)
                     Case InStr(sKey, "CommandListAction") > 0
                         Command = parts(sKey)
-                        If g_bDebug Then Log("ActionProcessPostUI found Command " & Command.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI found Command " & Command.ToString, LogType.LOG_TYPE_INFO)
                         Action.Add(CObj(parts(sKey)), sKey)
                     Case InStr(sKey, "InputBoxAction") > 0
                         Select Case Command
@@ -1400,7 +1412,7 @@ Public Class HSPI
 
     Public Function HandleAction(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.HandleAction
         HandleAction = False
-        If g_bDebug Then Log("HandleAction called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleAction called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If ActInfo.DataIn Is Nothing Then
             ' no info, can't be good
             Return False
@@ -1423,7 +1435,7 @@ Public Class HSPI
             Dim InputString As String = ""
 
             For Each sKey In action.Keys
-                If g_bDebug Then Log("HandleAction found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleAction found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerUDN = action(sKey)
@@ -1522,17 +1534,17 @@ Public Class HSPI
         ' <returns>The current state of the Condition flag.</returns>
         ' <remarks></remarks>
         Get
-            'If g_bDebug Then Log("Condition.get called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Condition.get called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
             Return False
         End Get
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("Condition.set called for instance " & instance & " with Value = " & value.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Condition.set called for instance " & instance & " with Value = " & value.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public ReadOnly Property HasConditions(ByVal TriggerNumber As Integer) As Boolean Implements HomeSeerAPI.IPlugInAPI.HasConditions
         Get
-            'If g_bDebug Then Log("HasConditions.get called for instance " & instance & " with TriggerNumber = " & TriggerNumber.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HasConditions.get called for instance " & instance & " with TriggerNumber = " & TriggerNumber.ToString, LogType.LOG_TYPE_INFO)
             Select Case TriggerNumber
                 Case 1
                     Return False
@@ -1550,14 +1562,14 @@ Public Class HSPI
 
     Public ReadOnly Property HasTriggers() As Boolean Implements HomeSeerAPI.IPlugInAPI.HasTriggers
         Get
-            'If g_bDebug Then Log("HasTriggers called", LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HasTriggers called", LogType.LOG_TYPE_INFO)
             Return True
         End Get
     End Property
 
     Public ReadOnly Property TriggerCount As Integer Implements HomeSeerAPI.IPlugInAPI.TriggerCount
         Get
-            'If g_bDebug Then Log("TriggerCount called for instance " & Instance & " ", LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerCount called for instance " & Instance & " ", LogType.LOG_TYPE_INFO)
             If Not isRoot Then
                 Return 0
             Else
@@ -1568,7 +1580,7 @@ Public Class HSPI
 
     Public ReadOnly Property TriggerName(ByVal TriggerNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.TriggerName
         Get
-            'If g_bDebug Then Log("TriggerName called for instance " & Instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerName called for instance " & Instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
             If MainInstance <> "" Then
                 Select Case TriggerNumber
                     Case 1
@@ -1593,21 +1605,21 @@ Public Class HSPI
 
     Public ReadOnly Property SubTriggerCount(ByVal TriggerNumber As Integer) As Integer Implements HomeSeerAPI.IPlugInAPI.SubTriggerCount
         Get
-            'If g_bDebug Then Log("SubTriggerCount called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SubTriggerCount called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
             Return 0
         End Get
     End Property
 
     Public ReadOnly Property SubTriggerName(ByVal TriggerNumber As Integer, ByVal SubTriggerNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.SubTriggerName
         Get
-            'If g_bDebug Then Log("SubTriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SubTriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
             Return ""
         End Get
     End Property
 
     Public Function TriggerBuildUI(ByVal sUnique As String, ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.TriggerBuildUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("TriggerBuildUI called for instance " & instance & " with sUnique = " & sUnique.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI called for instance " & instance & " with sUnique = " & sUnique.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim PlayerList As New clsJQuery.jqDropList("PlayerListTrigger" & sUnique, TriggersPageName, True)
         Dim CommandList As New clsJQuery.jqDropList("CommandListTrigger" & sUnique, TriggersPageName, True)
         Dim trigger As New trigger
@@ -1629,17 +1641,17 @@ Public Class HSPI
         Dim CommandIndex As String = ""
         Dim InputIndex As String = ""
         For Each sKey In trigger.Keys
-            'If g_bDebug Then Log("TriggerBuildUI found skey = " & sKey.ToString & " and PlayerUDN = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found skey = " & sKey.ToString & " and PlayerUDN = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found PlayerIndex with triggerinfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found PlayerIndex with triggerinfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
                 Case InStr(sKey, "CommandListTrigger") > 0
                     CommandIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found CommandIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found CommandIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
                 Case InStr(sKey, "InputBoxTrigger") > 0
                     InputIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found InputIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found InputIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
             End Select
         Next
         Dim InputBox As New clsJQuery.jqTextBox("InputBoxTrigger" & sUnique, "text", InputIndex, TriggersPageName, 40, True)
@@ -1709,7 +1721,7 @@ Public Class HSPI
 
     Public ReadOnly Property TriggerConfigured(ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.TriggerConfigured
         Get
-            If g_bDebug Then Log("TriggerConfigured called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
             Dim Configured As Boolean = False
             Dim sKey As String
             Dim itemsConfigured As Integer = 0
@@ -1718,7 +1730,7 @@ Public Class HSPI
             If Not (TrigInfo.DataIn Is Nothing) Then
                 DeSerializeObject(TrigInfo.DataIn, trigger)
                 For Each sKey In trigger.Keys
-                    'If g_bDebug Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
                     Select Case True
                         Case InStr(sKey, "PlayerListTrigger") > 0 AndAlso trigger(sKey) <> ""
                             itemsConfigured += 1
@@ -1734,7 +1746,7 @@ Public Class HSPI
                 Next
                 If itemsConfigured = itemsToConfigure Then Configured = True
             End If
-            If g_bDebug Then Log("TriggerConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
             Return Configured
         End Get
 
@@ -1745,13 +1757,13 @@ Public Class HSPI
         ' Triggers in the sample plug-in do not reference devices, but for demonstration purposes we will pretend they do, 
         '   and that ALL triggers reference our sample devices.
         '
-        'If g_bDebug Then Log("TriggerReferencesDevice called for instance " & instance & " with TrigInfo = " & TrigInfo.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerReferencesDevice called for instance " & instance & " with TrigInfo = " & TrigInfo.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
         'If dvRef = -1 Then Return True
         Return True
     End Function
 
     Public Function TriggerFormatUI(ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.TriggerFormatUI
-        If g_bDebug Then Log("TriggerFormatUI called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerFormatUI called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim stb As New StringBuilder
         Dim sKey As String
         Dim PlayerUDN As String = ""
@@ -1766,7 +1778,7 @@ Public Class HSPI
         End If
 
         For Each sKey In trigger.Keys
-            'If g_bDebug Then Log("TriggerFormatUI found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerFormatUI found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerUDN = trigger(sKey)
@@ -1807,9 +1819,9 @@ Public Class HSPI
 
     End Function
 
-    Public Function TriggerProcessPostUI(ByVal PostData As System.Collections.Specialized.NameValueCollection, _
+    Public Function TriggerProcessPostUI(ByVal PostData As System.Collections.Specialized.NameValueCollection,
                                          ByVal TrigInfoIn As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As HomeSeerAPI.IPlugInAPI.strMultiReturn Implements HomeSeerAPI.IPlugInAPI.TriggerProcessPostUI
-        If g_bDebug Then Log("TriggerProcessPostUI called for instance " & instance & " with evRef = " & TrigInfoIn.evRef.ToString & " and SubTANumber = " & TrigInfoIn.SubTANumber.ToString & " and TANumber = " & TrigInfoIn.TANumber.ToString & " and UID = " & TrigInfoIn.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerProcessPostUI called for instance " & instance & " with evRef = " & TrigInfoIn.evRef.ToString & " and SubTANumber = " & TrigInfoIn.SubTANumber.ToString & " and TANumber = " & TrigInfoIn.TANumber.ToString & " and UID = " & TrigInfoIn.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim Ret As New HomeSeerAPI.IPlugInAPI.strMultiReturn
 
         Ret.sResult = ""
@@ -1860,7 +1872,7 @@ Public Class HSPI
 
     Public Function TriggerTrue(ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.TriggerTrue
         TriggerTrue = False
-        If g_bDebug Then Log("TriggerTrue called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerTrue called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If TrigInfo.TANumber <> 2 Then Return False ' this should not be!
         If TrigInfo.DataIn Is Nothing Then Return False ' we can't work without data
         Dim trigger As New trigger
@@ -1871,7 +1883,7 @@ Public Class HSPI
         Dim Command As String = ""
         Dim InputBox As String = ""
         For Each sKey In trigger.Keys
-            If g_bDebug Then Log("TriggerTrue found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerTrue found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerUDN = trigger(sKey)
@@ -2014,15 +2026,16 @@ Public Class HSPI
 
     Private Sub InitializeUPnPDevices()
         Dim dv As Scheduler.Classes.DeviceClass
-        Dim NewStart As Boolean = False
-        If g_bDebug Then Log("InitializeUPnPDevices called", LogType.LOG_TYPE_INFO)
+        Dim NewStart As Boolean = GetBooleanIniFile("Options", "RefreshDevices", False)
+        TCPListenerPort = GetIntegerIniFile("Options", "TCPListenerPort", 0)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeUPnPDevices called", LogType.LOG_TYPE_INFO)
 
         Try
 
             MasterHSDeviceRef = GetIntegerIniFile("Settings", "MasterHSDeviceRef", -1)
 
             If MasterHSDeviceRef <> -1 Then ' we already have a a masterHS device
-                If g_bDebug Then Log("InitializeUPnPDevices found MasterHSDeviceRef in the inifile. MasterHSDeviceRef = " & MasterHSDeviceRef.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeUPnPDevices found MasterHSDeviceRef in the inifile. MasterHSDeviceRef = " & MasterHSDeviceRef.ToString, LogType.LOG_TYPE_INFO)
             Else
                 NewStart = True
                 Log("InitializeUPnPDevices is deleting all existing HS devices", LogType.LOG_TYPE_WARNING)
@@ -2057,7 +2070,7 @@ Public Class HSPI
                     dv.MISC_Set(hs, Enums.dvMISC.SHOW_VALUES)
                     dv.Image(hs) = ImagesPath & "DLNA.png"
                     dv.ImageLarge(hs) = ImagesPath & "DLNA.png"
-                    If g_bDebug Then Log("InitializeSonosDevices added image  " & ImagesPath & "DLNA.png", LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeSonosDevices added image  " & ImagesPath & "DLNA.png", LogType.LOG_TYPE_INFO)
                     Dim DT As New DeviceTypeInfo
                     DT.Device_API = DeviceTypeInfo.eDeviceAPI.Media
                     DT.Device_Type = DeviceTypeInfo.eDeviceType_Media.Root
@@ -2109,8 +2122,9 @@ Public Class HSPI
                 Log("Error in InitializeUPnPDevices creating the controllers with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
+        WriteBooleanIniFile("Options", "RefreshDevices", False) ' just in case this flag was set
         SetDeviceStringConnected()
-        If g_bDebug Then Log("InitializeUPnPDevices: Done Initializing UPnPDevice Devices", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeUPnPDevices: Done Initializing UPnPDevice Devices", LogType.LOG_TYPE_INFO)
         Try
             WriteIntegerIniFile("Options", "PreviousVersion", CurrentVersion)
         Catch ex As Exception
@@ -2157,13 +2171,13 @@ Public Class HSPI
     Public Sub SetDeviceStringConnected()
         hs.SetDeviceValueByRef(MasterHSDeviceRef, msConnected, True)
         'hs.SetDeviceString(MasterHSDeviceRef, "Connected", True)
-        If g_bDebug Then Log("SetDeviceStringConnected called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetDeviceStringConnected called", LogType.LOG_TYPE_INFO)
     End Sub
 
     Private Sub BuildUPnPHSDeviceInfoList()
         ' This procedure gets all the players out of the HS Database, look them up in the .ini file and puts them in the UPNPDeviceInfo array. Not all the HS devices will create record entries
         ' Some Controller instances will create multiple HS devices, only one of them as master and the other linked to the master
-        If g_bDebug Then Log("BuildUPnPHSDeviceInfoList called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildUPnPHSDeviceInfoList called", LogType.LOG_TYPE_INFO)
         Dim en As Scheduler.Classes.clsDeviceEnumeration
         Dim Device As Scheduler.Classes.DeviceClass
         Dim DeviceIndex As Integer = 0
@@ -2178,7 +2192,7 @@ Public Class HSPI
                     Dim DT As DeviceTypeInfo = Device.DeviceType_Get(Nothing)
                     If DT.Device_SubType_Description = RootHSDescription Then
                         DeviceUDN = GetStringIniFile("UPnP HSRef to UDN", Device.Ref(Nothing), "")
-                        'If g_bDebug Then log( "BuildUPnPHSDeviceInfoList found " & Device.dc & " with UDN = " & DeviceUDN.ToString)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "BuildUPnPHSDeviceInfoList found " & Device.dc & " with UDN = " & DeviceUDN.ToString)
                         If DeviceUDN <> "" Then
                             ' the info was stored
                             UPnPDeviceInfo = DMAdd()
@@ -2200,7 +2214,7 @@ Public Class HSPI
                             UPnPDeviceInfo.UPnPDeviceIsAddedToHS = GetBooleanIniFile(DeviceUDN, DeviceInfoIndex.diDeviceIsAdded.ToString, False)
                             UPnPDeviceInfo.UPnPDeviceIconURL = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diDeviceIConURL.ToString, "")
                             UPnPDeviceInfo.UPnPDeviceHSRef = Device.Ref(Nothing)
-                            If g_bDebug Then Log("BuildUPnPHSDeviceInfoList found " & UPnPDeviceInfo.UPnPDeviceGivenName & " at Index " & DeviceIndex.ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildUPnPHSDeviceInfoList found " & UPnPDeviceInfo.UPnPDeviceGivenName & " at Index " & DeviceIndex.ToString, LogType.LOG_TYPE_INFO)
                             DeviceIndex = DeviceIndex + 1
                         Else
                             ' this could be the master or one of the many additional controls
@@ -2210,7 +2224,7 @@ Public Class HSPI
                                 DeviceInfo = GetStringIniFile("UPnP HSRef to UDN", Device.Ref(Nothing), "")
                                 If DeviceInfo <> "" Then
                                     ' this is good
-                                    If SuperDebug Then Log("BuildUPnPHSDeviceInfoList found linked devices in .ini file with deviceRef = " & Device.Ref(Nothing), LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("BuildUPnPHSDeviceInfoList found linked devices in .ini file with deviceRef = " & Device.Ref(Nothing), LogType.LOG_TYPE_INFO)
                                 Else
                                     ' this is not good
                                     Log("Error in BuildUPnPHSDeviceInfoList. Info not found in .ini file Devtype = UPnP Devices and DeviceRef = " & Device.Ref(Nothing), LogType.LOG_TYPE_ERROR)
@@ -2229,7 +2243,7 @@ Public Class HSPI
         Dim UPnPDeviceInfoArray As MyUPnpDeviceInfo() = Nothing
         ReDim UPnPDeviceInfoArray(0)
 
-        If g_bDebug Then Log("DetectUPnPDevices called with Refresh = " & Refresh.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DetectUPnPDevices called with Refresh = " & Refresh.ToString, LogType.LOG_TYPE_INFO)
 
         Dim UPnPDevicesToGoDiscover As New System.Collections.Generic.Dictionary(Of String, String)()
         UPnPDevicesToGoDiscover = GetIniSection("UPnP Devices to discover") '  As Dictionary(Of String, String)
@@ -2242,11 +2256,11 @@ Public Class HSPI
         Try
             FindUPnPDevice(UPnPDeviceInfoArray) ' go find the devices using UPNP discovery
         Catch ex As Exception
-            log("Error in DetectUPnPDevices while finding the UPnPDevices with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in DetectUPnPDevices while finding the UPnPDevices with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
 
-        If g_bDebug Then Log("DetectUPnPDevices added a total of " & (UBound(UPnPDeviceInfoArray)).ToString & " devices", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DetectUPnPDevices added a total of " & (UBound(UPnPDeviceInfoArray)).ToString & " devices", LogType.LOG_TYPE_INFO)
 
         Dim UPnPDeviceUDN As String
         Dim UPnPDeviceInfo As MyUPnpDeviceInfo = Nothing
@@ -2254,10 +2268,10 @@ Public Class HSPI
         For I = 1 To UBound(UPnPDeviceInfoArray)  ' This is the array of devices discovered by UPnP
             UPnPDeviceUDN = ""
             Try
-                'If g_bDebug Then log( "DetectUPnPDevices is looking for UPnPDeviceName = " & UPnPDeviceInfoArray(I).UPnPDeviceGivenName & " in UPnPDeviceInfo")
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "DetectUPnPDevices is looking for UPnPDeviceName = " & UPnPDeviceInfoArray(I).UPnPDeviceGivenName & " in UPnPDeviceInfo")
                 UPnPDeviceUDN = UPnPDeviceInfoArray(I).UPnPDeviceUDN
             Catch ex As Exception
-                log("Error in DetectUPnPDevices while finding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in DetectUPnPDevices while finding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 Exit Sub
             End Try
             If UPnPDeviceUDN <> "" Then
@@ -2265,7 +2279,7 @@ Public Class HSPI
                 Try
                     UPnPDeviceInfo = FindUPnPDeviceInfo(UPnPDeviceUDN)
                 Catch ex As Exception
-                    log("Error in DetectUPnPDevices while finding the DeviceInfo with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    Log("Error in DetectUPnPDevices while finding the DeviceInfo with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     Exit Sub
                 End Try
                 Dim InterestedServices As String = ""
@@ -2284,7 +2298,7 @@ Public Class HSPI
                             UPnPDeviceInfo.UPnPDeviceOnLine = UPnPDeviceInfoArray(I).Device.Alive 'CheckDeviceIsOnLine(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress)
                         Else
                             UPnPDeviceInfo.UPnPDeviceOnLine = False '  CheckDeviceIsOnLine(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress)
-                            If g_bDebug Then Log("DetectUPnPDevices found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " without a device ??? UDN = " & UPnPDeviceUDN & " and Type = " & UPnPDeviceInfo.UPnPDeviceDeviceType, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DetectUPnPDevices found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " without a device ??? UDN = " & UPnPDeviceUDN & " and Type = " & UPnPDeviceInfo.UPnPDeviceDeviceType, LogType.LOG_TYPE_INFO)
                         End If
                         UPnPDeviceInfo.UPnPDeviceModelName = UPnPDeviceInfoArray(I).UPnPDeviceModelName
                         UPnPDeviceInfo.UPnPDeviceModelNumber = UPnPDeviceInfoArray(I).UPnPDeviceModelNumber
@@ -2293,7 +2307,7 @@ Public Class HSPI
                         UPnPDeviceInfo.UPnPDeviceIPPort = UPnPDeviceInfoArray(I).UPnPDeviceIPPort
                         UPnPDeviceInfo.UPnPDeviceIconURL = UPnPDeviceInfoArray(I).UPnPDeviceIconURL
                         UPnPDeviceInfo.UPnPDeviceManufacturerName = UPnPDeviceInfoArray(I).UPnPDeviceManufacturerName
-                        If g_bDebug Then Log("DetectUPnPDevices found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " on line = " & UPnPDeviceInfo.UPnPDeviceOnLine.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DetectUPnPDevices found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " on line = " & UPnPDeviceInfo.UPnPDeviceOnLine.ToString, LogType.LOG_TYPE_INFO)
                         If UPnPDeviceInfo.UPnPDeviceOnLine Then
                             ' the rest we can safely overwrite because the name or IP address could have changed
                             WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceModelName.ToString, UPnPDeviceInfoArray(I).UPnPDeviceModelName)
@@ -2302,12 +2316,12 @@ Public Class HSPI
                             WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diIPPort.ToString, UPnPDeviceInfoArray(I).UPnPDeviceIPPort)
                             'If Not ImRunningOnLinux Then ' removed v.38
                             Dim MACAddress As String = GetMACAddress(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress).ToString
-                                If MACAddress <> "" Then
-                                    If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
-                                        If g_bDebug Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                        WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
-                                    End If
+                            If MACAddress <> "" Then
+                                If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
+                                    WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
                                 End If
+                            End If
                             'End If
                         End If
                         WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceServiceTypes.ToString, InterestedServices) ' store the supported services
@@ -2327,7 +2341,7 @@ Public Class HSPI
                             WriteBooleanIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceIsAdded.ToString, False)
                             WriteIntegerIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceAPIIndex.ToString, 0)
                         Else
-                            If g_bDebug Then Log("DetectUPnPDevices found new UPnPDeviceName = " & UPnPDeviceInfoArray(I).UPnPDeviceFriendlyName & " and On-line Status= " & UPnPDeviceInfoArray(I).UPnPDeviceOnLine.ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DetectUPnPDevices found new UPnPDeviceName = " & UPnPDeviceInfoArray(I).UPnPDeviceFriendlyName & " and On-line Status= " & UPnPDeviceInfoArray(I).UPnPDeviceOnLine.ToString, LogType.LOG_TYPE_INFO)
                         End If
                         ' the rest we can safely overwrite
                         WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceModelName.ToString, UPnPDeviceInfoArray(I).UPnPDeviceModelName)
@@ -2340,12 +2354,12 @@ Public Class HSPI
                         WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceManufacturerName.ToString, UPnPDeviceInfoArray(I).UPnPDeviceManufacturerName)
                         'If Not ImRunningOnLinux Then ' removed v.38
                         Dim MACAddress As String = GetMACAddress(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress).ToString
-                            If MACAddress <> "" Then
-                                If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
-                                    If g_bDebug Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                    WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
-                                End If
+                        If MACAddress <> "" Then
+                            If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
+                                WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
                             End If
+                        End If
                         'End If
                     Catch ex As Exception
                         Log("Error in DetectUPnPDevices 1 while adding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -2378,9 +2392,9 @@ NextElement:
         Dim UPnPDeviceToDiscover As New System.Collections.Generic.KeyValuePair(Of String, String)
 
         Log("FindUPnPDevice: Attempting to locate all connected devices. This may take up to 9 seconds.", LogType.LOG_TYPE_INFO)
-
+        Dim discoveryPort As Integer = GetIntegerIniFile("Options", "SSDPListenerPort", 0)
         Dim MyDevicesLinkedList As MyUPnPDevices = Nothing
-        MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("upnp:rootdevice")
+        MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("upnp:rootdevice", discoveryPort)
 
         If MyDevicesLinkedList Is Nothing Then
             Log("No UPnPDevices found. Please ensure the network is functional and that UPnPDevices devices are attached.", LogType.LOG_TYPE_WARNING)
@@ -2397,7 +2411,7 @@ NextElement:
                     Dim Device As MyUPnPDevice = MasterDevice
                     Dim ChildDeviceIndex As Integer = 0
                     While Not ChildrenProcessed
-                        If SuperDebug Then Log("FindUPnPDevice found device = " & Device.Type & " with FriendlyName = " & Device.FriendlyName & " at Location = " & Device.Location, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDevice found device = " & Device.Type & " with FriendlyName = " & Device.FriendlyName & " at Location = " & Device.Location, LogType.LOG_TYPE_INFO)
                         NeedsToBeAdded = False
                         For Each UPnPDeviceToDiscover In UPnPDevicesToGoDiscover
                             If Device.Type = UPnPDeviceToDiscover.Key Then
@@ -2409,10 +2423,10 @@ NextElement:
                         If NeedsToBeAdded Then
                             If (Mid(Device.UniqueDeviceName, 1, 12) = "uuid:RINCON_" Or Mid(Device.UniqueDeviceName, 1, 16) = "uuid:DOCKRINCON_") And Not SonosDeviceIn Then
                                 ' these are the sonos devices
-                                If SuperDebug Then Log("FindUPnPDevice found Sonos device with UDN =  " & Device.UniqueDeviceName & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location, LogType.LOG_TYPE_WARNING)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDevice found Sonos device with UDN =  " & Device.UniqueDeviceName & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location, LogType.LOG_TYPE_WARNING)
                             Else
                                 Dim NewUDN As String = Replace(Device.UniqueDeviceName, "uuid:", "")
-                                If g_bDebug Then Log("FindUPnPDevice is adding a " & Device.ManufacturerName & " device with UDN = " & NewUDN & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location & " and adding it to the array with index = " & DeviceCount.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindUPnPDevice is adding a " & Device.ManufacturerName & " device with UDN = " & NewUDN & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location & " and adding it to the array with index = " & DeviceCount.ToString, LogType.LOG_TYPE_INFO)
                                 DeviceCount = DeviceCount + 1
                                 ReDim Preserve LocalUPnPDevicesInfo(DeviceCount)
                                 Dim NewDevice As New MyUPnpDeviceInfo
@@ -2427,54 +2441,54 @@ NextElement:
                                 LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceIPPort = Device.IPPort
                                 LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceOnLine = True
                                 Try
-                                    If SuperDebug Then Log("'            isRoot = " & Device.IsRootDevice.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            isRoot = " & Device.IsRootDevice.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceisRoot = Device.IsRootDevice
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            Description = " & Device.Description.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            Description = " & Device.Description.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceDescription = Device.Description
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            ModelNumber = " & Device.ModelNumber.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            ModelNumber = " & Device.ModelNumber.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceModelNumber = Device.ModelNumber
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            ModelURL = " & Device.ModelURL.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            ModelURL = " & Device.ModelURL.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceModelURL = Device.ModelURL
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            PresentationURL = " & Device.PresentationURL.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            PresentationURL = " & Device.PresentationURL.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDevicePresentationURL = Device.PresentationURL
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            hasChildren = " & Device.HasChildren.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            hasChildren = " & Device.HasChildren.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceHasChildren = Device.HasChildren
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            ManufacturerURL = " & Device.ManufacturerURL.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            ManufacturerURL = " & Device.ManufacturerURL.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceManufacturerURL = Device.ManufacturerURL
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            ModelName = " & Device.ModelName.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            ModelName = " & Device.ModelName.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceModelName = Device.ModelName
                                 Catch ex As Exception
                                 End Try
                                 Try
-                                    If SuperDebug Then Log("'            UPC = " & Device.UPC.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            UPC = " & Device.UPC.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceUPC = Device.UPC
                                 Catch ex As Exception
                                 End Try
                                 Try
                                     Dim ICon As String = ""
                                     ICon = Device.IconURL("image/jpeg", 200, 200, 16)
-                                    If SuperDebug Then Log("'            IconIRL = " & ICon.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log("'            IconIRL = " & ICon.ToString, LogType.LOG_TYPE_INFO)
                                     LocalUPnPDevicesInfo(DeviceCount).UPnPDeviceIconURL = ICon.ToString
                                 Catch ex As Exception
                                 End Try
@@ -2525,7 +2539,7 @@ NextElement:
     End Sub
 
     Public Sub NewDeviceFound(inUDN As String)
-        If g_bDebug Then Log("NewDeviceFound called for device = " & inUDN, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NewDeviceFound called for device = " & inUDN, LogType.LOG_TYPE_INFO, LogColorNavy)
         SyncLock (MyNewDiscoveredDeviceQueue)
             MyNewDiscoveredDeviceQueue.Enqueue(inUDN)
         End SyncLock
@@ -2545,7 +2559,7 @@ NextElement:
 
     Private Sub AddNewDiscoveredDevice()
         If NewDeviceHandlerReEntryFlag Then
-            If g_bDebug Then Log("AddNewDiscoveredDevice has Re-Entry while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice has Re-Entry while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_WARNING)
             'MissedNewDeviceNotificationHandlerFlag = True
             Try
                 If MyAddNewDeviceTimer Is Nothing Then
@@ -2566,11 +2580,11 @@ NextElement:
         UPnPDevicesToGoDiscover = GetIniSection("UPnP Devices to discover") '  As Dictionary(Of String, String)
 
         If UPnPDevicesToGoDiscover Is Nothing Then
-            If g_bDebug Then Log("Error in AddNewDiscoveredDevice. No Devices specified in the .ini file under ""UPnP Devices to discover""", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddNewDiscoveredDevice. No Devices specified in the .ini file under ""UPnP Devices to discover""", LogType.LOG_TYPE_ERROR)
             NewDeviceHandlerReEntryFlag = False
             Exit Sub
         End If
-        If g_bDebug Then Log("AddNewDiscoveredDevice is processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice is processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_INFO)
         Dim NewUDN As String
         Dim UPnPDeviceInfoArray As MyUPnpDeviceInfo() = Nothing
         ReDim UPnPDeviceInfoArray(0)
@@ -2582,9 +2596,9 @@ NextElement:
                 If NewUDN <> "" Then
                     Dim UPnPDeviceInfo As MyUPnpDeviceInfo = Nothing
                     Dim NewUPnPDevice As MyUPnPDevice = MySSDPDevice.Item("uuid:" & NewUDN)
-                    If g_bDebug Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN, LogType.LOG_TYPE_INFO)
                     If NewUPnPDevice Is Nothing Then
-                        If g_bDebug Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN & " but found no UPNPDevice", LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN & " but found no UPNPDevice", LogType.LOG_TYPE_WARNING)
                         GoTo NextElement
                     End If
                     Dim NeedsToBeAdded As Boolean = False
@@ -2624,7 +2638,7 @@ NextElement:
                             UPnPDeviceInfo.UPnPDeviceIPPort = NewUPnPDevice.IPPort
                             UPnPDeviceInfo.UPnPDeviceIconURL = NewUPnPDevice.IconURL("image/jpeg", 200, 200, 16)
                             UPnPDeviceInfo.UPnPDeviceManufacturerName = NewUPnPDevice.ManufacturerName
-                            If g_bDebug Then Log("AddNewDiscoveredDevice found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " on line", LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice found UPnPDeviceName = " & UPnPDeviceInfo.UPnPDeviceGivenName & " on line", LogType.LOG_TYPE_INFO)
                             If UPnPDeviceInfo.UPnPDeviceOnLine Then
                                 ' the rest we can safely overwrite because the name or IP address could have changed
                                 WriteStringIniFile(NewUDN, DeviceInfoIndex.diDeviceModelName.ToString, UPnPDeviceInfo.UPnPDeviceModelName)
@@ -2633,12 +2647,12 @@ NextElement:
                                 WriteStringIniFile(NewUDN, DeviceInfoIndex.diIPPort.ToString, UPnPDeviceInfo.UPnPDeviceIPPort)
                                 'If Not ImRunningOnLinux Then removed v.38
                                 Dim MACAddress As String = GetMACAddress(UPnPDeviceInfo.UPnPDeviceIPAddress).ToString
-                                    If MACAddress <> "" Then
-                                        If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
-                                            If g_bDebug Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfo.UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                            WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
-                                        End If
+                                If MACAddress <> "" Then
+                                    If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfo.UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
+                                        WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
                                     End If
+                                End If
                                 'End If
                             End If
                         Catch ex As Exception
@@ -2654,7 +2668,7 @@ NextElement:
                                 WriteStringIniFile(NewUDN, DeviceInfoIndex.diGivenName.ToString, NewUPnPDevice.FriendlyName)
                                 WriteBooleanIniFile(NewUDN, DeviceInfoIndex.diAdminState.ToString, False)
                                 WriteBooleanIniFile(NewUDN, DeviceInfoIndex.diDeviceIsAdded.ToString, False)
-                                If g_bDebug Then Log("AddNewDiscoveredDevice has logged new device with UPnPDeviceName = " & NewUPnPDevice.FriendlyName, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice has logged new device with UPnPDeviceName = " & NewUPnPDevice.FriendlyName, LogType.LOG_TYPE_INFO)
                             End If
                             ' the rest we can safely overwrite
                             WriteStringIniFile(NewUDN, DeviceInfoIndex.diDeviceModelName.ToString, NewUPnPDevice.ModelName)
@@ -2667,12 +2681,12 @@ NextElement:
                             WriteStringIniFile(NewUDN, DeviceInfoIndex.diDeviceManufacturerName.ToString, NewUPnPDevice.ManufacturerName)
                             'If Not ImRunningOnLinux Then ' removed v.38
                             Dim MACAddress As String = GetMACAddress(NewUPnPDevice.IPAddress).ToString
-                                If MACAddress <> "" Then
-                                    If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
-                                        If g_bDebug Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & NewUPnPDevice.IPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                        WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
-                                    End If
+                            If MACAddress <> "" Then
+                                If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & NewUPnPDevice.IPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
+                                    WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
                                 End If
+                            End If
                             'End If
 
                         Catch ex As Exception
@@ -2708,30 +2722,30 @@ NextElement:
     End Sub
 
     Public Sub MultiCastDiedEvent()
-        If g_bDebug Then Log("Error. MultiCastDiedEvent received. Terminating the PI to try to restart it", LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error. MultiCastDiedEvent received. Terminating the PI to try to restart it", LogType.LOG_TYPE_ERROR)
         ShutdownIO()
     End Sub
 
     Private Function FindUPnPDeviceInfo(ByVal UDN As String) As MyUPnpDeviceInfo
         FindUPnPDeviceInfo = Nothing
         If MyHSDeviceLinkedList.Count = 0 Then
-            If SuperDebug Then Log("Warning in FindUPnPDeviceInfo for UDN = " & UDN & ". The array does not exist ", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Warning in FindUPnPDeviceInfo for UDN = " & UDN & ". The array does not exist ", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         Try
             For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                 If HSDevice.UPnPDeviceUDN = UDN Then
-                    If SuperDebug Then Log("FindUPnPDeviceInfo found UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDeviceInfo found UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_INFO)
                     FindUPnPDeviceInfo = HSDevice
                     Exit Function
                 Else
-                    If SuperDebug Then Log("FindUPnPDeviceInfo did not find UDN = " & UDN & " but found = " & HSDevice.UPnPDeviceUDN, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDeviceInfo did not find UDN = " & UDN & " but found = " & HSDevice.UPnPDeviceUDN, LogType.LOG_TYPE_INFO)
                 End If
             Next
         Catch ex As Exception
             Log("Error in FindUPnPDeviceInfo Finding UPnPDevicveInfo. UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If SuperDebug Then Log("Warning in FindUPnPDeviceInfo did not find UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_WARNING)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("Warning in FindUPnPDeviceInfo did not find UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_WARNING)
     End Function
 
     Private Function CheckForInterestedServices(NewDevice As MyUPnPDevice) As String
@@ -2746,11 +2760,11 @@ NextElement:
         Try
             Services = NewDevice.Services
             If Services Is Nothing Then
-                If g_bDebug Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " found no services", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " found no services", LogType.LOG_TYPE_INFO)
                 Exit Function
             End If
-            If g_bDebug Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " found " & NewDevice.Services.Count.ToString & " Services", LogType.LOG_TYPE_INFO)
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " found " & NewDevice.Services.Count.ToString & " Services", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Try
                     For Each objService As MyUPnPService In Services
                         If objService IsNot Nothing Then
@@ -2791,7 +2805,7 @@ NextElement:
                     Next
                     If CheckForInterestedServices.IndexOf(ServiceType) = -1 Then
                         ' add it to the list of services
-                        If g_bDebug Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " added ServiceType = " & ServiceType, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForInterestedServices for device = " & NewDevice.FriendlyName & " added ServiceType = " & ServiceType, LogType.LOG_TYPE_INFO)
                         If CheckForInterestedServices <> "" Then
                             CheckForInterestedServices &= "," & ServiceType
                         Else
@@ -2815,7 +2829,7 @@ NextElement:
             Exit Sub
         End If
 
-        If g_bDebug Then Log("CreateUPnPControllers found " & MyHSDeviceLinkedList.Count.ToString & " devices and ActivateTheZone = " & ActivateTheZone.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateUPnPControllers found " & MyHSDeviceLinkedList.Count.ToString & " devices and ActivateTheZone = " & ActivateTheZone.ToString, LogType.LOG_TYPE_INFO)
         Dim MusicAPIIndex As Integer = 0
 
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -2859,7 +2873,7 @@ NextElement:
                         HSDevice.UPnPDeviceMusicAPIIndex = MusicAPIIndex
                         UPnPDevice.APIInstance = MusicAPIIndex
                     End If
-                    If g_bDebug Then Log("CreateUPnPControllers has found UPnpDevice = " & HSDevice.UPnPDeviceGivenName & " with on-line status = " & HSDevice.UPnPDeviceOnLine.ToString & " and Adminstate = " & GetBooleanIniFile(HSDevice.UPnPDeviceUDN, DeviceInfoIndex.diAdminState.ToString, False).ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateUPnPControllers has found UPnpDevice = " & HSDevice.UPnPDeviceGivenName & " with on-line status = " & HSDevice.UPnPDeviceOnLine.ToString & " and Adminstate = " & GetBooleanIniFile(HSDevice.UPnPDeviceUDN, DeviceInfoIndex.diAdminState.ToString, False).ToString, LogType.LOG_TYPE_INFO)
 
                     If HSDevice.UPnPDeviceOnLine And GetBooleanIniFile(HSDevice.UPnPDeviceUDN, DeviceInfoIndex.diAdminState.ToString, False) And Not (HSDevice.UPnPDeviceDeviceType = "HST") Then
                         UPnPDevice.DirectConnect(HSDevice.Device)
@@ -2875,7 +2889,7 @@ NextElement:
                         End If
                     Else
                         ' the Device was not on-line. set the last known IPAddress/Port and see if the timer routine in the instance detects it coming on-line
-                        If SuperDebug And Not (HSDevice.UPnPDeviceDeviceType = "HST" Or HSDevice.UPnPDeviceDeviceType = "DIAL") Then Log("Warning in CreateUPnPControllers. UPnpDevice = " & HSDevice.UPnPDeviceGivenName & " not on-line. Using last known IPAdress/Port", LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlEvents And Not (HSDevice.UPnPDeviceDeviceType = "HST" Or HSDevice.UPnPDeviceDeviceType = "DIAL") Then Log("Warning in CreateUPnPControllers. UPnpDevice = " & HSDevice.UPnPDeviceGivenName & " not on-line. Using last known IPAdress/Port", LogType.LOG_TYPE_WARNING)
                         UPnPDevice.DeviceIPAddress = HSDevice.UPnPDeviceIPAddress
                         UPnPDevice.DeviceIPPort = HSDevice.UPnPDeviceIPPort
                     End If
@@ -2959,11 +2973,10 @@ NextElement:
 
     Public Sub ReadIniFile()
 
-        g_bDebug = GetBooleanIniFile("Options", "Debug", False)
-        SuperDebug = GetBooleanIniFile("Options", "SuperDebug", False)
+        PIDebuglevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlErrorsOnly)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadIniFile called", LogType.LOG_TYPE_INFO)
         UPnPDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
-        If g_bDebug Then Log("ReadIniFile called", LogType.LOG_TYPE_INFO)
-        gLogErrorsOnly = GetBooleanIniFile("Options", "LogErrorOnly", False)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadIniFile called", LogType.LOG_TYPE_INFO)
 
         Try
             If GetStringIniFile("Options", "MaxNbrofUPNPObjects", "") <> "" Then
@@ -2971,7 +2984,7 @@ NextElement:
                 If MaxNbrOfUPNPObjects = -1 Then
                     MaxNbrOfUPNPObjects = cMaxNbrOfUPNP ' = maximum
                 End If
-                If SuperDebug Then Log("INIT: MaxNbrOfUPNPObjects set to " & MaxNbrOfUPNPObjects, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("INIT: MaxNbrOfUPNPObjects set to " & MaxNbrOfUPNPObjects, LogType.LOG_TYPE_INFO)
             Else
                 WriteIntegerIniFile("Options", "MaxNbrofUPNPObjects", cMaxNbrOfUPNP)
                 'MaxNbrOfUPNPObjects = 0
@@ -3038,8 +3051,8 @@ NextElement:
             WriteStringIniFile("UPnP Devices to discover", "urn:roku-com:device:player:1-0", "DIAL")
             WriteStringIniFile("UPnP Devices to discover", "urn:roku-com:service:ecp:1", "DIAL")
             WriteStringIniFile("UPnP Devices to discover", "urn:schemas-upnp-org:device:Basic:1", "RCR")
-            WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:device:dialreceiver:1", "DIAL")
-            'WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:device:dialreceiver:1", "RCR") 'dcortizen
+            WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:device:dialreceiver:1", "DIAL") ' removed this for dcortizen
+            'WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:device:dialreceiver:1", "RCR") 'add this for dcortizen
             WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:device:dial:1", "DIAL") ' 
             WriteStringIniFile("UPnP Devices to discover", "urn:dial-multiscreen-org:service:dial:1", "RCR") ' LG WebOS TV
             WriteStringIniFile("UPnP Devices to discover", "urn:samsung.com:device:IPControlServer:1", "RCR") ' Samsung Y2018 Q series
@@ -3055,12 +3068,12 @@ NextElement:
             WriteStringIniFile("UPnP Services to discover", "urn:samsung.com:serviceId:TestRCRService", "RCR")
             WriteStringIniFile("UPnP Services to discover", "urn:schemas-sony-com:serviceId:IRCC", "RCR")
             WriteStringIniFile("UPnP Services to discover", "urn:samsung.com:serviceId:MessageBoxService", "PMR")
-            WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:service:dial", "DIAL")
-            'WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:service:dial", "RCR") 'dcortizen
+            WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:service:dial", "DIAL") ' removed this for dcortizen
+            'WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:service:dial", "RCR") ' add this for dcortizen
             WriteStringIniFile("UPnP Services to discover", "urn:roku-com:serviceId:ecp1-0", "RCR")
             WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:serviceId:dial1-0", "DIAL")
-            WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:serviceId:dial", "DIAL")
-            'WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:serviceId:dial", "RCR") 'dcortizen
+            WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:serviceId:dial", "DIAL") ' removed this for dcortizen
+            'WriteStringIniFile("UPnP Services to discover", "urn:dial-multiscreen-org:serviceId:dial", "RCR") ' add this for dcortizen
             WriteStringIniFile("UPnP Services to discover", "urn:lge-com:serviceId:webos-second-screen-3000-3001", "RCR") ' LG WebOS TV
             WriteStringIniFile("UPnP Services to discover", "urn:samsung.com:serviceId:IPControlService", "RCR") ' Samsung Y2018 Q series
         Catch ex As Exception
@@ -3197,7 +3210,7 @@ NextElement:
         KeyValues = GetIniSection("UPnP HSRef to UDN")
         For Each Entry In KeyValues
             If Entry.Value = DeviceUDN Then
-                If g_bDebug Then Log("RemoveDevicefromHS found HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RemoveDevicefromHS found HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
                 If Entry.Key <> -1 Then
                     Log("RemoveDevicefromHS deleted HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
                     hs.DeleteDevice(Entry.Key)
@@ -3240,7 +3253,7 @@ NextElement:
         ' if there is a diRemoteType=ROKU in the [UDN] section, then we need to delete from the remote file
         Dim RemoteType As String = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If RemoteType <> "" Then
-            If g_bDebug Then Log("RemoveDevicefromHS called with DeviceUDN = " & DeviceUDN.ToString & " is removing the Remote Control information", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RemoveDevicefromHS called with DeviceUDN = " & DeviceUDN.ToString & " is removing the Remote Control information", LogType.LOG_TYPE_INFO)
             Dim objRemoteFile As String = gRemoteControlPath
             '   whole section with [UDN]
             DeleteIniSection(DeviceUDN, gRemoteControlPath)
@@ -3362,7 +3375,7 @@ NextElement:
         KeyValues = GetIniSection("UPnP HSRef to UDN")
         For Each Entry In KeyValues
             If Entry.Value = DeviceUDN Then
-                If g_bDebug Then Log("DeleteDevice found HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteDevice found HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
                 If Entry.Key <> -1 Then
                     Log("DeleteDevice deleted HSRef = " & Entry.Key.ToString, LogType.LOG_TYPE_INFO)
                     hs.DeleteDevice(Entry.Key)
@@ -3405,7 +3418,7 @@ NextElement:
         ' if there is a diRemoteType=ROKU in the [UDN] section, then we need to delete from the remote file
         Dim RemoteType As String = GetStringIniFile(DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If RemoteType <> "" Then
-            If g_bDebug Then Log("DeactivateDevice called with DeviceUDN = " & DeviceUDN.ToString & " is removing the Remote Control information", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeactivateDevice called with DeviceUDN = " & DeviceUDN.ToString & " is removing the Remote Control information", LogType.LOG_TYPE_INFO)
             Dim objRemoteFile As String = gRemoteControlPath
             '   whole section with [UDN]
             Try
@@ -3444,13 +3457,13 @@ NextElement:
 
     Public Sub DoRediscover()
 
-        If SuperDebug Then Log("DoRediscover called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover called", LogType.LOG_TYPE_INFO)
         Dim UPnPDeviceInfo As MyUPnpDeviceInfo = Nothing
         Dim UPnPDevicesToGoDiscover As New System.Collections.Generic.Dictionary(Of String, String)()
         UPnPDevicesToGoDiscover = GetIniSection("UPnP Devices to discover") '  As Dictionary(Of String, String)
 
         If UPnPDevicesToGoDiscover Is Nothing Then
-            'If g_bDebug Then Log("Error in DoRediscover. No Devices specified in the .ini file under ""UPnP Devices to discover""", LogType.LOG_TYPE_ERROR)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoRediscover. No Devices specified in the .ini file under ""UPnP Devices to discover""", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
 
@@ -3471,23 +3484,23 @@ NextElement:
                                     End If
                                 Next
                             End If
-                            If SuperDebug Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
                             If Not NeedsToBeAdded Then GoTo NextElement
                             If Not GetBooleanIniFile(DLNADevice.UniqueDeviceName, DeviceInfoIndex.diDeviceIsAdded.ToString, False) Then GoTo NextElement ' is not added
                             Try
                                 UPnPDeviceInfo = FindUPnPDeviceInfo(DLNADevice.UniqueDeviceName)
                                 If UPnPDeviceInfo Is Nothing Then
-                                    If g_bDebug Then Log("DoRediscover found New UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover found New UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                     NewDeviceFound(DLNADevice.UniqueDeviceName)
                                 Else
                                     Dim Controller As HSPI = GetAPIByUDN(DLNADevice.UniqueDeviceName)
                                     If Controller Is Nothing Then
                                         ' this should really not be
-                                        'If g_bDebug Then Log("DoRediscover shouldn''t have found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover shouldn''t have found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                         'NewDeviceFound(DLNADevice.UniqueDeviceName)
                                     Else
                                         If Controller.DeviceStatus.ToUpper <> "ONLINE" Then
-                                            If g_bDebug Then Log("DoRediscover found Known UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover found Known UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                             NewDeviceFound(DLNADevice.UniqueDeviceName)
                                         End If
                                     End If
@@ -3498,7 +3511,7 @@ NextElement:
                             End Try
                         End If
                     Else
-                        If g_bDebug Then Log("Warning in DoRediscover found missing DLNA Object", LogType.LOG_TYPE_WARNING)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoRediscover found missing DLNA Object", LogType.LOG_TYPE_WARNING)
 
                     End If
 NextElement:
@@ -3592,7 +3605,7 @@ NextElement:
     End Function
 
     Public Sub CreateSlideshowDevice()
-        If g_bDebug Then Log("CreateSlideshowDevice called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateSlideshowDevice called", LogType.LOG_TYPE_INFO)
         Dim Found As Boolean = False
         Dim LoopCount As Integer = 0
         Dim SearchNewUDN As String = "PictureshowUDN-"
@@ -3627,7 +3640,7 @@ NextElement:
     End Sub
 
     Public Sub CreateMediaDevice(DeviceType As String, IPAddress As String, IPPort As String)
-        If g_bDebug Then Log("CreateMediaDevice called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateMediaDevice called", LogType.LOG_TYPE_INFO)
         Dim Found As Boolean = False
         Dim LoopCount As Integer = 0
         Dim SearchNewUDN As String = "MediaDeviceUDN-"
@@ -3666,7 +3679,7 @@ NextElement:
 
 
     Public Sub UpdatePartyDeviceButtons()
-        If g_bDebug Then Log("UpdatePartyDeviceButtons called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdatePartyDeviceButtons called", LogType.LOG_TYPE_INFO)
         Dim PartyDevices As New System.Collections.Generic.Dictionary(Of String, String)()
         PartyDevices = GetIniSection("Party Devices") '  As Dictionary(Of String, String)
         Try
@@ -3687,7 +3700,7 @@ NextElement:
     End Sub
 
     Public Sub AddPartyDevice(PartyUDN As String)
-        If g_bDebug Then Log("AddPartyDevice called with PartyUDN = " & PartyUDN.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddPartyDevice called with PartyUDN = " & PartyUDN.ToString, LogType.LOG_TYPE_INFO)
         If GetStringIniFile("Party Devices", PartyUDN, "") <> "" Then
             ' already exist do nothing
             Exit Sub
@@ -3704,7 +3717,7 @@ NextElement:
 
     Private Function GetNextFreePartyIndex() As Integer
         GetNextFreePartyIndex = 0
-        If g_bDebug Then Log("GetNextFreePartyIndex called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreePartyIndex called", LogType.LOG_TYPE_INFO)
         Dim PartyDevices As New System.Collections.Generic.Dictionary(Of String, String)()
         PartyDevices = GetIniSection("Party Devices") '  As Dictionary(Of String, String)
         Dim LowestFreeIndex As Integer = 0
@@ -3720,7 +3733,7 @@ NextElement:
                             Exit For
                         End If
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in GetNextFreePartyIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetNextFreePartyIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
             Next
@@ -3730,18 +3743,18 @@ NextElement:
             End If
         End While
         GetNextFreePartyIndex = LowestFreeIndex
-        If g_bDebug Then Log("GetNextFreePartyIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreePartyIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Sub RemovePartyDevice(PartyUDN As String)
-        If g_bDebug Then Log("RemovePartyDevice called with PartyUDN = " & PartyUDN.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RemovePartyDevice called with PartyUDN = " & PartyUDN.ToString, LogType.LOG_TYPE_INFO)
         DeleteEntryIniFile("Party Devices", PartyUDN)
         UpdatePartyDeviceButtons()
     End Sub
 
     Public Function AuthenticateSony(DeviceUDN As String, SonyPIN As String) As Boolean
         AuthenticateSony = False
-        If g_bDebug Then Log("AuthenticateSony called with DeviceUDN = " & DeviceUDN & " and SonyPIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AuthenticateSony called with DeviceUDN = " & DeviceUDN & " and SonyPIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
         Try
             Dim UPnPDevice As HSPI = GetAPIByUDN(DeviceUDN)
             If UPnPDevice IsNot Nothing Then
@@ -3755,7 +3768,7 @@ NextElement:
 
     Public Function AuthenticateSamsung(DeviceUDN As String, SamsungPIN As String) As Boolean
         AuthenticateSamsung = False
-        If g_bDebug Then Log("AuthenticateSamsung called with DeviceUDN = " & DeviceUDN & " and SamsungPIN = " & SamsungPIN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AuthenticateSamsung called with DeviceUDN = " & DeviceUDN & " and SamsungPIN = " & SamsungPIN, LogType.LOG_TYPE_INFO)
         Try
             Dim UPnPDevice As HSPI = GetAPIByUDN(DeviceUDN)
             If UPnPDevice IsNot Nothing Then
@@ -3770,7 +3783,7 @@ NextElement:
 
     Public Function SendOpenPINtoCorrectSamsungDevice(DeviceUDN As String) As Boolean
         SendOpenPINtoCorrectSamsungDevice = False
-        If g_bDebug Then Log("SendOpenPINtoCorrectSamsungDevice called with DeviceUDN = " & DeviceUDN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendOpenPINtoCorrectSamsungDevice called with DeviceUDN = " & DeviceUDN, LogType.LOG_TYPE_INFO)
         Try
             Dim UPnPDevice As HSPI = GetAPIByUDN(DeviceUDN)
             If UPnPDevice IsNot Nothing Then
@@ -3783,7 +3796,7 @@ NextElement:
 
     Public Sub UpdateDeviceName(DeviceUDN As String, NewGivenName As String)
 
-        If g_bDebug Then Log("UpdateDeviceName called for UDN = " & DeviceUDN & " and NewGivenName = " & NewGivenName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateDeviceName called for UDN = " & DeviceUDN & " and NewGivenName = " & NewGivenName, LogType.LOG_TYPE_INFO)
 
         Dim OldGivenName As String = GetStringIniFile(DeviceUDN, "diGivenName", "")
         Try
@@ -3853,7 +3866,7 @@ NextElement:
 
     Private Sub CreateWebLink(ByVal inZoneName As String, ByVal inZoneUDN As String)
 
-        If g_bDebug Then Log("CreateWebLink called with DeviceUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & inZoneUDN.Substring(7, inZoneUDN.Length - 7), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateWebLink called with DeviceUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & inZoneUDN.Substring(7, inZoneUDN.Length - 7), LogType.LOG_TYPE_INFO)
 
         Try
 
@@ -3904,7 +3917,7 @@ NextElement:
 
     Private Sub CreateConfigLink(ByVal inZoneName As String, ByVal inZoneUDN As String)
 
-        If g_bDebug Then Log("CreateConfigLink called with DeviceUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & inZoneUDN.Substring(7, inZoneUDN.Length - 7), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateConfigLink called with DeviceUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & inZoneUDN.Substring(7, inZoneUDN.Length - 7), LogType.LOG_TYPE_INFO)
 
         Try
             If MainInstance <> "" Then
@@ -3933,7 +3946,7 @@ NextElement:
 
 
     Public Sub DeleteWebLink(ZoneUDN As String, inZoneName As String)
-        If g_bDebug Then Log("DeleteWebLink called with DeviceUDN = " & ZoneUDN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteWebLink called with DeviceUDN = " & ZoneUDN, LogType.LOG_TYPE_INFO)
         Exit Sub
         Try
             If MyPlayerControlWebPage IsNot Nothing Then
@@ -3971,7 +3984,7 @@ NextElement:
 
     Private Sub ChangeWebLink(OldZoneName As String, ByVal NewZoneName As String, ByVal ZoneUDN As String)
 
-        If g_bDebug Then Log("ChangeWebLink called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ChangeWebLink called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
         Try
 
             ' register a configuration link that will appear on the interfaces page
@@ -4008,14 +4021,14 @@ NextElement:
     Private Sub DestroyUPnPControllers()
         Dim UPnPController As HSPI
         If MyHSDeviceLinkedList Is Nothing Then
-            If g_bDebug Then Log("DestroyUPnPControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroyUPnPControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("DestroyUPnPControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroyUPnPControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
-        If g_bDebug Then Log("DestroyUPnPControllers: found " & MyHSDeviceLinkedList.Count & " Device Codes", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroyUPnPControllers: found " & MyHSDeviceLinkedList.Count & " Device Codes", LogType.LOG_TYPE_INFO)
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If Not HSDevice.UPnPDeviceControllerRef Is Nothing Then
                 Try
@@ -4043,9 +4056,9 @@ NextElement:
     Public Function GetAPIByUDN(ByVal inUDN As String) As HSPI
         ' Returns the name of this instance as set in the plug-in configuration.
         GetAPIByUDN = Nothing
-        'If g_bDebug Then Log( "GetInstanceByName called with value : " & Instance)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetInstanceByName called with value : " & Instance)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Warning in GetAPIByUDN. There are no devices. UDN : " & inUDN, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in GetAPIByUDN. There are no devices. UDN : " & inUDN, LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         inUDN = Trim(inUDN)
@@ -4068,7 +4081,7 @@ NextElement:
         ' Returns the name of this instance as set in the plug-in configuration.
         ' this is either a device name or a device UDN in starting with uuid:
         GetDeviceInstanceByName = 0
-        If SuperDebug Then Log("GetDeviceInstanceByName called with value : " & Instance, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetDeviceInstanceByName called with value : " & Instance, LogType.LOG_TYPE_INFO)
         Instance = Trim(Instance)
         If Instance = "" Then
             Exit Function
@@ -4082,22 +4095,22 @@ NextElement:
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             UPnPPlayer = HSDevice.UPnPDeviceControllerRef
             If Not UPnPPlayer Is Nothing Then
-                If SuperDebug Then Log("GetDeviceInstanceByName called with value : """ & Instance & """ and found """ & UPnPPlayer.DeviceName & """ and UDN """ & UPnPPlayer.DeviceUDN & """", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetDeviceInstanceByName called with value : """ & Instance & """ and found """ & UPnPPlayer.DeviceName & """ and UDN """ & UPnPPlayer.DeviceUDN & """", LogType.LOG_TYPE_INFO)
                 If (UPnPPlayer.DeviceName = Instance) Or (UPnPPlayer.DeviceUDN = Instance) Then
                     GetDeviceInstanceByName = UPnPPlayer.DeviceAPIIndex
-                    If SuperDebug Then Log("GetDeviceInstanceByName found value : " & Instance & " at Index = " & GetDeviceInstanceByName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetDeviceInstanceByName found value : " & Instance & " at Index = " & GetDeviceInstanceByName, LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
             End If
         Next
-        If g_bDebug Then Log("Error in GetDeviceInstanceByName. Did not find value : " & Instance.ToString, LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetDeviceInstanceByName. Did not find value : " & Instance.ToString, LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetMusicInstanceByName(ByVal Instance As String) As Integer
         ' Returns the name of this instance as set in the plug-in configuration.
         ' this is either a device name or a device UDN in starting with uuid:
         GetMusicInstanceByName = 0
-        If SuperDebug Then Log("GetMusicInstanceByName called with value : " & Instance, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetMusicInstanceByName called with value : " & Instance, LogType.LOG_TYPE_INFO)
         Instance = Trim(Instance)
         If Instance = "" Then
             Exit Function
@@ -4111,20 +4124,20 @@ NextElement:
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             UPnPPlayer = HSDevice.UPnPDeviceControllerRef
             If Not UPnPPlayer Is Nothing Then
-                If SuperDebug Then Log("GetMusicInstanceByName called with value : """ & Instance & """ and found """ & UPnPPlayer.DeviceName & """ and UDN """ & UPnPPlayer.DeviceUDN & """", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetMusicInstanceByName called with value : """ & Instance & """ and found """ & UPnPPlayer.DeviceName & """ and UDN """ & UPnPPlayer.DeviceUDN & """", LogType.LOG_TYPE_INFO)
                 If (UPnPPlayer.DeviceName = Instance) Or (UPnPPlayer.DeviceUDN = Instance) Then
                     GetMusicInstanceByName = UPnPPlayer.APIInstance
-                    If SuperDebug Then Log("GetMusicInstanceByName found value : " & Instance & " at Index = " & GetMusicInstanceByName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetMusicInstanceByName found value : " & Instance & " at Index = " & GetMusicInstanceByName, LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
             End If
         Next
-        If g_bDebug Then Log("Error in GetMusicInstanceByName. Did not find value : " & Instance.ToString, LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetMusicInstanceByName. Did not find value : " & Instance.ToString, LogType.LOG_TYPE_ERROR)
     End Function
 
 
     Public Function GetDeviceGivenNameByUDN(UDN As String) As String
-        If SuperDebug Then Log("GetDeviceGivenNameByUDN called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetDeviceGivenNameByUDN called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
         If Mid(UDN, 1, 5) = "uuid:" Then
             Mid(UDN, 1, 5) = "     "
             UDN = Trim(UDN)
@@ -4140,15 +4153,15 @@ NextElement:
                         Exit Function
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in GetDeviceGivenNameByUDN with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetDeviceGivenNameByUDN with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
         Next
-        If g_bDebug Then Log("Error in GetDeviceGivenNameByUDN. Did not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetDeviceGivenNameByUDN. Did not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetDeviceRefByUDN(UDN As String) As Integer
-        If g_bDebug Then Log("GetDeviceRefByUDN called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetDeviceRefByUDN called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
         GetDeviceRefByUDN = -1
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info") '  As Dictionary(Of String, String)
@@ -4160,16 +4173,16 @@ NextElement:
                         Exit Function
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in GetDeviceRefByUDN with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetDeviceRefByUDN with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
         Next
-        If g_bDebug Then Log("Error in GetDeviceRefByUDN. Did not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetDeviceRefByUDN. Did not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
     End Function
 
     Private Function GetNextFreeMusicAPIIndex() As Integer
         GetNextFreeMusicAPIIndex = 0
-        If g_bDebug Then Log("GetNextFreeMusicAPIIndex called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeMusicAPIIndex called", LogType.LOG_TYPE_INFO)
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info") '  As Dictionary(Of String, String)
         Dim LowestFreeIndex As Integer = 0
@@ -4187,7 +4200,7 @@ NextElement:
                             End If
                         End If
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in GetNextFreeMusicAPIIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetNextFreeMusicAPIIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
             Next
@@ -4197,12 +4210,12 @@ NextElement:
             End If
         End While
         GetNextFreeMusicAPIIndex = LowestFreeIndex
-        If g_bDebug Then Log("GetNextFreeMusicAPIIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeMusicAPIIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
     Private Function GetNextFreeDeviceIndex() As Integer
         GetNextFreeDeviceIndex = 0
-        If g_bDebug Then Log("GetNextFreeDeviceIndex called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeDeviceIndex called", LogType.LOG_TYPE_INFO)
         Dim DLNADevices As New System.Collections.Generic.Dictionary(Of String, String)()
         DLNADevices = GetIniSection("UPnP Devices UDN to Info") '  As Dictionary(Of String, String)
         Dim LowestFreeIndex As Integer = 0
@@ -4220,7 +4233,7 @@ NextElement:
                             End If
                         End If
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in GetNextFreeDeviceIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetNextFreeDeviceIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
             Next
@@ -4230,7 +4243,7 @@ NextElement:
             End If
         End While
         GetNextFreeDeviceIndex = LowestFreeIndex
-        If g_bDebug Then Log("GetNextFreeDeviceIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeDeviceIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
 
@@ -4249,13 +4262,13 @@ NextElement:
                 NumInstances = HSDevice.UPnPDeviceMusicAPIIndex
             End If
         Next
-        If g_bDebug Then Log("NumInstances called. Instances is " & NumInstances.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("NumInstances called. Instances is " & NumInstances.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function GetInstanceName(ByVal Instance As Integer) As String ' this is important for HST else it won't work!!
         ' Returns the name of this instance as set in the plug-in configuration.
         GetInstanceName = ""
-        If g_bDebug Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then Exit Function
         Dim UPnPDevice As HSPI
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -4263,7 +4276,7 @@ NextElement:
             If Not UPnPDevice Is Nothing Then
                 If UPnPDevice.APIInstance = Instance Then
                     GetInstanceName = UPnPDevice.DeviceName
-                    If g_bDebug Then Log("GetInstanceName called with value : " & Instance.ToString & " and Name = " & GetInstanceName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetInstanceName called with value : " & Instance.ToString & " and Name = " & GetInstanceName, LogType.LOG_TYPE_INFO)
                     UPnPDevice = Nothing
                     Exit Function
                 End If
@@ -4273,7 +4286,7 @@ NextElement:
 
     Private Sub SendEventForAllZones()
         ' 	generate some event from all players to get ipad/iphone clients updated when they come back on-line
-        If g_bDebug And gIOEnabled Then Log("SendEventForAllZones called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("SendEventForAllZones called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then Exit Sub
         Try
             For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -4288,7 +4301,7 @@ NextElement:
     End Sub
 
     Public Function GetSonyPartySingers() As String
-        If g_bDebug And gIOEnabled Then Log("GetSonyPartySingers called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("GetSonyPartySingers called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
         GetSonyPartySingers = ""
         If MyHSDeviceLinkedList.Count = 0 Then Exit Function
         Try
@@ -4306,11 +4319,11 @@ NextElement:
         Catch ex As Exception
             Log("Error in GetSonyPartySingers with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug And gIOEnabled Then Log("Warning in GetSonyPartySingers. Did not find a Singer", LogType.LOG_TYPE_WARNING)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("Warning in GetSonyPartySingers. Did not find a Singer", LogType.LOG_TYPE_WARNING)
     End Function
 
     Public Function GetSonyPartyListeners() As String
-        If g_bDebug And gIOEnabled Then Log("GetSonyPartyListeners called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("GetSonyPartyListeners called. We have " & MyHSDeviceLinkedList.Count.ToString & " devices", LogType.LOG_TYPE_INFO)
         GetSonyPartyListeners = ""
         If MyHSDeviceLinkedList.Count = 0 Then Exit Function
         Try
@@ -4328,21 +4341,21 @@ NextElement:
         Catch ex As Exception
             Log("Error in GetSonyPartyListeners with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug And gIOEnabled Then Log("Warning in GetSonyPartyListeners. Did not find a Singer", LogType.LOG_TYPE_WARNING)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("Warning in GetSonyPartyListeners. Did not find a Singer", LogType.LOG_TYPE_WARNING)
     End Function
 
     Public Sub DisplayUPnPDevices()
 
-        If g_bDebug Then Log("DisplayUPnPDevices called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DisplayUPnPDevices called", LogType.LOG_TYPE_INFO)
 
         'Dim UPnpDeviceFinder As New MyUPnPDeviceFinder
         Dim UPnPDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices
 
         If UPnPDevices Is Nothing Then
-            If g_bDebug Then Log("No device found in DisplayUPnPDevices.", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("No device found in DisplayUPnPDevices.", LogType.LOG_TYPE_WARNING)
             Exit Sub
         End If
-        If g_bDebug Then Log("DisplayUPnPDevices - Discovery succeeded: " & UPnPDevices.Count & " UPnPDevice(s) found.", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DisplayUPnPDevices - Discovery succeeded: " & UPnPDevices.Count & " UPnPDevice(s) found.", LogType.LOG_TYPE_INFO)
 
         Dim SearchResultTxTFilePath As String = CurrentAppPath & SearchResultFile & ".txt"
 
@@ -4361,28 +4374,28 @@ NextElement:
             For Each Device In UPnPDevices
                 If Device IsNot Nothing Then
                     Try
-                        If g_bDebug Then Log("DisplayUPnPDevices found device = " & Device.FriendlyName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DisplayUPnPDevices found device = " & Device.FriendlyName, LogType.LOG_TYPE_INFO)
                         AddText(fs, "DisplayUPnPDevices found device = " & Device.FriendlyName & Environment.NewLine)
                         Dim UPnPDocumentURL As String = ""
                         UPnPDocumentURL = Device.Location
 
-                        If SuperDebug Then Log(".    UDN = " & Device.UniqueDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    UDN = " & Device.UniqueDeviceName, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   UDN = " & Device.UniqueDeviceName & Environment.NewLine)
-                        If SuperDebug Then Log(".    IPAddress = " & Device.IPAddress, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    IPAddress = " & Device.IPAddress, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   IPAddress = " & Device.IPAddress & Environment.NewLine)
-                        If SuperDebug Then Log(".    IPPort = " & Device.IPPort, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    IPPort = " & Device.IPPort, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   IPPort = " & Device.IPPort & Environment.NewLine)
-                        If SuperDebug Then Log(".    Location = " & Device.Location, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    Location = " & Device.Location, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   Location = " & Device.Location & Environment.NewLine)
-                        If SuperDebug Then Log(".    ModelName = " & Device.ModelName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    ModelName = " & Device.ModelName, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   ModelName = " & Device.ModelName & Environment.NewLine)
-                        If SuperDebug Then Log(".    ModelNumber = " & Device.ModelNumber, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    ModelNumber = " & Device.ModelNumber, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   ModelNumber = " & Device.ModelNumber & Environment.NewLine)
-                        If SuperDebug Then Log(".    Alive = " & Device.Alive, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    Alive = " & Device.Alive, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   Alive = " & Device.Alive & Environment.NewLine)
-                        If SuperDebug Then Log(".    Server = " & Device.Server, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    Server = " & Device.Server, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   Server = " & Device.Server & Environment.NewLine)
-                        If SuperDebug Then Log(".    TimeoutValue = " & Device.CacheControl, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log(".    TimeoutValue = " & Device.CacheControl, LogType.LOG_TYPE_INFO)
                         AddText(fs, "   TimeoutValue = " & Device.CacheControl & Environment.NewLine)
 
                         Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Device.UniqueDeviceName) & ".xml"
@@ -4398,28 +4411,28 @@ NextElement:
                         End Try
                         UPnPDocumentURL = Nothing
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in DisplayUPnPDevices did not find the documentURL with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DisplayUPnPDevices did not find the documentURL with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                     Try
                         Dim ParentServices As MyUPnPServices = Device.Services
                         If ParentServices IsNot Nothing Then
                             For Each ParentService As MyUPnPService In ParentServices
                                 If ParentService IsNot Nothing Then
-                                    If g_bDebug Then Log(".    DisplayUPnPDevices found Service ID = " & ParentService.Id, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(".    DisplayUPnPDevices found Service ID = " & ParentService.Id, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "    DisplayUPnPDevices found Service ID = " & ParentService.Id & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ServiceTypeIdentifier = " & ParentService.ServiceTypeIdentifier, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ServiceTypeIdentifier = " & ParentService.ServiceTypeIdentifier, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ServiceTypeIdentifier = " & ParentService.ServiceTypeIdentifier & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ControlURL = " & ParentService.MycontrolURL, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ControlURL = " & ParentService.MycontrolURL, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ControlURL = " & ParentService.MycontrolURL & Environment.NewLine)
-                                    If SuperDebug Then Log(".        EventSubURL = " & ParentService.MyeventSubURL, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        EventSubURL = " & ParentService.MyeventSubURL, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       EventSubURL = " & ParentService.MyeventSubURL & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ReceivedSID = " & ParentService.MyReceivedSID, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ReceivedSID = " & ParentService.MyReceivedSID, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ReceivedSID = " & ParentService.MyReceivedSID & Environment.NewLine)
-                                    If SuperDebug Then Log(".        MySCPDURL = " & ParentService.MySCPDURL, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        MySCPDURL = " & ParentService.MySCPDURL, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       MySCPDURL = " & ParentService.MySCPDURL & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ServiceActive = " & ParentService.MyServiceActive, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ServiceActive = " & ParentService.MyServiceActive, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ServiceActive = " & ParentService.MyServiceActive & Environment.NewLine)
-                                    If SuperDebug Then Log(".        Timeout = " & ParentService.MyTimeout, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        Timeout = " & ParentService.MyTimeout, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       Timeout = " & ParentService.MyTimeout & Environment.NewLine)
                                     Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Device.UniqueDeviceName) & "_" & ReplaceSpecialCharacters(ParentService.Id) & ".xml"
                                     Try
@@ -4449,29 +4462,29 @@ NextElement:
                         If Children IsNot Nothing Then
                             For Each Child As MyUPnPDevice In Children
                                 Try
-                                    If g_bDebug Then Log(".    DisplayUPnPDevices for device = " & DeviceName & " found Child = " & Child.FriendlyName, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(".    DisplayUPnPDevices for device = " & DeviceName & " found Child = " & Child.FriendlyName, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "    DisplayUPnPDevices for device = " & DeviceName & " found Child = " & Child.FriendlyName & Environment.NewLine)
-                                    If SuperDebug Then Log(".        UDN = " & Child.UniqueDeviceName, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        UDN = " & Child.UniqueDeviceName, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       UDN = " & Child.UniqueDeviceName & Environment.NewLine)
-                                    If SuperDebug Then Log(".        IPAddress = " & Child.IPAddress, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        IPAddress = " & Child.IPAddress, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       IPAddress = " & Child.IPAddress & Environment.NewLine)
-                                    If SuperDebug Then Log(".        IPPort = " & Child.IPPort, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        IPPort = " & Child.IPPort, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       IPPort = " & Child.IPPort & Environment.NewLine)
-                                    If SuperDebug Then Log(".        Location = " & Child.Location, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        Location = " & Child.Location, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       Location = " & Child.Location & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ModelName = " & Child.ModelName, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ModelName = " & Child.ModelName, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ModelName = " & Child.ModelName & Environment.NewLine)
-                                    If SuperDebug Then Log(".        ModelNumber = " & Child.ModelNumber, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ModelNumber = " & Child.ModelNumber, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       ModelNumber = " & Child.ModelNumber & Environment.NewLine)
-                                    If SuperDebug Then Log(".        Alive = " & Child.Alive, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        Alive = " & Child.Alive, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       Alive = " & Child.Alive & Environment.NewLine)
-                                    If SuperDebug Then Log(".        Server = " & Child.Server, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        Server = " & Child.Server, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       Server = " & Child.Server & Environment.NewLine)
-                                    If SuperDebug Then Log(".        TimeoutValue = " & Child.CacheControl, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        TimeoutValue = " & Child.CacheControl, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       TimeoutValue = " & Child.CacheControl & Environment.NewLine)
                                     Dim UPnPDocumentURL As String = ""
                                     UPnPDocumentURL = Child.Location
-                                    If SuperDebug Then Log(".        DisplayUPnPDevices for device = " & DeviceName & " and Child = " & Child.UniqueDeviceName & " found documentURL = " & UPnPDocumentURL.ToString, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        DisplayUPnPDevices for device = " & DeviceName & " and Child = " & Child.UniqueDeviceName & " found documentURL = " & UPnPDocumentURL.ToString, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "        DisplayUPnPDevices for device = " & DeviceName & " and Child = " & Child.UniqueDeviceName & " found documentURL = " & UPnPDocumentURL.ToString & Environment.NewLine)
                                     Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Child.FriendlyName) & ".xml"
                                     Try
@@ -4486,28 +4499,28 @@ NextElement:
                                     End Try
                                     UPnPDocumentURL = Nothing
                                 Catch ex As Exception
-                                    If g_bDebug Then Log("Error in DisplayUPnPDevices for device = " & DeviceName & " did not find the Child documentURL with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DisplayUPnPDevices for device = " & DeviceName & " did not find the Child documentURL with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                                 Try
                                     ChildServices = Child.Services
                                     If ChildServices IsNot Nothing Then
                                         For Each ChildService In ChildServices
                                             If ChildService IsNot Nothing Then
-                                                If g_bDebug Then Log(".        DisplayUPnPDevices found Service ID = " & ChildService.Id, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(".        DisplayUPnPDevices found Service ID = " & ChildService.Id, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "        DisplayUPnPDevices found Service ID = " & ChildService.Id & Environment.NewLine)
-                                                If SuperDebug Then Log(".            ServiceTypeIdentifier = " & ChildService.ServiceTypeIdentifier, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ServiceTypeIdentifier = " & ChildService.ServiceTypeIdentifier, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           ServiceTypeIdentifier = " & ChildService.ServiceTypeIdentifier & Environment.NewLine)
-                                                If SuperDebug Then Log(".            ControlURL = " & ChildService.MycontrolURL, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ControlURL = " & ChildService.MycontrolURL, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           ControlURL = " & ChildService.MycontrolURL & Environment.NewLine)
-                                                If SuperDebug Then Log(".            EventSubURL = " & ChildService.MyeventSubURL, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            EventSubURL = " & ChildService.MyeventSubURL, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           EventSubURL = " & ChildService.MyeventSubURL & Environment.NewLine)
-                                                If SuperDebug Then Log(".            ReceivedSID = " & ChildService.MyReceivedSID, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ReceivedSID = " & ChildService.MyReceivedSID, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           ReceivedSID = " & ChildService.MyReceivedSID & Environment.NewLine)
-                                                If SuperDebug Then Log(".            MySCPDURL = " & ChildService.MySCPDURL, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            MySCPDURL = " & ChildService.MySCPDURL, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           MySCPDURL = " & ChildService.MySCPDURL & Environment.NewLine)
-                                                If SuperDebug Then Log(".            ServiceActive = " & ChildService.MyServiceActive, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ServiceActive = " & ChildService.MyServiceActive, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           ServiceActive = " & ChildService.MyServiceActive & Environment.NewLine)
-                                                If SuperDebug Then Log(".            Timeout = " & ChildService.MyTimeout, LogType.LOG_TYPE_INFO)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            Timeout = " & ChildService.MyTimeout, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           Timeout = " & ChildService.MyTimeout & Environment.NewLine)
                                                 Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Device.UniqueDeviceName) & "_" & ReplaceSpecialCharacters(ChildService.Id) & ".xml"
                                                 Try
@@ -4543,7 +4556,7 @@ NextElement:
             Log("Error in DisplayUPnPDevices closing the SearchResultFile with error " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
-        If g_bDebug Then Log("DisplayUPnPDevices done!", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DisplayUPnPDevices done!", LogType.LOG_TYPE_INFO)
 
     End Sub
 
@@ -4553,7 +4566,7 @@ NextElement:
     End Sub
 
     Public Function GetPlayLists() As System.Array
-        If g_bDebug Then Log("GetPlayLists called ", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlayLists called ", LogType.LOG_TYPE_INFO)
         GetPlayLists = Nothing
         Dim SList() As String = {""}
         Dim KeyIndex As Integer = 0
@@ -4569,13 +4582,13 @@ NextElement:
                     ' Process the list of files found in the directory.
                     Dim fileName As String
                     For Each fileName In fileEntries
-                        If SuperDebug Then Log("GetPlayLists found file = " & fileName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetPlayLists found file = " & fileName, LogType.LOG_TYPE_INFO)
                         fileName = fileName.Substring(fileName.LastIndexOf("\") + 1, fileName.Length - fileName.LastIndexOf("\") - 1) ' remove the path stuff
                         Dim FilePrefix As String = fileName.Substring(0, fileName.LastIndexOf(".")) ' pick out the file extension
                         Dim FileExtention As String = fileName.Substring(fileName.LastIndexOf(".") + 1, fileName.Length - fileName.LastIndexOf(".") - 1) ' pick out the file extension
-                        If SuperDebug Then Log("GetPlayLists found FilePrefix = " & FilePrefix & " and Extention = " & FileExtention, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetPlayLists found FilePrefix = " & FilePrefix & " and Extention = " & FileExtention, LogType.LOG_TYPE_INFO)
                         Dim DeviceName As String = GetStringIniFile(FilePrefix, DeviceInfoIndex.diGivenName.ToString, "")
-                        If SuperDebug Then Log("GetPlayLists found GivenName = " & DeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetPlayLists found GivenName = " & DeviceName, LogType.LOG_TYPE_INFO)
                         Dim QEntry As String = ""
                         If DeviceName <> "" Then
                             QEntry = "Player_" & DeviceName & ":;:-:" & FilePrefix
@@ -4595,7 +4608,7 @@ NextElement:
         End Try
         If KeyIndex > 0 Then
             GetPlayLists = SList
-            If g_bDebug Then Log("GetPlayLists called and returned " & KeyIndex.ToString & " entries.", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlayLists called and returned " & KeyIndex.ToString & " entries.", LogType.LOG_TYPE_INFO)
         End If
         SList = Nothing
     End Function
@@ -4612,7 +4625,7 @@ NextElement:
     End Function
 
     Private Sub DMRemove(UDN As String)
-        If g_bDebug Then Log("DMRemove called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DMRemove called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then Exit Sub
         For Each UPnPDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If UPnPDevice.UPnPDeviceUDN = UDN Then
@@ -4625,7 +4638,7 @@ NextElement:
                 Exit Sub
             End If
         Next
-        If g_bDebug Then Log("Error in DMRemove. Could not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DMRemove. Could not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
     End Sub
 #End Region
 
@@ -4667,15 +4680,15 @@ NextElement:
                         SpeakerClient = SpeakerClient.Remove(0, Delimiter + 1)
                         SpeakerClient = Trim(SpeakerClient)
                         If SpeakerClient = ":*" Then SpeakerClient = "*:*"
-                        If g_bDebug Then Log("SpeakerProxy activated with HostName = " & SpeakerClient & " Text = " & text & " and PlayerName = " & PlayerName, LogType.LOG_TYPE_INFO)
-                        If g_bDebug Then Log("SpeakIn is looking at " & MyHSDeviceLinkedList.Count.ToString & " UPnPDevices", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SpeakerProxy activated with HostName = " & SpeakerClient & " Text = " & text & " and PlayerName = " & PlayerName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SpeakIn is looking at " & MyHSDeviceLinkedList.Count.ToString & " UPnPDevices", LogType.LOG_TYPE_INFO)
                         Dim Index As Integer = 0
                         Dim UPnPDevice As HSPI = Nothing
                         Try
                             For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                                 UPnPDevice = HSDevice.UPnPDeviceControllerRef
                                 If Not UPnPDevice Is Nothing And (UPnPDevice.DeviceName.ToUpper = PlayerName.ToUpper) Then
-                                    If g_bDebug Then Log("SpeakIn found UPnPDevice = " & UPnPDevice.DeviceName & " in the UPnPDeviceInfoArray with DeviceServiceType= " & UPnPDevice.DeviceServiceType & " and RemoteType = " & GetStringIniFile(UPnPDevice.DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, ""), LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SpeakIn found UPnPDevice = " & UPnPDevice.DeviceName & " in the UPnPDeviceInfoArray with DeviceServiceType= " & UPnPDevice.DeviceServiceType & " and RemoteType = " & GetStringIniFile(UPnPDevice.DeviceUDN, DeviceInfoIndex.diRemoteType.ToString, ""), LogType.LOG_TYPE_INFO)
                                     If UPnPDevice.DeviceServiceType = "PMR" Then
                                         UPnPDevice.SamsungSendMessage("SMS", text)
                                         FoundOne = True
@@ -4774,7 +4787,7 @@ NextElement:
     End Sub
 
     Private Sub AddAnnouncementToQueue(ByVal PlayerName As String, ByVal device As Short, ByVal text As String, ByVal wait As Boolean, ByVal host As String, ByVal IsFile As Boolean)
-        If g_bDebug Then Log("AddAnnouncementToQueue called for PlayerName = " & PlayerName & " and Text = " & text, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddAnnouncementToQueue called for PlayerName = " & PlayerName & " and Text = " & text, LogType.LOG_TYPE_INFO)
         Dim AnnouncementItem As New AnnouncementItems
         AnnouncementItem.device = device
         AnnouncementItem.text = text
@@ -4820,7 +4833,7 @@ NextElement:
 
     Private Function GetTailOfAnnouncementQueue() As AnnouncementItems
         GetTailOfAnnouncementQueue = AnnouncementLink
-        If g_bDebug Then Log("GetTailOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
         If AnnouncementLink Is Nothing Then
             Exit Function
         End If
@@ -4829,10 +4842,10 @@ NextElement:
         Dim LoopIndex As Integer = 0
         Try
             Do
-                If g_bDebug Then Log("GetTailOfAnnouncementQueue called and found Linkgroup = " & AnnouncementItem.LinkGroupName & " and text = " & AnnouncementItem.text, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called and found Linkgroup = " & AnnouncementItem.LinkGroupName & " and text = " & AnnouncementItem.text, LogType.LOG_TYPE_INFO)
                 If AnnouncementItem.Next_ Is Nothing Then
                     GetTailOfAnnouncementQueue = AnnouncementItem
-                    If g_bDebug Then Log("GetTailOfAnnouncementQueue called and tail found", LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called and tail found", LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
                 AnnouncementItem = AnnouncementItem.Next_
@@ -4850,7 +4863,7 @@ NextElement:
     End Function
 
     Private Sub DeleteHeadOfAnnouncementQueue()
-        If g_bDebug Then Log("DeleteHeadOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteHeadOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
         If AnnouncementLink Is Nothing Then
             ' this should not be!
             Exit Sub
@@ -4872,7 +4885,7 @@ NextElement:
 
     Private Sub DoCheckAnnouncementQueue()
         If Not AnnouncementsInQueue Then Exit Sub
-        'If g_bDebug Then log( "DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString)
         If AnnouncementReEntry Then
             'log( "DoCheckAnnouncementQueue called and cause re-entry")
             Exit Sub ' re-entry
@@ -4881,7 +4894,7 @@ NextElement:
         AnnouncementReEntry = True
         If AnnouncementInProgress Then
             If Not AnnouncementLink Is Nothing Then
-                If SuperDebug Then Log("DoCheckAnnouncementQueue has link and AnnouncementState = " & AnnouncementLink.State_.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue has link and AnnouncementState = " & AnnouncementLink.State_.ToString, LogType.LOG_TYPE_INFO)
                 If AnnouncementLink.State_ = AnnouncementState.asLinking Then
                     ' this is re-entrance
                     AnnouncementReEntry = False
@@ -4894,7 +4907,7 @@ NextElement:
                         AnnouncementLink.State_ = AnnouncementState.asFilePlayed
                         Log("Error in DoCheckAnnouncementQueue. " & MyMaxAnnouncementTime.ToString & " seconds expired since the announcement started and no end was received.", LogType.LOG_TYPE_ERROR)
                     ElseIf Not AnnouncementLink.SourceZoneMusicAPI Is Nothing Then
-                        If SuperDebug Then Log("DoCheckAnnouncementQueue has PlayerState = " & AnnouncementLink.SourceZoneMusicAPI.NoQueuePlayerState.ToString & " and HasAnnouncementStarted = " & AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue has PlayerState = " & AnnouncementLink.SourceZoneMusicAPI.NoQueuePlayerState.ToString & " and HasAnnouncementStarted = " & AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted.ToString, LogType.LOG_TYPE_INFO)
                         If (AnnouncementLink.SourceZoneMusicAPI.NoQueuePlayerState = player_state_values.Stopped Or AnnouncementLink.SourceZoneMusicAPI.NoQueuePlayerState = player_state_values.Transitioning) And AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
                             ' OK the announcement is over
                             AnnouncementLink.State_ = AnnouncementState.asFilePlayed
@@ -4929,10 +4942,10 @@ NextElement:
             AnnouncementInProgress = False
             MyAnnouncementIndex = 0
             AnnouncementReEntry = False
-            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
-        If g_bDebug Then Log("DoCheckAnnouncementQueue called for linkgroup " & AnnouncementLink.LinkGroupName & " and State = " & AnnouncementLink.State_.ToString & " and isFile " & AnnouncementLink.IsFile.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called for linkgroup " & AnnouncementLink.LinkGroupName & " and State = " & AnnouncementLink.State_.ToString & " and isFile " & AnnouncementLink.IsFile.ToString, LogType.LOG_TYPE_INFO)
         ' Look at first announcement in Queue
         Dim AnnouncementItem As AnnouncementItems
         AnnouncementItem = AnnouncementLink
@@ -4967,7 +4980,7 @@ NextElement:
             'log( "DoCheckAnnouncementQueue activated with HostName = " & AnnouncementItem.host & " Text = " & AnnouncementItem.text & " and LinkgroupName = " & AnnouncementItem.LinkGroupName)
 
             For Each TextString In TextStrings
-                If g_bDebug Then Log("DoCheckAnnouncementQueue activated with HostName = " & AnnouncementItem.host & " Text = " & TextString & " and LinkgroupName = " & AnnouncementItem.LinkGroupName, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue activated with HostName = " & AnnouncementItem.host & " Text = " & TextString & " and LinkgroupName = " & AnnouncementItem.LinkGroupName, LogType.LOG_TYPE_INFO)
                 If AnnouncementItem.IsFile Then
                     Dim FileName As String
                     Dim ExtensionIndex As Integer = 0
@@ -4979,7 +4992,7 @@ NextElement:
                         Path = CurrentAppPath & "\html" & AnnouncementPath
                     End If
                     FileName = "Ann_" & RemoveBlanks(AnnouncementItem.LinkGroupName) & "_" & MyAnnouncementIndex.ToString
-                    If g_bDebug Then Log("DoCheckAnnouncementQueue adds file = " & Path & FileName & " to Queue", LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue adds file = " & Path & FileName & " to Queue", LogType.LOG_TYPE_INFO)
                     If File.Exists(TextString) Then ' this needs to be fixed for remoting tralala
                         Try
                             ' get the extension file type
@@ -4989,19 +5002,19 @@ NextElement:
                             End If
                             FileName = FileName + Extensiontype
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Try
                             System.IO.File.Delete(Path & FileName)
                         Catch ex As Exception
-                            'If g_bDebug Then log( "Error in DoCheckAnnouncementQueue when deleting file " & Path & FileName & " Error = " &ex.Message, LogType.LOG_TYPE_ERROR)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Error in DoCheckAnnouncementQueue when deleting file " & Path & FileName & " Error = " &ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Try
                             System.IO.File.Copy(TextString, Path & FileName, True)
-                            'If g_bDebug Then log( "DoCheckAnnouncementQueue copying file " & Path & FileName)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "DoCheckAnnouncementQueue copying file " & Path & FileName)
                             AnnouncementItem.State_ = AnnouncementState.asSpeaking
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue in SpeakToFile copying file = " & TextString & " to " & Path & FileName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue in SpeakToFile copying file = " & TextString & " to " & Path & FileName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
                             AnnouncementInProgress = False
                             AnnouncementItem.State_ = AnnouncementState.asFilePlayed
                             AnnouncementReEntry = False
@@ -5022,7 +5035,7 @@ NextElement:
                         End Try
                         AnnouncementItem.State_ = AnnouncementState.asSpeaking
                         Try
-                            If g_bDebug Then Log("DoCheckAnnouncementQueue calling SpeakToFile with Text " & TextString & " and File " & Path & FileName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue calling SpeakToFile with Text " & TextString & " and File " & Path & FileName, LogType.LOG_TYPE_INFO)
                             Dim Voice As String = CheckForVoiceTag(TextString)
                             hs.SpeakToFile(TextString, Voice, Path & FileName & ".wav")
                             If Extensiontype = ".mp3" And Not HSisRunningOnLinux Then
@@ -5054,12 +5067,12 @@ NextElement:
                                     Log("Error in DoCheckAnnouncementQueue converting .wav to .mp3 with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                                 FileName = FileName & ".mp3"
-                                If g_bDebug Then Log("DoCheckAnnouncementQueue finished conversion to mp3 with Ouptut = " & strOutput & " and Return = " & strError, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue finished conversion to mp3 with Ouptut = " & strOutput & " and Return = " & strError, LogType.LOG_TYPE_INFO)
                             Else
                                 FileName = FileName & ".wav"
                             End If
 
-                            If g_bDebug Then Log("DoCheckAnnouncementQueue finished SpeakToFile", LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue finished SpeakToFile", LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
                             Log("Error in DoCheckAnnouncementQueue called SpeakToFile unsuccessfully with Text " & TextString & " and File " & Path & FileName & " and error " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -5150,7 +5163,7 @@ NextElement:
                                 AnnouncementReEntry = False
                                 Exit Sub
                             End If
-                            If g_bDebug Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
                             Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -5175,7 +5188,7 @@ NextElement:
 
                                 End If
                             Catch ex As Exception
-                                If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                             End Try
                             MyAnnouncementIndex = MyAnnouncementIndex + 1
                             'hs.waitsecs(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
@@ -5194,9 +5207,9 @@ NextElement:
                                 AnnouncementReEntry = False
                                 Exit Sub
                             End If
-                            If g_bDebug Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Try
                             If AnnouncementItem.SourceZoneMusicAPI.AVTPlay() <> "OK" Then
@@ -5204,7 +5217,7 @@ NextElement:
                                 AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted = True
                             End If
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         'hs.waitsecs(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
                         MyAnnouncementIndex = MyAnnouncementIndex + 1
@@ -5236,7 +5249,7 @@ NextElement:
                     Exit Sub
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error in DoCheckAnnouncementQueue looking at next announcement in queue with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue looking at next announcement in queue with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
         AnnouncementItem.State_ = AnnouncementState.asUnlinking
@@ -5246,7 +5259,7 @@ NextElement:
         If AnnouncementLink Is Nothing Then
             AnnouncementsInQueue = False
             MyAnnouncementIndex = 0
-            If g_bDebug Then Log("DoCheckAnnouncementQueue called and all announcements were processed", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called and all announcements were processed", LogType.LOG_TYPE_INFO)
         End If
         AnnouncementInProgress = False
         AnnouncementReEntry = False
@@ -5254,7 +5267,7 @@ NextElement:
 
     Public Function GetLinkgroupSourceZone(ByVal LinkgroupName As String) As Object
         GetLinkgroupSourceZone = Nothing
-        If g_bDebug Then Log("GetLinkgroupSourceZone called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetLinkgroupSourceZone called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim LinkgroupZoneSource As String
         LinkgroupZoneSource = GetStringIniFile("LinkgroupZoneSource", LinkgroupName, "")
         If LinkgroupZoneSource = "" Then
@@ -5263,7 +5276,7 @@ NextElement:
                 GetLinkgroupSourceZone = GetAPIByUDN(LinkgroupName)
                 Exit Function
             Catch ex As Exception
-                If g_bDebug Then Log("Error in GetLinkgroupSourceZone didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetLinkgroupSourceZone didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End Try
         Else
@@ -5273,7 +5286,7 @@ NextElement:
             Try
                 GetLinkgroupSourceZone = GetAPIByUDN(LinkgroupZoneSource)
             Catch ex As Exception
-                If g_bDebug Then Log("Error in GetLinkgroupSourceZone didn't find MusicAPI for " & LinkgroupZoneSource, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetLinkgroupSourceZone didn't find MusicAPI for " & LinkgroupZoneSource, LogType.LOG_TYPE_ERROR)
             End Try
         End If
     End Function
@@ -5330,7 +5343,7 @@ NextElement:
     End Function
 
     Public Sub HandleLinkingOn(ByVal LinkgroupName As String, Optional ByVal IsFile As Boolean = False)
-        If g_bDebug Then Log("HandleLinkingOn called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim MusicAPI As HSPI = GetLinkgroupSourceZone(LinkgroupName)
         Try
             If MusicAPI IsNot Nothing Then MusicAPI.SaveQueue()
@@ -5340,7 +5353,7 @@ NextElement:
     End Sub
 
     Public Sub HandleLinkingOff(ByVal LinkgroupName As String)
-        If g_bDebug Then Log("HandleLinkingOff called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOff called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim MusicAPI As HSPI = GetLinkgroupSourceZone(LinkgroupName)
         Try
             If MusicAPI IsNot Nothing Then MusicAPI.RestoreQueue()
@@ -5350,7 +5363,7 @@ NextElement:
     End Sub
 
     Private Function CheckForVoiceTag(ByRef inText As String) As String
-        If g_bDebug Then Log("CheckForVoiceTag called with inText = " & inText, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForVoiceTag called with inText = " & inText, LogType.LOG_TYPE_INFO)
         CheckForVoiceTag = ""
         ' Structure = <voice required='Name=Microsoft Anna'>Hello World how are things around here said Anna</voice>
         If inText.IndexOf("<voice ") = -1 Then
@@ -5386,7 +5399,7 @@ NextElement:
             VoiceTagInfo = Trim(VoiceTagInfo.Remove(0, 4))  ' remove starting name char
             If VoiceTagInfo.IndexOf("=") <> 0 Then Exit Function ' should not be
             VoiceTagInfo = Trim(VoiceTagInfo.Remove(0, 1))  ' remove the = char, now what is left is the voice required
-            If g_bDebug Then Log("CheckForVoiceTag returns with inText = " & inText & " and Voice = " & VoiceTagInfo, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForVoiceTag returns with inText = " & inText & " and Voice = " & VoiceTagInfo, LogType.LOG_TYPE_INFO)
             Return VoiceTagInfo
         Catch ex As Exception
             Log("Error in CheckForVoiceTag called with inText = " & inText & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -5399,7 +5412,7 @@ NextElement:
 
 End Class
 
-<Serializable()> _
+<Serializable()>
 Public Structure DBRecord
     Public Id As String
     Public Title As String
@@ -5413,7 +5426,7 @@ Public Structure DBRecord
 End Structure
 
 
-<Serializable()> _
+<Serializable()>
 Public Class UPnPController_Config
 
     Public ghspi As HSPI
@@ -5422,7 +5435,7 @@ Public Class UPnPController_Config
     Public link As String = ""                  ' The custom web page link
 
     Sub New()
-        MyBase.new()
+        MyBase.New()
     End Sub
 
 
@@ -5436,7 +5449,7 @@ Public Class UPnPController_Config
         ' You can process these pairs yourself manually, or you can call:         GetFormData(data, Me.lPairs, Me.tPair) and it will
         '   process the data and put it into name/value pairs.  See the other web page (WebLink1) for an example.
 
-        If g_bDebug Then Log("GenPage called with Link = " & lnk, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenPage called with Link = " & lnk, LogType.LOG_TYPE_INFO)
         Dim sb As New StringBuilder()
         If lnk = "/" & sIFACE_NAME & "_config" Then
             ' this is to configure the plugin itself
@@ -5455,7 +5468,7 @@ Public Class UPnPController_Config
         End If
         Dim LinkParts()
         LinkParts = Split(lnk, ";")
-        If g_bDebug Then Log("GenPage called with Link Part = " & LinkParts(0) & " " & LinkParts(1), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenPage called with Link Part = " & LinkParts(0) & " " & LinkParts(1), LogType.LOG_TYPE_INFO)
         'GenPage = BuildPage()
         Try
             '
@@ -5684,15 +5697,13 @@ Module HS_GLOBAL_VARIABLES
     Public MyShutDownRequest As Boolean = False
 
     'Public instance As String = ""                             ' set when SupportMultipleInstances is TRUE
-    Public g_bDebug As Boolean = True
-    Public gLogErrorsOnly As Boolean = False
+    Public PIDebuglevel As DebugLevel = DebugLevel.dlErrorsOnly
     Public gLogToDisk As Boolean = False
     Public gHSInitialized As Boolean = False
-    Public SuperDebug As Boolean = False
     Public ImRunningOnLinux As Boolean = False
     Public HSisRunningOnLinux As Boolean = False
     Public ImRunningLocal As Boolean = True
-    Public UPnPDebuglevel As DebugLevel = DebugLevel.dlOff
+    Public UPnPDebuglevel As DebugLevel = DebugLevel.dlErrorsOnly
     Public PlugInIPAddress As String = ""
     Public PluginIPPort As String = ""
 

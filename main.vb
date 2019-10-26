@@ -33,10 +33,10 @@ Module Main
     End Class
 
     Public Function AddInstance(InstanceName As String) As HSPI
-        If g_bDebug Then Log("AddInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
         AddInstance = Nothing
         If AllInstances.Contains(InstanceName) Then
-            If g_bDebug Then Log("AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         Dim PlugAPI As HSPI = New HSPI
@@ -81,7 +81,7 @@ Module Main
 
 
     Public Function RemoveInstance(InstanceName As String) As String
-        If g_bDebug Then Log("RemoveInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RemoveInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
         If Not AllInstances.Contains(InstanceName) Then
             Return "Instance does not exist"
         End If
@@ -101,7 +101,7 @@ Module Main
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in RemoveInstance for InstanceName = " & InstanceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RemoveInstance for InstanceName = " & InstanceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return "Error removing instance: " & ex.Message
         End Try
         Return ""

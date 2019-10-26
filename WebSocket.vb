@@ -91,7 +91,7 @@ Public Class WebSocketClient
             MyTreatInDataTimer.Enabled = True
             MyTreatInDataTimer.Start()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in MyUPnPDevice.StartTreatInDataTimer for IPAddress = " & MyRemoteIPAddress & ". Unable to create the Event timer with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in MyUPnPDevice.StartTreatInDataTimer for IPAddress = " & MyRemoteIPAddress & ". Unable to create the Event timer with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -106,7 +106,7 @@ Public Class WebSocketClient
     End Sub
 
     Private Sub MyTreatInDataTimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles MyTreatInDataTimer.Elapsed
-        If SuperDebug Then Log("MyTreatInDataTimer_Elapsed called for IPAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("MyTreatInDataTimer_Elapsed called for IPAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
         ReadFromInDataStream()
         e = Nothing
         sender = Nothing
@@ -144,7 +144,7 @@ Public Class WebSocketClient
     End Property
 
     Public Function UpgradeWebSocket(URL As String, SecWebSocketkey As String, TimerValue As Integer, AddOrigin As Boolean) As Boolean
-        If g_bDebug Then Log("UpgradeWebSocket called with ipAddress = " & MyRemoteIPAddress & " and URL = " & URL, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpgradeWebSocket called with ipAddress = " & MyRemoteIPAddress & " and URL = " & URL, LogType.LOG_TYPE_INFO)
         MyWebSocketIsActive = False ' added 12/2/2018 v .0.39 If I turn my LG TV off, this is not being reset. Putting it here will enforce it to be set properly all the time
         Dim SocketDataString As String = ""
         ' shoot removing host port causes issues for LG and so is Origin
@@ -208,7 +208,7 @@ Public Class WebSocketClient
             Try
                 InDataStream = New MemoryStream()
             Catch ex As Exception
-                If g_bDebug Then Log("Error in UpgradeWebSocket for ipAddress = " & MyRemoteIPAddress & ". Unable to allocate MemoryStream with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in UpgradeWebSocket for ipAddress = " & MyRemoteIPAddress & ". Unable to allocate MemoryStream with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
 
@@ -234,7 +234,7 @@ Public Class WebSocketClient
         MyRemoteIPPort = ipPort
         MySocket = Nothing
         MySocketIsClosed = True
-        If g_bDebug Then Log("ConnectSocket called with ipAddress = " & Server & " and ipPort = " & ipPort, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ConnectSocket called with ipAddress = " & Server & " and ipPort = " & ipPort, LogType.LOG_TYPE_INFO)
         Try
             Dim remoteEP As New IPEndPoint(IPAddress.Parse(Server), ipPort)
             ' Create a TCP/IP socket.
@@ -245,14 +245,14 @@ Public Class WebSocketClient
             connectDone.WaitOne() ' I do this in the plugin itself, based on MySocketIsClosed because this runs in its own tread
             Return True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ConnectSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ConnectSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             ConnectSocket = False
         End Try
     End Function
 
     Public Sub CloseSocket()
         ' Release the socket.
-        If g_bDebug Then Log("CloseSocket called for IPAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CloseSocket called for IPAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
         If (MySocket Is Nothing) And (MySSLTCPClient Is Nothing) And (MySSLStream Is Nothing) Then Exit Sub
         MySocketIsClosed = True
         MyWebSocketIsActive = False
@@ -272,7 +272,7 @@ Public Class WebSocketClient
                 InDataStream.Dispose()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " closing the memorystream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " closing the memorystream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         Finally
             InDataStream = Nothing
         End Try
@@ -283,7 +283,7 @@ Public Class WebSocketClient
                 MySSLStream.Dispose()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " closing SSLStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " closing SSLStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         MySSLStream = Nothing
         If MySSLTCPClient IsNot Nothing Then
@@ -302,7 +302,7 @@ Public Class WebSocketClient
                 MySocket.Shutdown(SocketShutdown.Both)
                 MySocket.Close()
             Catch ex As Exception
-                If g_bDebug Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CloseSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Finally
                 OnWebSocketClose()
             End Try
@@ -323,10 +323,10 @@ Public Class WebSocketClient
             MylocalEndPoint = client.LocalEndPoint
             MyLocalIPAddress = MylocalEndPoint.Address.ToString
             MyLocalIPPort = MylocalEndPoint.Port.ToString
-            If g_bDebug Then Log("ConnectCallback connected a socket to " & client.RemoteEndPoint.ToString(), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ConnectCallback connected a socket to " & client.RemoteEndPoint.ToString(), LogType.LOG_TYPE_INFO)
             connectDone.Set()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ConnectCallback calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ConnectCallback calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -335,7 +335,7 @@ Public Class WebSocketClient
         MyRemoteIPPort = ipPort
         MySSLTCPClient = Nothing
         MySocketIsClosed = True
-        If g_bDebug Then Log("ConnectSSLSocket called with ipAddress = " & Server & " and ipPort = " & ipPort, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ConnectSSLSocket called with ipAddress = " & Server & " and ipPort = " & ipPort, LogType.LOG_TYPE_INFO)
         Try
             Dim remoteEP As New IPEndPoint(IPAddress.Parse(Server), ipPort)
             ' Create a TCP/IP socket.
@@ -346,7 +346,7 @@ Public Class WebSocketClient
             connectDone.WaitOne() ' I do this in the plugin itself, based on MySocketIsClosed because this runs in its own tread
             Return True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ConnectSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ConnectSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
         End Try
     End Function
@@ -361,10 +361,10 @@ Public Class WebSocketClient
             MylocalEndPoint = SSLClient.Client.LocalEndPoint
             MyLocalIPAddress = MylocalEndPoint.Address.ToString
             MyLocalIPPort = MylocalEndPoint.Port.ToString
-            If g_bDebug Then Log("TCPClientConnectCallback connected a socket to " & SSLClient.Client.RemoteEndPoint.ToString(), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TCPClientConnectCallback connected a socket to " & SSLClient.Client.RemoteEndPoint.ToString(), LogType.LOG_TYPE_INFO)
             connectDone.Set()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TCPClientConnectCallback calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TCPClientConnectCallback calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             MySocketIsClosed = True
             If MySSLStream IsNot Nothing Then MySSLStream.Close()
             If MySSLStream IsNot Nothing Then MySSLStream.Dispose()
@@ -384,7 +384,7 @@ Public Class WebSocketClient
                 MySSLTCPClient = Nothing
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TCPClientConnectCallback calling Authenticate Socket with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TCPClientConnectCallback calling Authenticate Socket with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             MySocketIsClosed = True
             Exit Sub
         End Try
@@ -393,7 +393,7 @@ Public Class WebSocketClient
 
 
     Private Function AuthenticateSocket() As Boolean
-        If g_bDebug Then Log("AuthenticateSocket called with ipAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AuthenticateSocket called with ipAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
 
         If MySSLTCPClient Is Nothing Then Return False
         If MySSLCertificate Is Nothing Then MySSLCertificate = New X509Certificate2()
@@ -408,7 +408,7 @@ Public Class WebSocketClient
         Try
             MySSLStream = New SslStream(MySSLTCPClient.GetStream(), False, (AddressOf ServerCertificateValidation), (AddressOf UserCertificateSelection))
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AuthenticateSocket setting up an SSLStream with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AuthenticateSocket setting up an SSLStream with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
         End Try
 
@@ -416,12 +416,12 @@ Public Class WebSocketClient
         Try
             MySSLStream.AuthenticateAsClient(MyRemoteIPAddress & ":" & MyRemoteIPPort)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AuthenticateSocket authenticating the server with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AuthenticateSocket authenticating the server with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             'Return False
         End Try
 
         Try
-            If g_bDebug Then
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then
                 Try
                     Log("AuthenticateSocket received Cipher: " & MySSLStream.CipherAlgorithm.ToString & " strength = " & MySSLStream.CipherStrength.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
@@ -461,7 +461,7 @@ Public Class WebSocketClient
                 End Try
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AuthenticateSocket calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AuthenticateSocket calling EndConnect with ipAddress = " & MyRemoteIPAddress & " with Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         'Set timeouts for the read And write to 5 seconds.
         MySSLStream.ReadTimeout = 5000
@@ -470,8 +470,8 @@ Public Class WebSocketClient
     End Function
 
     Private Function ServerCertificateValidation(sender As Object, certificate As X509Certificate, chain As X509Chain, sslPolicyErrors As SslPolicyErrors) As Boolean
-        If g_bDebug Then Log("ServerCertificateValidation calling EndConnect with ipAddress = " & MyRemoteIPAddress & " and SSLPolicyErrors = " & sslPolicyErrors.ToString, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ServerCertificateValidation calling EndConnect with ipAddress = " & MyRemoteIPAddress & " and SSLPolicyErrors = " & sslPolicyErrors.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then
             If (certificate IsNot Nothing) Then
                 Log("ServerCertificateValidation received cert was issued to " & certificate.Subject & " and is valid from " & certificate.GetEffectiveDateString() & " until " & certificate.GetExpirationDateString(), LogType.LOG_TYPE_INFO)
             Else
@@ -482,8 +482,8 @@ Public Class WebSocketClient
     End Function
 
     Private Function UserCertificateSelection(sender As Object, targetHost As String, localCertificates As X509CertificateCollection, remoteCertificate As X509Certificate, acceptableIssuers As String()) As X509Certificate2
-        If g_bDebug Then Log("UserCertificateSelection calling EndConnect with ipAddress = " & MyRemoteIPAddress & " and Target Host = " & targetHost, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("UserCertificateSelection calling EndConnect with ipAddress = " & MyRemoteIPAddress & " and Target Host = " & targetHost, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then
             If acceptableIssuers IsNot Nothing Then
                 For Each accetableIssuer As String In acceptableIssuers
                     Log("UserCertificateSelection calling EndConnect and acceptable Issuer = " & accetableIssuer, LogType.LOG_TYPE_INFO)
@@ -525,7 +525,7 @@ Public Class WebSocketClient
                 Log("DisplayCertificateInformation received Remote certificate is null.", LogType.LOG_TYPE_INFO)
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in DisplayCertificateInformation with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DisplayCertificateInformation with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -555,7 +555,7 @@ Public Class WebSocketClient
         If MySocketIsSSL Then Return ReceiveSSLSocket()
         Receive = False
         If MySocket Is Nothing Then
-            If g_bDebug Then Log("Error in Receive with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Receive with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         Try
@@ -564,17 +564,17 @@ Public Class WebSocketClient
             Mystate.workSocket = MySocket
             ' Begin receiving the data from the remote device.
             MyIAsyncResult = MySocket.BeginReceive(Mystate.buffer, 0, StateObject.BufferSize, SocketFlags.None, New AsyncCallback(AddressOf ReceiveCallback), Mystate)
-            If SuperDebug Then Log("Receive called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Receive called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
             Receive = True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Receive with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Receive with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function ReceiveSSLSocket() As Boolean
         ReceiveSSLSocket = False
         If MySSLStream Is Nothing Then
-            If g_bDebug Then Log("Error in ReceiveSSLSocket with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveSSLSocket with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         Try
@@ -583,15 +583,15 @@ Public Class WebSocketClient
             MySSLState.workSocket = MySSLStream
             ' Begin receiving the data from the remote device.
             MyIAsyncResult = MySSLStream.BeginRead(MySSLState.buffer, 0, SSLStateObject.BufferSize, New AsyncCallback(AddressOf ReceiveCallbackSSLSocket), MySSLState)
-            If SuperDebug Then Log("ReceiveSSLSocket called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReceiveSSLSocket called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_WARNING)
             ReceiveSSLSocket = True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ReceiveSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Private Sub ReceiveCallback(ByVal ar As IAsyncResult)
-        'If g_bDebug Then log( "ReceiveCallback called")
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "ReceiveCallback called")
         ' Retrieve the state object and the client socket 
         ' from the asynchronous state object.
         Try
@@ -600,7 +600,7 @@ Public Class WebSocketClient
                 Exit Sub
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ReceiveCallback closing socket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveCallback closing socket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             Dim state As StateObject = CType(ar.AsyncState, StateObject)
@@ -611,8 +611,8 @@ Public Class WebSocketClient
 
             If bytesRead > 0 Then
                 ' There might be more data, so store the data received so far.
-                If SuperDebug Then Log("ReceiveCallback received data = " & Encoding.UTF8.GetString(state.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then Log("ReceiveCallback received data = " & Encoding.UTF8.GetString(state.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReceiveCallback received data = " & Encoding.UTF8.GetString(state.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallback received data = " & Encoding.UTF8.GetString(state.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
                 response = True
                 Dim ByteA As Byte()
                 ReDim ByteA(bytesRead - 1)
@@ -626,11 +626,11 @@ Public Class WebSocketClient
                 ' All the data has arrived; put it in response.
                 response = True
                 ' Signal that all bytes have been received. ' added connected state on 12/2/2018 
-                If g_bDebug Then Log("ReceiveCallback with ipAddress = " & MyRemoteIPAddress & " received all data and connected state = " & client.Connected.ToString, LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallback with ipAddress = " & MyRemoteIPAddress & " received all data and connected state = " & client.Connected.ToString, LogType.LOG_TYPE_WARNING)
                 receiveDone.Set()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ReceiveCallback with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveCallback with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -643,7 +643,7 @@ Public Class WebSocketClient
                 Exit Sub
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ReceiveCallbackSSLSocket closing socket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveCallbackSSLSocket closing socket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             Dim SSLState As SSLStateObject = CType(ar.AsyncState, SSLStateObject)
@@ -655,8 +655,8 @@ Public Class WebSocketClient
 
             If bytesRead > 0 Then
                 ' There might be more data, so store the data received so far.
-                If SuperDebug Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
                 response = True
                 Dim ByteA As Byte()
                 ReDim ByteA(bytesRead - 1)
@@ -669,80 +669,80 @@ Public Class WebSocketClient
                 ' All the data has arrived; put it in response.
                 response = True
                 ' Signal that all bytes have been received. ' added connected state on 12/2/2018 
-                If g_bDebug Then Log("ReceiveCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " received all data", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " received all data", LogType.LOG_TYPE_WARNING)
                 receiveDone.Set()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ReceiveCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ReceiveCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Function Send(ByVal inData As Byte()) As Boolean
         If MySocketIsSSL Then Return SendSSLSocket(inData)
         ' Convert the string data to byte data using ASCII encoding.
-        If SuperDebug Then Log("Send called with Data = " & Encoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("Send called with Data = " & Encoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("Send called with Data = " & Encoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Send called with Data = " & Encoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
         Send = False
         Try
             If MySocket Is Nothing Then
                 sendDone.Set()
-                If g_bDebug Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             If MySocketIsClosed Then
                 sendDone.Set()
-                If g_bDebug Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & ". Socket is closed", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & ". Socket is closed", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         ' Begin sending the data to the remote device.
         Try
             MyIAsyncResult = MySocket.BeginSend(inData, 0, inData.Length, SocketFlags.None, New AsyncCallback(AddressOf SendCallback), MySocket)
-            If SuperDebug Then Log("Send called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Send called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
             Send = True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Send with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function SendSSLSocket(ByVal inData As Byte()) As Boolean
         ' Convert the string data to byte data using ASCII encoding.
-        If SuperDebug Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
         SendSSLSocket = False
         Try
             If MySSLStream Is Nothing Then
                 sendDone.Set()
-                If g_bDebug Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & ". No Socket", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             If MySocketIsClosed Then
                 sendDone.Set()
-                If g_bDebug Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & ". Socket is closed", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & ". Socket is closed", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " calling SendDone with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         ' Begin sending the data to the remote device.
         Try
             MyIAsyncResult = MySSLStream.BeginWrite(inData, 0, inData.Length, New AsyncCallback(AddressOf SendCallbackSSLSocket), MySSLStream)
-            If SuperDebug Then Log("SendSSLSocket called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SendSSLSocket called and state = " & MyIAsyncResult.IsCompleted.ToString, LogType.LOG_TYPE_INFO)
             SendSSLSocket = True
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -756,11 +756,11 @@ Public Class WebSocketClient
             Dim client As Socket = CType(ar.AsyncState, Socket)
             ' Complete sending the data to the remote device.
             Dim bytesSent As Integer = client.EndSend(ar)
-            If SuperDebug Then Log("SendCallback has sent " & bytesSent & " bytes to server.", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SendCallback has sent " & bytesSent & " bytes to server.", LogType.LOG_TYPE_INFO)
             ' Signal that all bytes have been sent.
             sendDone.Set()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendCallback with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendCallback with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -774,19 +774,19 @@ Public Class WebSocketClient
             Dim SSLClient As SslStream = CType(ar.AsyncState, SslStream)
             ' Complete sending the data to the remote device.
             SSLClient.EndWrite(ar)
-            If SuperDebug Then Log("SendCallbackSSLSocket has finished sending", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SendCallbackSSLSocket has finished sending", LogType.LOG_TYPE_INFO)
             ' Signal that all bytes have been sent.
             sendDone.Set()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendCallbackSSLSocket with ipAddress = " & MyRemoteIPAddress & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub   '
 
     Public Function SendDataOverWebSocket(Opcode As Integer, SocketData As Byte(), UseMask As Boolean) As Boolean
-        If SuperDebug Then Log("SendDataOverWebSocket called for ipAddress = " & MyRemoteIPAddress & " with DataLength = " & SocketData.Length & " and UseMask = " & UseMask.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket called for ipAddress = " & MyRemoteIPAddress & " with DataLength = " & SocketData.Length & " and UseMask = " & UseMask.ToString, LogType.LOG_TYPE_INFO)
         SendDataOverWebSocket = False
 
-        If SuperDebug Then Log("SendDataOverWebSocket for ipAddress - " & MyRemoteIPAddress & " will send data = " & Encoding.UTF8.GetString(SocketData, 0, SocketData.Length), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket for ipAddress - " & MyRemoteIPAddress & " will send data = " & Encoding.UTF8.GetString(SocketData, 0, SocketData.Length), LogType.LOG_TYPE_INFO)
         Dim GenerateANewIndex As Integer = MyRandomNumberGenerator.Next(1, 429496729)
 
         Dim Header(3) As Byte ' think of this as the header
@@ -851,33 +851,33 @@ Public Class WebSocketClient
 
         TreatWebSocketData = Nothing
         If inData Is Nothing Then Return Nothing
-        If SuperDebug Then Log("TreatWebSocketData called for ipAddress = " & MyRemoteIPAddress & " Datasize = " & inData.Length.ToString & " and Data = " & ASCIIEncoding.ASCII.GetString(inData), LogType.LOG_TYPE_INFO) ' dcorssl
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData called for ipAddress = " & MyRemoteIPAddress & " Datasize = " & inData.Length.ToString & " and Data = " & ASCIIEncoding.ASCII.GetString(inData), LogType.LOG_TYPE_INFO) ' dcorssl
         If inData.Length = 0 Then Return Nothing
         If Not MyWebSocketIsActive Then
             ' this is most likely the response to the websocket upgrade
             If ASCIIEncoding.ASCII.GetString(inData).IndexOf("101 Switching Protocols") <> -1 Then
                 MyWebSocketIsActive = True
-                If g_bDebug Then Log("TreatWebSocketData received Websocket upgrade for ipAddress = " & MyRemoteIPAddress & " and Header = " & ASCIIEncoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatWebSocketData received Websocket upgrade for ipAddress = " & MyRemoteIPAddress & " and Header = " & ASCIIEncoding.ASCII.GetString(inData, 0, inData.Length), LogType.LOG_TYPE_INFO)
                 Return Nothing
             End If
         End If
 
         'For i = 0 To inData.Length - 1
-        'If g_bDebug Then Log("     data(" & i.ToString & ")" & inData(i).ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("     data(" & i.ToString & ")" & inData(i).ToString, LogType.LOG_TYPE_INFO)
         'ReadFromInDataStream for ipAddressNext
 
         Try
             If InDataStream IsNot Nothing Then
                 SyncLock (InDataStream)
                     InDataStream.Position = InDataStream.Length
-                    If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is going to write = " & inData.Length.ToString & " bytes and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is going to write = " & inData.Length.ToString & " bytes and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
                     InDataStream.Write(inData, 0, inData.Length)
-                    If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is ended writing and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is ended writing and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
                 End SyncLock
                 StartTreatInDataTimer()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TreatWebSocketData writing data to stream for ipAddress = " & MyRemoteIPAddress & " and Header = " & ASCIIEncoding.ASCII.GetString(inData, 0, inData.Length) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatWebSocketData writing data to stream for ipAddress = " & MyRemoteIPAddress & " and Header = " & ASCIIEncoding.ASCII.GetString(inData, 0, inData.Length) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Return Nothing ' dcor to fix. remove code below if fifo mechanism is working
@@ -913,12 +913,12 @@ Public Class WebSocketClient
                     Mask(i) = inData(InfoStartOffset + i)
                 Next
                 InfoStartOffset = InfoStartOffset + 4
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Mask = " & Mask(0).ToString & " " & Mask(1).ToString & " " & Mask(2).ToString & " " & Mask(3).ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Mask = " & Mask(0).ToString & " " & Mask(1).ToString & " " & Mask(2).ToString & " " & Mask(3).ToString, LogType.LOG_TYPE_INFO)
                 ReDim DecodeBytes(UBound(inData) - InfoStartOffset)
                 For Index = InfoStartOffset To UBound(inData)
                     DecodeBytes(Index - InfoStartOffset) = inData(Index) Xor Mask((Index - InfoStartOffset) Mod 4)
                 Next
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " decoded info = " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " decoded info = " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             End If
         End If
 
@@ -945,16 +945,16 @@ Public Class WebSocketClient
         Else
             OpCodeAsText = Opcode.ToString
         End If
-        If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received OpCode = " & OpCodeAsText & ", FIN = " & FIN.ToString & " and Length = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received maskbit = " & MaskBit.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received OpCode = " & OpCodeAsText & ", FIN = " & FIN.ToString & " and Length = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received maskbit = " & MaskBit.ToString, LogType.LOG_TYPE_INFO)
         If MaskBit Then
-            If SuperDebug Then Log("TreatWebSocketData for device - " & MyRemoteIPAddress & " received mask = " & ASCIIEncoding.ASCII.GetChars(Mask), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for device - " & MyRemoteIPAddress & " received mask = " & ASCIIEncoding.ASCII.GetChars(Mask), LogType.LOG_TYPE_INFO)
         End If
 
-        If UBound(inData) > 0 Then If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(1) = " & inData(1).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 1 Then If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(2) = " & inData(2).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 2 Then If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(3) = " & inData(3).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 3 Then If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(4) = " & inData(4).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 0 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(1) = " & inData(1).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 1 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(2) = " & inData(2).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 2 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(3) = " & inData(3).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 3 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Byte(4) = " & inData(4).ToString, LogType.LOG_TYPE_INFO)
 
         If Opcode = OpcodeClose Then
             ' close the connection
@@ -963,10 +963,10 @@ Public Class WebSocketClient
             Else
                 If DecodeBytes IsNot Nothing Then TextInformation = ASCIIEncoding.ASCII.GetChars(DecodeBytes)
             End If
-            If g_bDebug Then Log("TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " received close connection with Info = " & TextInformation, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " received close connection with Info = " & TextInformation, LogType.LOG_TYPE_WARNING)
             ' return a close 
             Try
-                If g_bDebug Then Log("TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " is sending a close after receiving a close", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " is sending a close after receiving a close", LogType.LOG_TYPE_INFO)
                 response = False
                 If Not Send(inData) Then
                     Log("Error in TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " while sending a close", LogType.LOG_TYPE_ERROR)
@@ -1013,7 +1013,7 @@ Public Class WebSocketClient
             End If
 
             Try
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is sending a pong after receiving a ping", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " is sending a pong after receiving a ping", LogType.LOG_TYPE_INFO)
                 response = False
                 If Not Send(Array1) Then
                     Log("Error in TreatWebSocketData for ipAddress = " & MyRemoteIPAddress & " while sending a pong", LogType.LOG_TYPE_ERROR)
@@ -1041,9 +1041,9 @@ Public Class WebSocketClient
                 'TextInformation = ASCIIEncoding.ASCII.GetChars(inData, InfoStartOffset, inData.Length - InfoStartOffset - 1)
             End If
             If DecodeBytes IsNot Nothing Then
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Text Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Text Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             Else
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received empty Text Info", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received empty Text Info", LogType.LOG_TYPE_INFO)
             End If
             Return DecodeBytes
         ElseIf Opcode = OpcodeBinary Then ' BinaryFrame
@@ -1053,9 +1053,9 @@ Public Class WebSocketClient
                 Buffer.BlockCopy(inData, InfoStartOffset, DecodeBytes, 0, inData.Length - InfoStartOffset - 1)
             End If
             If DecodeBytes IsNot Nothing Then
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Binary Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received Binary Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             Else
-                If SuperDebug Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received empty Binary Info", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("TreatWebSocketData for ipAddress - " & MyRemoteIPAddress & " received empty Binary Info", LogType.LOG_TYPE_INFO)
             End If
             Return DecodeBytes
         End If
@@ -1074,9 +1074,9 @@ Public Class WebSocketClient
             Exit Sub
         End If
 
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has " & InDataStream.Length.ToString & " bytes to process", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has " & InDataStream.Length.ToString & " bytes to process", LogType.LOG_TYPE_INFO)
         If ReEntrancyFlag Then
-            If g_bDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has reentracy", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has reentracy", LogType.LOG_TYPE_WARNING)
             StartTreatInDataTimer() ' reset the timer
             Exit Sub
         End If
@@ -1141,7 +1141,7 @@ Public Class WebSocketClient
         Dim TempPosition = 0
         InDataStream.Seek(InDataStreamReadIndex, SeekOrigin.Begin)
         Dim DataRead As Integer = InDataStream.Read(inData, 0, 2)
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & InDataStreamReadIndex.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & InDataStreamReadIndex.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
 
         Dim FIN As Boolean = False
         Dim Opcode As Integer = 0
@@ -1164,7 +1164,7 @@ Public Class WebSocketClient
             ReDim inData(3)
             TempPosition = InDataStream.Position
             DataRead = InDataStream.Read(inData, 2, 2)
-            If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
             InfoLength = inData(2) * 256 + inData(3)
         ElseIf InfoLength = 127 Then
             ' actually the next 8 bytes represent length
@@ -1172,20 +1172,20 @@ Public Class WebSocketClient
             ReDim inData(9)
             TempPosition = InDataStream.Position
             InDataStream.Read(inData, 2, 8)
-            If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
             InfoLength = inData(2) * 256 * 256 * 256 * 256 * 256 * 256 * 256 + inData(3) * 256 * 256 * 256 * 256 * 256 * 256 + inData(4) * 256 * 256 * 256 * 256 * 256 + inData(5) * 256 * 256 * 256 * 256 + inData(6) * 256 * 256 * 256 + inData(7) * 256 * 256 + inData(8) * 256 + inData(9)
         End If
 
         If InDataStream.Length - InDataStreamReadIndex < (InfoStartOffset + InfoLength) Then
-            If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has not enough data", LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has datastream length = " & InDataStream.Length.ToString & " and readIndex = " & InDataStreamReadIndex.ToString, LogType.LOG_TYPE_INFO)
-            If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has Info length = " & InfoLength.ToString & " and infoStartOffset = " & InfoStartOffset.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has not enough data", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has datastream length = " & InDataStream.Length.ToString & " and readIndex = " & InDataStreamReadIndex.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has Info length = " & InfoLength.ToString & " and infoStartOffset = " & InfoStartOffset.ToString, LogType.LOG_TYPE_INFO)
             ReEntrancyFlag = False
             StartTreatInDataTimer() ' make sure the timer is rearmed
             Exit Sub  ' not enough data in the buffer
         End If
 
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has infolength = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has infolength = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
 
         TempPosition = InDataStream.Position
         If MaskBit Then
@@ -1195,7 +1195,7 @@ Public Class WebSocketClient
             ReDim inData(InfoStartOffset + InfoLength - 1)
             DataRead = InDataStream.Read(inData, InfoStartOffset, InfoLength)
         End If
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & TempPosition.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
 
         Dim DecodeBytes As Byte() = Nothing
         If MaskBit Then
@@ -1204,12 +1204,12 @@ Public Class WebSocketClient
                     Mask(i) = inData(InfoStartOffset + i)
                 Next
                 InfoStartOffset = InfoStartOffset + 4
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Mask = " & Mask(0).ToString & " " & Mask(1).ToString & " " & Mask(2).ToString & " " & Mask(3).ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Mask = " & Mask(0).ToString & " " & Mask(1).ToString & " " & Mask(2).ToString & " " & Mask(3).ToString, LogType.LOG_TYPE_INFO)
                 ReDim DecodeBytes(UBound(inData) - InfoStartOffset)
                 For Index = InfoStartOffset To UBound(inData)
                     DecodeBytes(Index - InfoStartOffset) = inData(Index) Xor Mask((Index - InfoStartOffset) Mod 4)
                 Next
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " decoded info = " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " decoded info = " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             End If
         End If
 
@@ -1229,23 +1229,23 @@ Public Class WebSocketClient
             OpCodeAsText = "Ping"
         ElseIf Opcode = OpcodePong Then
             OpCodeAsText = "Pong"
-        ElseIf Opcode = OpCodeText Then
+        ElseIf Opcode = OpcodeText Then
             OpCodeAsText = "Text"
         ElseIf Opcode = OpcodeBinary Then
             OpCodeAsText = "Binary"
         Else
             OpCodeAsText = Opcode.ToString
         End If
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received OpCode = " & OpCodeAsText & ", FIN = " & FIN.ToString & " and Length = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
-        If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received maskbit = " & MaskBit.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received OpCode = " & OpCodeAsText & ", FIN = " & FIN.ToString & " and Length = " & InfoLength.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received maskbit = " & MaskBit.ToString, LogType.LOG_TYPE_INFO)
         If MaskBit Then
-            If SuperDebug Then Log("ReadFromInDataStream for device - " & MyRemoteIPAddress & " received mask = " & ASCIIEncoding.ASCII.GetChars(Mask), LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for device - " & MyRemoteIPAddress & " received mask = " & ASCIIEncoding.ASCII.GetChars(Mask), LogType.LOG_TYPE_INFO)
         End If
 
-        If UBound(inData) > 0 Then If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(1) = " & inData(1).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 1 Then If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(2) = " & inData(2).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 2 Then If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(3) = " & inData(3).ToString, LogType.LOG_TYPE_INFO)
-        If UBound(inData) > 3 Then If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(4) = " & inData(4).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 0 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(1) = " & inData(1).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 1 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(2) = " & inData(2).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 2 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(3) = " & inData(3).ToString, LogType.LOG_TYPE_INFO)
+        If UBound(inData) > 3 Then If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Byte(4) = " & inData(4).ToString, LogType.LOG_TYPE_INFO)
 
         If Opcode = OpcodeClose Then
             ' close the connection
@@ -1254,10 +1254,10 @@ Public Class WebSocketClient
             Else
                 If DecodeBytes IsNot Nothing Then TextInformation = ASCIIEncoding.ASCII.GetChars(DecodeBytes)
             End If
-            If g_bDebug Then Log("ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " received close connection with Info = " & TextInformation, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " received close connection with Info = " & TextInformation, LogType.LOG_TYPE_WARNING)
             ' return a close 
             Try
-                If g_bDebug Then Log("ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " is sending a close after receiving a close", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " is sending a close after receiving a close", LogType.LOG_TYPE_INFO)
                 response = False
                 If Not Send(inData) Then
                     Log("Error in ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " while sending a close", LogType.LOG_TYPE_ERROR)
@@ -1307,7 +1307,7 @@ Public Class WebSocketClient
             End If
 
             Try
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " is sending a pong after receiving a ping", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " is sending a pong after receiving a ping", LogType.LOG_TYPE_INFO)
                 response = False
                 If Not Send(Array1) Then
                     Log("Error in ReadFromInDataStream for ipAddress = " & MyRemoteIPAddress & " while sending a pong", LogType.LOG_TYPE_ERROR)
@@ -1334,16 +1334,16 @@ Public Class WebSocketClient
             Exit Sub
         ElseIf Opcode = OpcodePong Then ' Pong
             PongReceived = True
-        ElseIf Opcode = OpCodeText Then ' TextFrame
+        ElseIf Opcode = OpcodeText Then ' TextFrame
             If Not MaskBit Then
                 Array.Resize(DecodeBytes, inData.Length - InfoStartOffset)
                 Buffer.BlockCopy(inData, InfoStartOffset, DecodeBytes, 0, inData.Length - InfoStartOffset)
                 'TextInformation = ASCIIEncoding.ASCII.GetChars(inData, InfoStartOffset, inData.Length - InfoStartOffset - 1)
             End If
             If DecodeBytes IsNot Nothing Then
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Text Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Text Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             Else
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received empty Text Info", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received empty Text Info", LogType.LOG_TYPE_INFO)
             End If
             MoreBytesInDataStream(inData.Length)
             OnReceive(DecodeBytes)
@@ -1356,9 +1356,9 @@ Public Class WebSocketClient
                 Buffer.BlockCopy(inData, InfoStartOffset, DecodeBytes, 0, inData.Length - InfoStartOffset)
             End If
             If DecodeBytes IsNot Nothing Then
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Binary Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received Binary Info =  " & ASCIIEncoding.ASCII.GetChars(DecodeBytes), LogType.LOG_TYPE_INFO)
             Else
-                If SuperDebug Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received empty Binary Info", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " received empty Binary Info", LogType.LOG_TYPE_INFO)
             End If
             MoreBytesInDataStream(inData.Length)
             OnReceive(DecodeBytes)
@@ -1376,7 +1376,7 @@ Public Class WebSocketClient
             Exit Sub
         End If
         Try
-            If SuperDebug Then Log("MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & InDataStreamReadIndex.ToString & " and in buffer = " & InDataStream.Length.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & InDataStreamReadIndex.ToString & " and in buffer = " & InDataStream.Length.ToString, LogType.LOG_TYPE_INFO)
             If InDataStream.Length = InDataStreamReadIndex Then
                 ' all is read' flush the buffer
                 InDataStream.Close()
@@ -1387,12 +1387,12 @@ Public Class WebSocketClient
                 StartTreatInDataTimer() ' make sure the timer is rearmed
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " and Error= " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " and Error= " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub SendPing(UseMask As Boolean)
-        If SuperDebug Then Log("SendPing called for ipAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendPing called for ipAddress = " & MyRemoteIPAddress, LogType.LOG_TYPE_INFO)
         SendDataOverWebSocket(OpcodePing, ASCIIEncoding.ASCII.GetBytes("Hello"), UseMask)
     End Sub
 
@@ -1400,7 +1400,7 @@ Public Class WebSocketClient
         ' we need to check if we received a response AND send out a new ping
         If Not PongReceived Then
             ' not good we need to release
-            If g_bDebug Then Log("SocketAliveTimer_Elapsed called for ipAddress = " & MyRemoteIPAddress & ". no Pong received in time. Closing socket", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SocketAliveTimer_Elapsed called for ipAddress = " & MyRemoteIPAddress & ". no Pong received in time. Closing socket", LogType.LOG_TYPE_WARNING)
             CloseSocket()
         Else
             PongReceived = False

@@ -182,18 +182,18 @@ Partial Public Class HSPI
     End Property
 
     Private Sub SonyPartyStateChange(ByVal StateVarName As String, ByVal Value As Object) Handles mySonyPartyCallback.ControlStateChange 'SonyPartyStateChange
-        If SuperDebug Then Log("SonyPartyStateChange for device = " & MyUPnPDeviceName & ". VarName = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
-        If g_bDebug And Not SuperDebug Then Log("SonyPartyStateChange for device = " & MyUPnPDeviceName & ". VarName = " & StateVarName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SonyPartyStateChange for device = " & MyUPnPDeviceName & ". VarName = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly And Not PIDebuglevel > DebugLevel.dlEvents Then Log("SonyPartyStateChange for device = " & MyUPnPDeviceName & ". VarName = " & StateVarName, LogType.LOG_TYPE_INFO)
 
         Try
             SonyPartyX_GetDeviceInfo()
         Catch ex As Exception
-            log("Error in SonyPartyStateChange 1 for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in SonyPartyStateChange 1 for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             SonyPartyX_GetState()
         Catch ex As Exception
-            log("Error in SonyPartyStateChange 2 for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in SonyPartyStateChange 2 for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             Select Case StateVarName.ToUpper
@@ -205,12 +205,12 @@ Partial Public Class HSPI
                     Log("Warning : SonyPartyStateChange for device = " & MyUPnPDeviceName & " found unrecognized StateVarName = " & StateVarName.ToString & " and Value = " & Value.ToString, LogType.LOG_TYPE_WARNING)
             End Select
         Catch ex As Exception
-            log("Error in SonyPartyStateChange for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in SonyPartyStateChange for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Private Sub SonySetHSState(PartyState As String)
-        If g_bDebug Then Log("SonySetHSState called for device = " & MyUPnPDeviceName & " with PartyState = " & PartyState.ToString & " and HSRef = " & HSRefParty.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonySetHSState called for device = " & MyUPnPDeviceName & " with PartyState = " & PartyState.ToString & " and HSRef = " & HSRefParty.ToString, LogType.LOG_TYPE_INFO)
         If HSRefParty = -1 Then Exit Sub
         Dim StateInfo As String = ""
         Try
@@ -238,7 +238,7 @@ Partial Public Class HSPI
                     Log("Warning : SonySetHSState for device = " & MyUPnPDeviceName & " found unrecognized PartyState = " & PartyState.ToString, LogType.LOG_TYPE_WARNING)
             End Select
         Catch ex As Exception
-            log("Error in SonySetHSState for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in SonySetHSState for device = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
 
@@ -279,7 +279,7 @@ Partial Public Class HSPI
         '  <action name="sendText" url="http://192.168.1.147:31038/cers?action=sendText"/>
         '</actionList>
 
-        If g_bDebug Then Log("RetrieveSonyActionList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonyActionList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
         Dim xmlDoc As New XmlDocument
         Dim RequestUri = New Uri(URLDoc)
@@ -310,20 +310,20 @@ Partial Public Class HSPI
             Try
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If SuperDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If SuperDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
-                'If g_bDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) 
-                'If g_bDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO) 
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO) 
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO) 
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     Dim ActionName As String = ""
                     Dim ActionURL As String = ""
                     ActionName = outerNode.Attributes("name").Value
                     ActionURL = outerNode.Attributes("url").Value
-                    If SuperDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action Name: " & ActionName, LogType.LOG_TYPE_INFO)
-                    If SuperDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action URL: " & ActionURL, LogType.LOG_TYPE_INFO)
-                    'If g_bDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action Name: " & ActionName, LogType.LOG_TYPE_INFO)
-                    'If g_bDebug Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action URL: " & ActionURL, LogType.LOG_TYPE_INFO) 
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action Name: " & ActionName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action URL: " & ActionURL, LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action Name: " & ActionName, LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonyActionList for device - " & MyUPnPDeviceName & "------> Action URL: " & ActionURL, LogType.LOG_TYPE_INFO) 
                     If ActionName.ToUpper = "REGISTER" Then
                         MySonyRegisterURL = ActionURL
                         MySonyRegisterMode = outerNode.Attributes("mode").Value
@@ -346,7 +346,7 @@ Partial Public Class HSPI
                     End If
                 Next
             Catch ex As Exception
-                log("Error in RetrieveSonyActionList for UPnPDevice = " & MyUPnPDeviceName & "  processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in RetrieveSonyActionList for UPnPDevice = " & MyUPnPDeviceName & "  processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
         xmlDoc = Nothing
@@ -381,7 +381,7 @@ Partial Public Class HSPI
 
 
         SonyRegister = False
-        If g_bDebug Then Log("SonyRegister called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString & " and SendRenew = " & SendRenew.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyRegister called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString & " and SendRenew = " & SendRenew.ToString, LogType.LOG_TYPE_INFO)
 
         If MySonyRegisterMode = "JSON" Then
             SendJSONAuthentication(GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, ""))
@@ -420,7 +420,7 @@ Partial Public Class HSPI
             webStream = webResponse.GetResponseStream
             webStream.Close()
             webResponse.Close()
-            If g_bDebug Then Log("SonyRegister for device - " & MyUPnPDeviceName & " registered successfully with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyRegister for device - " & MyUPnPDeviceName & " registered successfully with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
             WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
         Catch ex As WebException ' if we are trying to renew and the response = 403 than the device is not registered and the registration flag should be reset!!
             Log("Error in SonyRegister for device - " & MyUPnPDeviceName & " registering with URL = " & URLDoc.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -498,15 +498,15 @@ Partial Public Class HSPI
         '  <command name="PartyOff" type="url" value="http://192.168.1.132:50002/setParty?action=stop" />
         '</remoteCommandList>
 
-        If g_bDebug Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then
-            'If g_bDebug Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " has no Remote Command List to retrieve", LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " has no Remote Command List to retrieve", LogType.LOG_TYPE_INFO)
             'processSonyCommand("Power", "AAAAAQAAAAEAAAAVAw==", 21, 3, 1)
             'processSonyCommand("PowerOff", "AAAAAQAAAAEAAAAvAw==", 22, 3, 2)
 
             Exit Sub
             ' this device wasn't publishing it, go for default
-            If g_bDebug Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " has no Remote Command List to retrieve, create default", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyRemoteCommandList called for device - " & MyUPnPDeviceName & " has no Remote Command List to retrieve, create default", LogType.LOG_TYPE_INFO)
             processSonyCommand("Confirm", "AAAAAwAAHFoAAAA9Aw==", 20, 2, 1)
             processSonyCommand("Up", "AAAAAwAAHFoAAAA5Aw==", 21, 2, 2)
             processSonyCommand("Down", "AAAAAwAAHFoAAAA6Aw==", 22, 2, 3)
@@ -606,16 +606,16 @@ Partial Public Class HSPI
             If xmlDoc.HasChildNodes Then
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If SuperDebug Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If SuperDebug Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     Dim CommandName As String = outerNode.Attributes("name").Value
                     Dim CommandType As String = outerNode.Attributes("type").Value
                     Dim CommandValue As String = outerNode.Attributes("value").Value
-                    If SuperDebug Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Name: " & CommandName, LogType.LOG_TYPE_INFO)
-                    If SuperDebug Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Type: " & CommandType, LogType.LOG_TYPE_INFO)
-                    If SuperDebug Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Value: " & CommandValue, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Name: " & CommandName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Type: " & CommandType, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & "------> Command Value: " & CommandValue, LogType.LOG_TYPE_INFO)
                     If CommandType.ToUpper = "IRCC" Then processSonyCommand(CommandName, CommandValue, ButtonIndex, RowIndex, ColumnIndex)
                     ButtonIndex += 1
                     ColumnIndex += 1
@@ -635,7 +635,7 @@ Partial Public Class HSPI
         ' example at http://msdn.microsoft.com/en-us/library/debx8sh9.aspx
         ' SONY SMP-N200
 
-        If g_bDebug Then Log("GetSonyContentList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
         Dim wRequest As HttpWebRequest = Nothing
         Dim xmlDoc As New XmlDocument
@@ -652,7 +652,7 @@ Partial Public Class HSPI
             'wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & MyMacAddress)
             wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
         Catch ex As Exception
-            If g_bDebug Then Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub ' there is none, exit function
         End Try
         Dim webResponse As WebResponse = Nothing
@@ -672,7 +672,7 @@ Partial Public Class HSPI
             Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " doing a GetResponseStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " found XML = " & webStream.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " found XML = " & webStream.ToString, LogType.LOG_TYPE_INFO)
         Try
             xmlDoc.Load(webStream)
         Catch ex As Exception
@@ -691,16 +691,16 @@ Partial Public Class HSPI
             If xmlDoc.HasChildNodes Then
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
                     Dim CommandName As String = outerNode.Attributes("name").Value
                     Dim CommandType As String = outerNode.Attributes("type").Value
                     Dim CommandValue As String = outerNode.Attributes("value").Value
-                    If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Name: " & CommandName, LogType.LOG_TYPE_INFO)
-                    If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Type: " & CommandType, LogType.LOG_TYPE_INFO)
-                    If g_bDebug Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Value: " & CommandValue, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Name: " & CommandName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Type: " & CommandType, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Value: " & CommandValue, LogType.LOG_TYPE_INFO)
                     'If CommandType.ToUpper = "IRCC" Then processSonyCommand(CommandName, CommandValue, ButtonIndex, RowIndex, ColumnIndex)
                     ButtonIndex += 1
                     ColumnIndex += 1
@@ -725,7 +725,7 @@ Partial Public Class HSPI
         'Connection: close()
         'X-CERS-DEVICE-ID: TVSideView:f7-07-4a-01-f0-3a
 
-        If g_bDebug Then Log("GetSonyWebServices called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
         Dim wRequest As HttpWebRequest = Nothing
         Dim xmlDoc As New XmlDocument
@@ -781,11 +781,11 @@ Partial Public Class HSPI
             If xmlDoc.HasChildNodes Then
                 'Get a list of all the child elements
                 Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If g_bDebug Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If g_bDebug Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
                 'Parse through all nodes
                 For Each outerNode As XmlNode In nodelist
-                    If g_bDebug Then
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then
                         Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Found Node Name = " & outerNode.Name, LogType.LOG_TYPE_INFO)
                         Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Found Innertext Name = " & outerNode.InnerText, LogType.LOG_TYPE_INFO)
                     End If
@@ -816,7 +816,7 @@ Partial Public Class HSPI
         '</systemInformation>
 
 
-        If g_bDebug Then Log("RetrieveSonySystemInformation called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonySystemInformation called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
         Dim xmlDoc As New XmlDocument
         Dim RequestUri = New Uri(URLDoc)
@@ -853,7 +853,7 @@ Partial Public Class HSPI
 
     Private Sub SonySetupRemoteInfo()
         MySonyRegisterMode = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "")
-        If g_bDebug Then Log("SonySetupRemoteInfo called for device = " & MyUPnPDeviceName & " with RegisterMode = " & MySonyRegisterMode, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonySetupRemoteInfo called for device = " & MyUPnPDeviceName & " with RegisterMode = " & MySonyRegisterMode, LogType.LOG_TYPE_INFO)
         If MySonyRegisterMode = "1" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyContentList(MySonyContentListURL)
@@ -883,7 +883,7 @@ Partial Public Class HSPI
 
     Private Sub SonyProcessIRCCInfo(IRCCXML As String)
 
-        If g_bDebug Then Log("SonyProcessIRCCInfo called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO) ' 
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO) ' 
         Dim xmlDoc As New XmlDocument
         xmlDoc.XmlResolver = Nothing
         Dim ButtonIndex As Integer = 20
@@ -892,8 +892,8 @@ Partial Public Class HSPI
 
         Try
             xmlDoc.LoadXml(IRCCXML)
-            If SuperDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
-            'If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving document with URL = " & MyDocumentURL & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
@@ -906,12 +906,12 @@ Partial Public Class HSPI
         Try
             X_IRCCCodeList = xmlDoc.GetElementsByTagName("av:X_IRCCCode")
             If X_IRCCCodeList IsNot Nothing Then
-                'If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved av:X_IRCCCodeList with " & X_IRCCCodeList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO) 
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved av:X_IRCCCodeList with " & X_IRCCCodeList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO) 
                 If X_IRCCCodeList.Count > 0 Then
                     For NodeIndex As Integer = 0 To X_IRCCCodeList.Count - 1
                         Dim Command As String = X_IRCCCodeList.Item(NodeIndex).Attributes("command").Value
                         Dim Value As String = X_IRCCCodeList.Item(NodeIndex).InnerText
-                        If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved IRCC Command = " & Command & " and Value = " & Value, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved IRCC Command = " & Command & " and Value = " & Value, LogType.LOG_TYPE_INFO)
                         processSonyCommand(Command, Value, ButtonIndex, RowIndex, ColumnIndex)
                         ButtonIndex += 1
                         ColumnIndex += 1
@@ -923,7 +923,7 @@ Partial Public Class HSPI
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_IRCCCode with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_IRCCCode with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         X_IRCCCodeList = Nothing
 
@@ -951,15 +951,15 @@ Partial Public Class HSPI
         Try
             X_IRCC_CategoryList = xmlDoc.GetElementsByTagName("av:X_IRCC_Category")
             If X_IRCC_CategoryList IsNot Nothing Then
-                'If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved av:X_IRCC_CategoryList with " & X_IRCC_CategoryList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO) 
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved av:X_IRCC_CategoryList with " & X_IRCC_CategoryList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO) 
                 If X_IRCC_CategoryList.Count > 0 Then
                     For NodeIndex As Integer = 0 To X_IRCC_CategoryList.Count - 1
-                        If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_IRCC_Category = " & X_IRCC_CategoryList.Item(NodeIndex).InnerText, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_IRCC_Category = " & X_IRCC_CategoryList.Item(NodeIndex).InnerText, LogType.LOG_TYPE_INFO)
                     Next
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_IRCC_Category with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_IRCC_Category with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         X_IRCC_CategoryList = Nothing
 
@@ -967,17 +967,17 @@ Partial Public Class HSPI
         Dim X_ScalarWebAPI_BaseURL As String = ""
         Try
             X_ScalarWebAPI_BaseURL = xmlDoc.GetElementsByTagName("av:X_ScalarWebAPI_BaseURL").Item(0).InnerText
-            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_BaseURL = " & X_ScalarWebAPI_BaseURL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_BaseURL = " & X_ScalarWebAPI_BaseURL, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_BaseURL with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_BaseURL with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Dim X_ScalarWebAPI_ActionList_URL As String = ""
         Try
             X_ScalarWebAPI_ActionList_URL = xmlDoc.GetElementsByTagName("av:X_ScalarWebAPI_ActionList_URL").Item(0).InnerText
-            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_ActionList_URL = " & X_ScalarWebAPI_ActionList_URL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_ActionList_URL = " & X_ScalarWebAPI_ActionList_URL, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_ActionList_URL with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_ActionList_URL with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         If (X_ScalarWebAPI_BaseURL = "") And (X_ScalarWebAPI_ActionList_URL = "") Then Exit Sub ' we're done
@@ -1039,7 +1039,7 @@ Partial Public Class HSPI
         Try
             X_ScalarWebAPI_ServiceList = xmlDoc.GetElementsByTagName("av:X_ScalarWebAPI_ServiceType")
             If X_ScalarWebAPI_ServiceList IsNot Nothing Then
-                If SuperDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_ServiceList with " & X_ScalarWebAPI_ServiceList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved X_ScalarWebAPI_ServiceList with " & X_ScalarWebAPI_ServiceList.Count.ToString & "Nodes ", LogType.LOG_TYPE_INFO)
                 If X_ScalarWebAPI_ServiceList.Count > 0 Then
                     For NodeIndex As Integer = 0 To X_ScalarWebAPI_ServiceList.Count - 1
                         Try
@@ -1052,20 +1052,20 @@ Partial Public Class HSPI
                         If X_ScalarWebAPI_ServiceList.Item(NodeIndex).InnerText = "system" Then
                             ' OK we have a JSON port to retrieve stufff from
                             JSONSystemURL = X_ScalarWebAPI_BaseURL & "/system"
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON System URL = " & JSONSystemURL, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON System URL = " & JSONSystemURL, LogType.LOG_TYPE_INFO)
                             MySonyRegisterMode = "JSON"
                         ElseIf X_ScalarWebAPI_ServiceList.Item(NodeIndex).InnerText = "accessControl" Then
                             MySonyRegisterURL = X_ScalarWebAPI_BaseURL & "/accessControl"
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON AccessControl URL = " & MySonyRegisterURL, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON AccessControl URL = " & MySonyRegisterURL, LogType.LOG_TYPE_INFO)
                         ElseIf X_ScalarWebAPI_ServiceList.Item(NodeIndex).InnerText = "appControl" Then
                             MySonyAppControlURL = X_ScalarWebAPI_BaseURL & "/appControl"
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON AppControl URL = " & MySonyRegisterURL, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " retrieved JSON AppControl URL = " & MySonyRegisterURL, LogType.LOG_TYPE_INFO)
                         End If
                     Next
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_ServiceType with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " while retieving av:X_ScalarWebAPI_ServiceType with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         X_ScalarWebAPI_ServiceList = Nothing
 
@@ -1082,11 +1082,11 @@ Partial Public Class HSPI
         If JSONSystemURL <> "" Then ' check whether WOL is enabled
             'ReturnJSON = SendJSON(JSONSystemURL, "{""id"":3,""method"":""getWolMode"",""version"":""1.0"",""params"":[""1.0""]}")
             ReturnJSON = SendJSON(JSONSystemURL, "{""id"":3,""method"":""getWolMode"",""version"":""1.0"",""params"":[]}")
-            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " received JSON reply = " & ReturnJSON, LogType.LOG_TYPE_INFO) 'dcorsony
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " received JSON reply = " & ReturnJSON, LogType.LOG_TYPE_INFO) 'dcorsony
             ' {"id":3,"result":[{"enabled":true}]}
             ' if need be issue {"id":3,"method":"setWolMode","version":"1.0","params":[{"enabled":true}]}
             ReturnJSON = SendJSON(JSONSystemURL, "{""id"":3,""method"":""setWolMode"",""version"":""1.0"",""params"":[{""enabled"":true}]}")
-            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " received JSON reply = " & ReturnJSON, LogType.LOG_TYPE_INFO) 'dcorsony
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " received JSON reply = " & ReturnJSON, LogType.LOG_TYPE_INFO) 'dcorsony
         End If
 
         Try
@@ -1111,7 +1111,7 @@ Partial Public Class HSPI
                                             Value = ValuePair.value
                                         End If
                                     Next
-                                    If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & "  for SystemSupportedFunction found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsonyy
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & "  for SystemSupportedFunction found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsonyy
                                     If Name = "WOL" Then
                                         WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diMACAddress.ToString, Value) ' in the format 70:18:8B:97:34:14
                                         'processSonyCommand("WOL", Value, psWOL, RowIndex, ColumnIndex)
@@ -1124,19 +1124,19 @@ Partial Public Class HSPI
                                 Next
                             Next
                         ElseIf Entry.key = "id" Then
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found SystemSupportedFunction JSON ID = " & Entry.value, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found SystemSupportedFunction JSON ID = " & Entry.value, LogType.LOG_TYPE_INFO)
                         Else
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found SystemSupportedFunction ID = " & Entry.id & " and Value = " & Entry.value, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found SystemSupportedFunction ID = " & Entry.id & " and Value = " & Entry.value, LogType.LOG_TYPE_INFO)
                         End If
                     Next
                     JSONdata = Nothing
                     json = Nothing
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing SystemSupportedFunctions with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing SystemSupportedFunctions with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing SystemSupportedFunctions1 with JSON data = " & ReturnJSON & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing SystemSupportedFunctions1 with JSON data = " & ReturnJSON & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Try
@@ -1170,9 +1170,9 @@ Partial Public Class HSPI
                                         End If
                                     Next
                                 Catch ex As Exception
-                                    If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo for Entry2 with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo for Entry2 with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
                                 End Try
-                                If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " for RemoteControllerInfo found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsony
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " for RemoteControllerInfo found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsony
                                 If (Name <> "") And (Value <> "") Then
                                     processSonyCommand(Name, Value, ButtonIndex, RowIndex, ColumnIndex)
                                     ButtonIndex += 1
@@ -1184,20 +1184,20 @@ Partial Public Class HSPI
                                 End If
                             Next
                         ElseIf Entry.Key = "id" Then
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found RemoteControllerInfo JSON ID = " & Entry.Value, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found RemoteControllerInfo JSON ID = " & Entry.Value, LogType.LOG_TYPE_INFO)
                         Else
-                            If g_bDebug Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found RemoteControllerInfo ID = " & Entry.Key & " and Value = " & Entry.Value, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & " found RemoteControllerInfo ID = " & Entry.Key & " and Value = " & Entry.Value, LogType.LOG_TYPE_INFO)
                         End If
                     Next
 
                     JSONdata = Nothing
                     json = Nothing
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo with error = " & ex.Message & " and JSON = " & ReturnJSON, LogType.LOG_TYPE_ERROR)
                 End Try
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo1 with JSON data = " & ReturnJSON & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyProcessIRCCInfo for device - " & MyUPnPDeviceName & " processing RemoteControllerInfo1 with JSON data = " & ReturnJSON & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
@@ -1205,7 +1205,7 @@ Partial Public Class HSPI
     Private Function SendJSON(URLDoc As String, JSONin As String) As String
 
         SendJSON = ""
-        If g_bDebug Then Log("SendJSON called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString & " and JSONin = " & JSONin, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSON called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString & " and JSONin = " & JSONin, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Or JSONin = "" Then Exit Function
 
         Dim wRequest As HttpWebRequest = Nothing
@@ -1229,7 +1229,7 @@ Partial Public Class HSPI
             wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
             wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendJSON for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendJSON for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function ' there is none, exit function
         End Try
 
@@ -1275,7 +1275,7 @@ Partial Public Class HSPI
             Exit Function
         End Try
 
-        If SuperDebug Then Log("SendJSON for device - " & MyUPnPDeviceName & " received JSON = " & SendJSON.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendJSON for device - " & MyUPnPDeviceName & " received JSON = " & SendJSON.ToString, LogType.LOG_TYPE_INFO)
 
         Try
             data = Nothing
@@ -1299,16 +1299,16 @@ Partial Public Class HSPI
         ' {"id":13,"method":"actRegister","version":"1.0","params":[{"clientid":"TVSideView:34c48639-af3d-40e7-b1b2-74091375368c","nickname":"cm_tenderloin (TV SideView)"},[{"clientid":"TVSideView:34c48639-af3d-40e7-b1b2-74091375368c","value":"yes","nickname":"cm_tenderloin (TV SideView)","function":"WOL"}]]}
         Dim ReturnJSON As String = ""
         'Dim SonyPIN As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
-        If g_bDebug Then Log("SendJSONAuthentication called for device - " & MyUPnPDeviceName & " with SonyRegisterURL = " & MySonyRegisterURL.ToString & " and PIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication called for device - " & MyUPnPDeviceName & " with SonyRegisterURL = " & MySonyRegisterURL.ToString & " and PIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
         If MySonyRegisterURL = "" Then Exit Function
         SonyPIN = Trim(SonyPIN)
 
         Dim JSONRegisterString As String = "{""id"":13,""method"":""actRegister"",""version"":""1.0"",""params"":[{""clientid"":""" & "TVSideView:" & AdjustMacAddressforSony(MyMacAddress) & """,""nickname"":""(MediaController)""},[{""clientid"":""TVSideView:" & AdjustMacAddressforSony(MyMacAddress) & """,""value"":""yes"",""nickname"":""(MediaController)"",""function"":""WOL""}]]}"
-        If g_bDebug Then Log("SendJSONAuthentication send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
         'ReturnJSON = SendJSONAuthentication(MySonyRegisterURL & "/system", JSONRegisterString, "")
         'WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
 
-        'If g_bDebug Then Log("SendJSONAuthentication called for device - " & MyUPnPDeviceName & " with JSON = " & JSONRegisterString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication called for device - " & MyUPnPDeviceName & " with JSON = " & JSONRegisterString, LogType.LOG_TYPE_INFO)
 
         Dim wRequest As HttpWebRequest = Nothing
         Dim xmlDoc As New XmlDocument
@@ -1321,7 +1321,7 @@ Partial Public Class HSPI
                 MyAuthenticationCookieContainer = New CookieContainer()
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " getting a cookiecontainer error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " getting a cookiecontainer error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         Dim data = Encoding.UTF8.GetBytes(JSONRegisterString)
@@ -1343,11 +1343,11 @@ Partial Public Class HSPI
             If SonyPIN <> "" Then
                 Dim authInfo As String = ":" & SonyPIN
                 authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo))
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " created Authentication string = " & "Basic " & authInfo, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " created Authentication string = " & "Basic " & authInfo, LogType.LOG_TYPE_INFO)
                 wRequest.Headers.Add("Authorization", "Basic " & authInfo)
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function ' there is none, exit function
         End Try
 
@@ -1370,7 +1370,7 @@ Partial Public Class HSPI
                 strmRdr.Dispose()
                 webStream.Dispose()
                 Try
-                    If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Response Header = " & webResponse.Headers.ToString(), LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Response Header = " & webResponse.Headers.ToString(), LogType.LOG_TYPE_INFO)
                 Catch ex1 As Exception
                 End Try
             End If
@@ -1393,7 +1393,7 @@ Partial Public Class HSPI
         End Try
 
         Try
-            If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Response Header = " & webResponse.Headers.ToString(), LogType.LOG_TYPE_INFO) ' dcorsony  
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Response Header = " & webResponse.Headers.ToString(), LogType.LOG_TYPE_INFO) ' dcorsony  
         Catch ex As Exception
         End Try
 
@@ -1410,21 +1410,21 @@ Partial Public Class HSPI
 
         Try
             For Each cookieValue As Cookie In webResponse.Cookies
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie: " & cookieValue.ToString(), LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie name: " & cookieValue.Name & " has Cookie value: " & cookieValue.Value, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Domain: " & cookieValue.Domain, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Path: " & cookieValue.Path, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Port: " & cookieValue.Port, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Secure: " & cookieValue.Secure, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie TimeStamp: " & cookieValue.TimeStamp, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Expires: " & cookieValue.Expires, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Expired: " & cookieValue.Expired, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Discard: " & cookieValue.Discard, LogType.LOG_TYPE_INFO) ' dcorsony
-                If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Comment: " & cookieValue.Comment, LogType.LOG_TYPE_INFO) ' dcorsony
-                'If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie CommentUri: " & cookieValue.CommentUri.AbsoluteUri, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie: " & cookieValue.ToString(), LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie name: " & cookieValue.Name & " has Cookie value: " & cookieValue.Value, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Domain: " & cookieValue.Domain, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Path: " & cookieValue.Path, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Port: " & cookieValue.Port, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Secure: " & cookieValue.Secure, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie TimeStamp: " & cookieValue.TimeStamp, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Expires: " & cookieValue.Expires, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Expired: " & cookieValue.Expired, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Discard: " & cookieValue.Discard, LogType.LOG_TYPE_INFO) ' dcorsony
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie Comment: " & cookieValue.Comment, LogType.LOG_TYPE_INFO) ' dcorsony
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " has Cookie CommentUri: " & cookieValue.CommentUri.AbsoluteUri, LogType.LOG_TYPE_INFO) ' dcorsony
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " reading the cookies with error = " & ex.Message, LogType.LOG_TYPE_ERROR) 'dcorsony
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendJSONAuthentication for device - " & MyUPnPDeviceName & " reading the cookies with error = " & ex.Message, LogType.LOG_TYPE_ERROR) 'dcorsony
         End Try
 
         Try
@@ -1443,7 +1443,7 @@ Partial Public Class HSPI
             Exit Function
         End Try
 
-        If g_bDebug Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " received JSON = " & ReturnJSON.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendJSONAuthentication for device - " & MyUPnPDeviceName & " received JSON = " & ReturnJSON.ToString, LogType.LOG_TYPE_INFO)
 
         ' I think successful registration response with a string like this {"result":[],"id":13}
 
@@ -1464,14 +1464,14 @@ Partial Public Class HSPI
     End Function
 
     Private Sub processSonyCommand(CommandName As String, CommandValue As String, ButtonIndex As Integer, Row As Integer, Column As Integer)
-        If g_bDebug Then Log("processSonyCommand called for device - " & MyUPnPDeviceName & " with CommandName = " & CommandName & " and CommandValue = " & CommandValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("processSonyCommand called for device - " & MyUPnPDeviceName & " with CommandName = " & CommandName & " and CommandValue = " & CommandValue, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
         WriteStringIniFile(MyUDN & " - Default Codes", CommandName, CommandValue & ":;:-:" & ButtonIndex.ToString, objRemoteFile)
         WriteStringIniFile(MyUDN, ButtonIndex.ToString, CommandName & ":;:-:" & CommandValue & ":;:-:" & Row.ToString & ":;:-:" & Column.ToString, objRemoteFile)
     End Sub
 
     Private Sub CreateHSSonyRemoteButtons(ReCreate As Boolean)
-        If g_bDebug Then Log("CreateHSSonyRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSSonyRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)
@@ -1555,7 +1555,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SonyPartyAll()
-        If g_bDebug Then Log("SonyPartyAll called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyAll called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If MyCurrentSonyPartyMode <> "IDLE" Then
             SonyExitParty()
             wait(2)
@@ -1587,7 +1587,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SonyAddPartyByNumber(PlayerNumber As Integer)
-        If g_bDebug Then Log("SonyAddPartyByNumber called for UPnPDevice = " & MyUPnPDeviceName & " with Device number to add = " & PlayerNumber, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyAddPartyByNumber called for UPnPDevice = " & MyUPnPDeviceName & " with Device number to add = " & PlayerNumber, LogType.LOG_TYPE_INFO)
         Dim PartyDevices As New System.Collections.Generic.Dictionary(Of String, String)()
         PartyDevices = GetIniSection("Party Devices") '  As Dictionary(Of String, String)
         Try
@@ -1601,7 +1601,7 @@ Partial Public Class HSPI
                                 If MyCurrentSonyListenerList.IndexOf(PartyDevice.Key) = 0 Then
                                     SonyPartyX_Start("PARTY", MyCurrentSonyListenerList & ",uuid:" & PartyDevice.Key)
                                 Else
-                                    If g_bDebug Then Log("Warning in SonyAddPartyByNumber for UPnPDevice = " & MyUPnPDeviceName & " with Device number to add = " & PlayerNumber & "; player already in Listenerlist", LogType.LOG_TYPE_WARNING)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in SonyAddPartyByNumber for UPnPDevice = " & MyUPnPDeviceName & " with Device number to add = " & PlayerNumber & "; player already in Listenerlist", LogType.LOG_TYPE_WARNING)
                                 End If
                             Else
                                 SonyPartyX_Start("PARTY", "uuid:" & PartyDevice.Key)
@@ -1617,7 +1617,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SonyAddPartyByName(PlayerName As String)
-        If g_bDebug Then Log("SonyAddPartyByName called for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyAddPartyByName called for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName, LogType.LOG_TYPE_INFO)
         'If MyCurrentSonyPartyMode <> "IDLE" Then SonyExitParty()
 
         Dim PartyDevices As New System.Collections.Generic.Dictionary(Of String, String)()
@@ -1634,7 +1634,7 @@ Partial Public Class HSPI
                                 If MyCurrentSonyListenerList.IndexOf(PartyDevice.Key) = 0 Then
                                     SonyPartyX_Start("PARTY", MyCurrentSonyListenerList & ",uuid:" & PartyDevice.Key)
                                 Else
-                                    If g_bDebug Then Log("Warning in SonyAddPartyByName for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName & "; player already in Listenerlist", LogType.LOG_TYPE_WARNING)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in SonyAddPartyByName for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName & "; player already in Listenerlist", LogType.LOG_TYPE_WARNING)
 
                                 End If
                             Else
@@ -1648,13 +1648,13 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("Error in SonyAddPartyByName for UPnPDevice = " & MyUPnPDeviceName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("Warning in SonyAddPartyByName for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName & " but player not found", LogType.LOG_TYPE_WARNING)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in SonyAddPartyByName for UPnPDevice = " & MyUPnPDeviceName & " with Device to add = " & PlayerName & " but player not found", LogType.LOG_TYPE_WARNING)
 
     End Sub
 
 
     Private Sub SonyPartyHost()
-        If g_bDebug Then Log("SonyPartyHost called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyHost called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If MyCurrentSonyPartyMode <> "IDLE" Then
             SonyExitParty()
             wait(2)
@@ -1663,7 +1663,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SonyExitParty()
-        If g_bDebug Then Log("SonyExitParty called for UPnPDevice = " & MyUPnPDeviceName & " and PartyMode = " & MyCurrentSonyPartyMode.ToString & " and PartyState = " & MyCurrentSonyPartyState.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyExitParty called for UPnPDevice = " & MyUPnPDeviceName & " and PartyMode = " & MyCurrentSonyPartyMode.ToString & " and PartyState = " & MyCurrentSonyPartyState.ToString, LogType.LOG_TYPE_INFO)
         If MyCurrentSonyPartyMode = "IDLE" Then Exit Sub
         Select Case MyCurrentSonyPartyState
             Case "ABORT_SINGING"
@@ -1686,10 +1686,10 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub SonyJoinParty()
-        If g_bDebug Then Log("SonyJoinParty called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyJoinParty called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim Singers As String = MyReferenceToMyController.GetSonyPartySingers()
         If Singers = "" Then
-            If g_bDebug Then Log("SonyJoinParty called for UPnPDevice = " & MyUPnPDeviceName & " but no singers found", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyJoinParty called for UPnPDevice = " & MyUPnPDeviceName & " but no singers found", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
         Try
@@ -1703,7 +1703,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SonyUpdatePartyButtons()
-        If g_bDebug Then Log("SonyUpdatePartyButtons called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyUpdatePartyButtons called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         HSRefParty = GetIntegerIniFile(MyUDN, "di" & HSDevices.Party.ToString & "HSCode", -1)
         If HSRefParty = -1 Then
             HSRefParty = CreateHSServiceDevice(HSRefParty, HSDevices.Party.ToString)
@@ -1787,7 +1787,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatSetIOExSony(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExSony called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExSony called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             Case psRemoteOff  ' Remote Off
                 SetAdministrativeStateRemote(False)
@@ -1803,7 +1803,7 @@ Partial Public Class HSPI
             Case psWOL
                 SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
             Case Else
-                If g_bDebug Then Log("TreatSetIOExSony called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue & " and Registration = " & GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) & " and DeviceState = " & DeviceStatus, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExSony called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue & " and Registration = " & GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) & " and DeviceState = " & DeviceStatus, LogType.LOG_TYPE_INFO)
                 If GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) And UCase(DeviceStatus) = "ONLINE" Then
                     Dim objRemoteFile As String = gRemoteControlPath
                     Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
@@ -1817,7 +1817,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatSetIOExSonyParty(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExSonyParty called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExSonyParty called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             Case psPartyAll  ' "Party All"
                 SonyPartyAll()
@@ -1832,7 +1832,7 @@ Partial Public Class HSPI
     Public Function SonyX_SendIRCC(IRCCCode As String) As String
         SonyX_SendIRCC = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString, LogType.LOG_TYPE_INFO)
         If MySonyRegisterMode = "JSON" Then
             ' check whether we are still authenticated
             If GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
@@ -1841,7 +1841,7 @@ Partial Public Class HSPI
                     If CookieExpery <> "" Then
                         Dim MYCookieExpiryDate As DateTime = DateTime.Parse(CookieExpery)
                         Dim ExperyRes As Integer = DateTime.Compare(DateTime.Now, MYCookieExpiryDate)
-                        If g_bDebug Then Log("SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " compared date = " & CookieExpery & " with TimeNow and result = " & ExperyRes.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " compared date = " & CookieExpery & " with TimeNow and result = " & ExperyRes.ToString, LogType.LOG_TYPE_INFO)
                         If ExperyRes > 0 Then
                             SendJSONAuthentication(GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, ""))
                         End If
@@ -1849,10 +1849,10 @@ Partial Public Class HSPI
                         SendJSONAuthentication(GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, ""))
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in SonyX_SendIRCC for device - " & MyUPnPDeviceName & " parsing the Cookie Expiry Date = " & GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyCookieExpiryDate.ToString, "") & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyX_SendIRCC for device - " & MyUPnPDeviceName & " parsing the Cookie Expiry Date = " & GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyCookieExpiryDate.ToString, "") & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
             Else
-                If g_bDebug Then Log("Warning in SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " You need to Authenticate/Register first!!!", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in SonyX_SendIRCC called for device " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " You need to Authenticate/Register first!!!", LogType.LOG_TYPE_WARNING)
             End If
         End If
 
@@ -1863,14 +1863,14 @@ Partial Public Class HSPI
             RemoteControlService.InvokeAction("X_SendIRCC", InArg, OutArg, MyAuthenticationCookieContainer)
             SonyX_SendIRCC = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyX_SendIRCC for device = " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyX_SendIRCC for device = " & MyUPnPDeviceName & " and IRCCCode = " & IRCCCode.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function SonyX_GetStatus(CategoryCode As String) As String
         SonyX_GetStatus = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyX_GetStatus called for device " & MyUPnPDeviceName & " and CategoryCode = " & CategoryCode.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyX_GetStatus called for device " & MyUPnPDeviceName & " and CategoryCode = " & CategoryCode.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(1)
@@ -1880,13 +1880,13 @@ Partial Public Class HSPI
             MyCurrentSonyCommandInfo = OutArg(1)
             SonyX_GetStatus = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyX_GetStatus for device = " & MyUPnPDeviceName & " and CategoryCode = " & CategoryCode.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyX_GetStatus for device = " & MyUPnPDeviceName & " and CategoryCode = " & CategoryCode.ToString & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function SonyPartyX_GetDeviceInfo() As String
         SonyPartyX_GetDeviceInfo = ""
-        If g_bDebug Then Log("SonyPartyX_GetDeviceInfo called for device " & MyUPnPDeviceName & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_GetDeviceInfo called for device " & MyUPnPDeviceName & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Function
         Try
             Dim InArg(0)
@@ -1894,16 +1894,16 @@ Partial Public Class HSPI
             SonyPartyService.InvokeAction("X_GetDeviceInfo", InArg, OutArg)
             MyCurrentSonySingerCapability = OutArg(0)
             MyCurrentSonyTransportPort = OutArg(1)
-            If g_bDebug Then Log("SonyPartyX_GetDeviceInfo for device = " & MyUPnPDeviceName & " retrieved SingerCapability = " & MyCurrentSonySingerCapability.ToString & " and TransportPort = " & MyCurrentSonyTransportPort.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_GetDeviceInfo for device = " & MyUPnPDeviceName & " retrieved SingerCapability = " & MyCurrentSonySingerCapability.ToString & " and TransportPort = " & MyCurrentSonyTransportPort.ToString, LogType.LOG_TYPE_INFO)
             SonyPartyX_GetDeviceInfo = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_GetDeviceInfo for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_GetDeviceInfo for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function SonyPartyX_GetState() As String
         SonyPartyX_GetState = ""
-        If g_bDebug Then Log("SonyPartyX_GetState called for device " & MyUPnPDeviceName & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_GetState called for device " & MyUPnPDeviceName & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Function
         Try
             Dim InArg(0)
@@ -1917,7 +1917,7 @@ Partial Public Class HSPI
             MyCurrentSonyListenerList = OutArg(5)
             MyCurrentSonySingerUUID = OutArg(6)
             MyCurrentSonySingerSessionID = OutArg(7)
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Log("SonyPartyX_GetState for device = " & MyUPnPDeviceName & " retrieved SonyPartyState        = " & MyCurrentSonyPartyState, LogType.LOG_TYPE_INFO)
                 Log("SonyPartyX_GetState for device = " & MyUPnPDeviceName & " retrieved SonyPartyMode         = " & MyCurrentSonyPartyMode, LogType.LOG_TYPE_INFO)
                 Log("SonyPartyX_GetState for device = " & MyUPnPDeviceName & " retrieved SonyPartySong         = " & MyCurrentSonyPartySong, LogType.LOG_TYPE_INFO)
@@ -1929,7 +1929,7 @@ Partial Public Class HSPI
             End If
             SonyPartyX_GetState = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_GetState for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_GetState for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -1941,7 +1941,7 @@ Partial Public Class HSPI
         '                uuid:00000000-0000-1010-8000-30f9ed246323
         SonyPartyX_Start = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Start called for device " & MyUPnPDeviceName & " and PartyMode = " & PartyMode.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Start called for device " & MyUPnPDeviceName & " and PartyMode = " & PartyMode.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(1)
             Dim OutArg(0)
@@ -1949,17 +1949,17 @@ Partial Public Class HSPI
             InArg(1) = ListenerList
             SonyPartyService.InvokeAction("X_Start", InArg, OutArg)
             MyCurrentSonySingerSessionID = OutArg(0)
-            If g_bDebug Then Log("SonyPartyX_Start for device = " & MyUPnPDeviceName & " received SingerSessionID = " & MyCurrentSonySingerSessionID.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Start for device = " & MyUPnPDeviceName & " received SingerSessionID = " & MyCurrentSonySingerSessionID.ToString, LogType.LOG_TYPE_INFO)
             SonyPartyX_Start = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Start for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Start for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function SonyPartyX_Entry(SingerSessionID As Integer, ListenerList As String) As String
         SonyPartyX_Entry = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Entry called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Entry called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(1)
             Dim OutArg(0)
@@ -1968,7 +1968,7 @@ Partial Public Class HSPI
             SonyPartyService.InvokeAction("X_Entry", InArg, OutArg)
             SonyPartyX_Entry = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Entry for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Entry for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -1976,7 +1976,7 @@ Partial Public Class HSPI
         ' works on the singer with the listenerUUID and SingerSessionID = SingersessionID on the listener side
         SonyPartyX_Leave = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Leave called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Leave called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString & " and ListenerList = " & ListenerList.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(1)
             Dim OutArg(0)
@@ -1985,7 +1985,7 @@ Partial Public Class HSPI
             SonyPartyService.InvokeAction("X_Leave", InArg, OutArg)
             SonyPartyX_Leave = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Leave for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Leave for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -1994,7 +1994,7 @@ Partial Public Class HSPI
         ' Only when singer!
         SonyPartyX_Abort = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Abort called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Abort called for device " & MyUPnPDeviceName & " and SingerSessionID = " & SingerSessionID.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
@@ -2002,7 +2002,7 @@ Partial Public Class HSPI
             SonyPartyService.InvokeAction("X_Abort", InArg, OutArg)
             SonyPartyX_Abort = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Abort for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Abort for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -2010,7 +2010,7 @@ Partial Public Class HSPI
         ' allowed values for X_PartyMode are : IDLE, PARTY, LINK
         SonyPartyX_Invite = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Invite called for device " & MyUPnPDeviceName & " and PartyMode = " & PartyMode.ToString & " and SingerUUID = " & SingerUUID.ToString & " and SingerSessionID = " & SingerSessionID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Invite called for device " & MyUPnPDeviceName & " and PartyMode = " & PartyMode.ToString & " and SingerUUID = " & SingerUUID.ToString & " and SingerSessionID = " & SingerSessionID.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(2)
             Dim OutArg(0)
@@ -2019,10 +2019,10 @@ Partial Public Class HSPI
             InArg(2) = SingerSessionID
             SonyPartyService.InvokeAction("X_Invite", InArg, OutArg)
             MyCurrentSonyListenerSessionID = OutArg(0)
-            If g_bDebug Then Log("SonyPartyX_Invite for device = " & MyUPnPDeviceName & " received ListenerSessionID = " & MyCurrentSonyListenerSessionID.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Invite for device = " & MyUPnPDeviceName & " received ListenerSessionID = " & MyCurrentSonyListenerSessionID.ToString, LogType.LOG_TYPE_INFO)
             SonyPartyX_Invite = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Invite for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Invite for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -2031,7 +2031,7 @@ Partial Public Class HSPI
         ' works on listener with listenerSessionID = sessionID but leaves Singer not updated
         SonyPartyX_Exit = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If g_bDebug Then Log("SonyPartyX_Exit called for device " & MyUPnPDeviceName & " and ListenerSessionID = " & ListenerSessionID.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyPartyX_Exit called for device " & MyUPnPDeviceName & " and ListenerSessionID = " & ListenerSessionID.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim InArg(0)
             Dim OutArg(0)
@@ -2039,7 +2039,7 @@ Partial Public Class HSPI
             SonyPartyService.InvokeAction("X_Exit", InArg, OutArg)
             SonyPartyX_Exit = "OK"
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SonyPartyX_Exit for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SonyPartyX_Exit for device = " & MyUPnPDeviceName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 

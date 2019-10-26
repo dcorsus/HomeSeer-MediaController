@@ -10,7 +10,7 @@ Partial Public Class HSPI
 
     Private Function RetrieveDIALAppList(AppURL As String) As Boolean
         RetrieveDIALAppList = False
-        If g_bDebug Then Log("RetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with AppURL = " & AppURL.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with AppURL = " & AppURL.ToString, LogType.LOG_TYPE_INFO)
         If AppURL = "" Then Exit Function
         ' http://www.dial-multiscreen.org/dial-registry/namespace-database
         ' YouTube Netflix Pandora   Hulu YahooScreen Vimeo Plex FiberTV AmazonInstantVideo VUDU Movies  
@@ -29,7 +29,7 @@ Partial Public Class HSPI
 
     Private Function CheckDIALAppExists(AppURL As String, AppName As String) As String
         CheckDIALAppExists = ""
-        If g_bDebug Then Log("CheckDIALAppExists called for device - " & MyUPnPDeviceName & " with AppURL = " & AppURL & " and AppName = " & AppName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckDIALAppExists called for device - " & MyUPnPDeviceName & " with AppURL = " & AppURL & " and AppName = " & AppName, LogType.LOG_TYPE_INFO)
         If AppURL = "" Then Exit Function
         If AppName = "" Then Exit Function
         If AppURL((AppURL.Length) - 1) = "/" Then
@@ -76,7 +76,7 @@ Partial Public Class HSPI
                 webStream = webResponse.GetResponseStream
                 Dim xmlDoc As New XmlDocument
                 xmlDoc.Load(webStream)
-                If g_bDebug Then Log(" CheckDIALAppExists for device = " & MyUPnPDeviceName & " got response = " & xmlDoc.OuterXml, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(" CheckDIALAppExists for device = " & MyUPnPDeviceName & " got response = " & xmlDoc.OuterXml, LogType.LOG_TYPE_INFO)
                 webStream.Close()
                 webResponse.Close()
             Catch ex As Exception
@@ -84,7 +84,7 @@ Partial Public Class HSPI
             End Try
             webResponse.Close()
         Catch ex As Exception
-            If SuperDebug Then Log("Error in CheckDIALAppExists for device - " & MyUPnPDeviceName & " retrieving the document with AppURL = " & AppURL.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Error in CheckDIALAppExists for device - " & MyUPnPDeviceName & " retrieving the document with AppURL = " & AppURL.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
         RequestUri = Nothing
@@ -92,7 +92,7 @@ Partial Public Class HSPI
 
 
     Private Sub CreateHSDIALRemoteButtons(ReCreate As Boolean)
-        If g_bDebug Then Log("CreateHSDIALRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSDIALRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)

@@ -16,7 +16,7 @@ Partial Public Class HSPI
     'Dim ArtFileIndex As Integer = 0
 
     Private Sub WriteOnkyoKeyInfoToInfoFile()
-        If g_bDebug Then Log("WriteOnkyoKeyInfoToInfoFile called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("WriteOnkyoKeyInfoToInfoFile called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
         'WriteStringIniFile(MyUDN & " - Default Codes", "PowerOn", "PWR01" & ":;:-:20", objRemoteFile)
         'WriteStringIniFile(MyUDN & " - Default Codes", "PowerStandby", "PWR00" & ":;:-:21", objRemoteFile)
@@ -55,7 +55,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub CreateHSOnkyoRemoteButtons(ReCreate As Boolean)
-        If g_bDebug Then Log("CreateHSOnkyoRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSOnkyoRemoteButtons called for device - " & MyUPnPDeviceName & " and Recreate = " & ReCreate.ToString, LogType.LOG_TYPE_INFO)
         HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
         If HSRefRemote = -1 Then
             HSRefRemote = CreateHSServiceDevice(HSRefRemote, HSDevices.Remote.ToString)
@@ -142,14 +142,14 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatSetIOExOnkyo(ButtonValue As Integer)
-        If g_bDebug Then Log("TreatSetIOExOnkyo called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExOnkyo called for UPnPDevice = " & MyUPnPDeviceName & " and buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
         Select Case ButtonValue
             Case psRemoteOff  ' Remote Off
                 WriteBooleanIniFile("Remote Service by UDN", MyUDN, False)
                 Try
                     OnkyoCloseTCPConnection()
                 Catch ex As Exception
-                    log("Error in TreatSetIOExOnkyo for UPnPDevice = " & MyUPnPDeviceName & "  setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    Log("Error in TreatSetIOExOnkyo for UPnPDevice = " & MyUPnPDeviceName & "  setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 SetAdministrativeStateRemote(False)
             Case psRemoteOn  ' Remote On
@@ -159,7 +159,7 @@ Partial Public Class HSPI
                         OnkyoEstablishTCPConnection()
                         OnkyoGetBasicInfo()
                     Catch ex As Exception
-                        log("Error in TreatSetIOExOnkyo for UPnPDevice = " & MyUPnPDeviceName & "  setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        Log("Error in TreatSetIOExOnkyo for UPnPDevice = " & MyUPnPDeviceName & "  setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
                 SetAdministrativeStateRemote(True)
@@ -167,7 +167,7 @@ Partial Public Class HSPI
                 CreateHSOnkyoRemoteButtons(True)
                 CreateRemoteButtons(HSRefRemote)
             Case Else
-                If g_bDebug Then Log("TreatSetIOExOnkyo called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExOnkyo called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue, LogType.LOG_TYPE_INFO)
                 If GetBooleanIniFile("Remote Service by UDN", MyUDN, False) And UCase(DeviceStatus) = "ONLINE" Then
                     Dim objRemoteFile As String = gRemoteControlPath
                     Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
@@ -183,7 +183,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub HandleOnkyoDataReceived(sender As Object, inData As Byte())
-        If SuperDebug Then Log("HandleOnkyoDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleOnkyoDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
         '            					+0		    +1		    +2		    +3			
         '	eISCP Header				I		    S		    C		    P			
         '                                                                   Header(Size)
@@ -212,7 +212,7 @@ Partial Public Class HSPI
                 If Trim(OnkyoData) = "" Then Exit Sub
                 'If inData(DataIndex + HeaderSize + DataSize) <> 0 Then Exit Sub
             Catch ex As Exception
-                If g_bDebug Then Log("Error in HandleOnkyoDataReceived called for Device = " & MyUPnPDeviceName & " with Data = " & Encoding.UTF8.GetString(inData, 0, UBound(inData)) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleOnkyoDataReceived called for Device = " & MyUPnPDeviceName & " with Data = " & Encoding.UTF8.GetString(inData, 0, UBound(inData)) & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             ' OK all should be fine here!!
 
@@ -231,7 +231,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub ProcessOnkyoResponse(ResponseData As String)
-        'If g_bDebug Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and ResponseData = " & ResponseData, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and ResponseData = " & ResponseData, LogType.LOG_TYPE_INFO)
         If ResponseData(0) <> "!" Then Exit Sub
         ResponseData = ResponseData.Remove(0, 2)
         ResponseData = ResponseData.Replace(vbCr, "")
@@ -377,11 +377,11 @@ Partial Public Class HSPI
                     End If
             End Select
         Catch ex As Exception
-            If g_bDebug Then Log("Error in ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        If SuperDebug Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData, LogType.LOG_TYPE_INFO)
-        'If g_bDebug And Code <> "NJA" And Not SuperDebug Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly And Code <> "NJA" And Not piDebuglevel > DebugLevel.dlEvents Then Log("ProcessOnkyoResponse called for Device = " & MyUPnPDeviceName & " and Code = " & Code & " with Data = " & CodeData, LogType.LOG_TYPE_INFO)
     End Sub
 
     Private Sub OnkyoEstablishTCPConnection()
@@ -401,7 +401,7 @@ Partial Public Class HSPI
         Try
             MyOnkyoClient = MyOnkyoAsyncSocket.ConnectSocket(MyIPAddress, MyOnkyoPortNbr.ToString)
         Catch ex As Exception
-            log("Error in OnkyoEstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to open Socket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in OnkyoEstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to open Socket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             MyRemoteServiceActive = False
             Exit Sub
         End Try
@@ -430,9 +430,9 @@ Partial Public Class HSPI
 
         MyRemoteServiceActive = True
         Try
-            If g_bDebug Then MyOnkyoAsyncSocket.Receive()
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then MyOnkyoAsyncSocket.Receive()
         Catch ex As Exception
-            log("Error in OnkyoEstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to receive data to Socket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in OnkyoEstablishTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " unable to receive data to Socket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         MyOnkyoAsyncSocket.response = False
         ' no need for these here
@@ -451,25 +451,25 @@ Partial Public Class HSPI
         Try
             MyOnkyoAsyncSocket.CloseSocket()
         Catch ex As Exception
-            log("Error in OnkyoCloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in OnkyoCloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             MyOnkyoClient = Nothing
             MyOnkyoAsyncSocket = Nothing
         Catch ex As Exception
-            log("Error in OnkyoCloseTCPConnection 1 for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in OnkyoCloseTCPConnection 1 for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
             If HSRefRemote <> -1 Then hs.SetDeviceValueByRef(HSRefRemote, dsDeactivated, True)
             MyRemoteServiceActive = False
         Catch ex As Exception
-            log("Error in OnkyoCloseTCPConnection 2 for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in OnkyoCloseTCPConnection 2 for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         MyTimeoutActionArray(TOPositionUpdate) = TOPositionUpdateValue
     End Sub
 
     Public Sub OnkyoSendKeyCode(KeyCode As String)
-        If g_bDebug Then Log("OnkyoSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("OnkyoSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString, LogType.LOG_TYPE_INFO)
         Dim ReturnString As String = ""
 
         If GetBooleanIniFile("Remote Service by UDN", MyUDN, False) Then

@@ -199,10 +199,10 @@ Partial Public Class HSPI
 
     Private Sub MyMusicAPITimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles MyMusicAPITimer.Elapsed
         Dim Index As Integer
-        'If g_bDebug Then Log("MyMusicAPITimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("MyMusicAPITimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorNavy)
         If MyRefreshAVGetPositionInfo Then
             MyRefreshAVGetPositionInfo = False
-            If SuperDebug Then Log("MyMusicAPITimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is refreshing the PositionInfo", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("MyMusicAPITimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is refreshing the PositionInfo", LogType.LOG_TYPE_INFO)
             AVTGetPositionInfo(0)
         End If
         For Index = 0 To MaxTOActionArray
@@ -273,21 +273,21 @@ Partial Public Class HSPI
 
     Private Sub MyCheckQueueTimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles MyCheckQueueTimer.Elapsed
         Try
-            'If SuperDebug Then Log("MyCheckQueueTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is checking the queue", LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlEvents Then Log("MyCheckQueueTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is checking the queue", LogType.LOG_TYPE_INFO)
             If DeviceStatus = "Offline" Then Exit Sub
             CheckQueue()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in MyCheckQueueTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in MyCheckQueueTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Private Sub MyPollRenderStateTimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles MyPollRenderStateTimer.Elapsed
         Try
-            If SuperDebug Then Log("MyPollRenderStateTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is polling the RenderState", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("MyPollRenderStateTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is polling the RenderState", LogType.LOG_TYPE_INFO)
             If DeviceStatus = "Offline" Then Exit Sub
             If Not MyPollRenderStateReEntry Then CheckRenderState()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in MyPollRenderStateTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the RenderState with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in MyPollRenderStateTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the RenderState with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -302,7 +302,7 @@ Partial Public Class HSPI
             MyNextAlbumArtURIHasChanged = False
             MyDurationInfoHasChanged = False
             MyTittleWasPresent = False
-            If SuperDebug Then Log("MyPollAVTransportTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is polling the transportstate", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("MyPollAVTransportTimer_Elapsed called for UPnPDevice " & MyUPnPDeviceName & " is polling the transportstate", LogType.LOG_TYPE_INFO)
             AVTGetTransportInfo(0)
             AVTGetPositionInfo(0)
             'If MyCurrentPlayerState <> ConvertTransportStateToPlayerState(MyCurrentTransportState) Then
@@ -312,12 +312,12 @@ Partial Public Class HSPI
             If MyTrackInfoHasChanged Then MyPlayerWentThroughTrackChange = True
             If NextAvTransportIsAvailable And UseNextAvTransport Then CheckNextURIisPresent()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in MyPollAVTransportTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the AVTransportState with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in MyPollAVTransportTimer_Elapsed for UPnPDevice " & MyUPnPDeviceName & " while checking the AVTransportState with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub InitMusicAPI()
-        If g_bDebug Then Log("InitMusicAPI called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitMusicAPI called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         MyMusicAPITimer = New Timers.Timer
         MyMusicAPITimer.Interval = 1000 ' every second
         MyMusicAPITimer.AutoReset = True
@@ -435,7 +435,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub DestroyPlayer(disposing As Boolean)
-        If g_bDebug Then Log("DestroyPlayer called for device = " & MyUPnPDeviceName & " and Disposing = " & disposing.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroyPlayer called for device = " & MyUPnPDeviceName & " and Disposing = " & disposing.ToString, LogType.LOG_TYPE_INFO)
         If disposing Then
             ' Free other state (managed objects).
             Try
@@ -531,8 +531,8 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub TreatSetIOEx(CC As CAPIControl)
-        If g_bDebug Then Log("TreatSetIOEx called for device = " & MyUPnPDeviceName & " with  Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString & _
-                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString & _
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOEx called for device = " & MyUPnPDeviceName & " with  Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString &
+                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString &
                   ", Label = " & CC.Label.ToString, LogType.LOG_TYPE_INFO)
         Dim UPnPDevice As HSPI = Me
 
@@ -821,7 +821,7 @@ Partial Public Class HSPI
             DeviceName = MyUPnPDeviceName
         End Get
         Set(value As String)
-            If g_bDebug Then Log("DeviceName called for device - " & MyUPnPDeviceName & " with value = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceName called for device - " & MyUPnPDeviceName & " with value = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyUPnPDeviceName = value
         End Set
     End Property
@@ -831,7 +831,7 @@ Partial Public Class HSPI
             DeviceServiceType = MyUPnPDeviceServiceType
         End Get
         Set(value As String)
-            If g_bDebug Then Log("DeviceServiceType Set called  for device - " & MyUPnPDeviceName & " with ServiceType = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceServiceType Set called  for device - " & MyUPnPDeviceName & " with ServiceType = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyUPnPDeviceServiceType = value
             If MyUPnPDeviceServiceType = "HST" Then
                 'DeviceStatus = "Online"
@@ -846,7 +846,7 @@ Partial Public Class HSPI
             DeviceHSRef = HSRefDevice
         End Get
         Set(value As Integer)
-            If g_bDebug Then Log("DeviceHSCode Set called  for device - " & MyUPnPDeviceName & "  with DeviceRef = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceHSCode Set called  for device - " & MyUPnPDeviceName & "  with DeviceRef = " & value.ToString, LogType.LOG_TYPE_INFO)
             HSRefDevice = value
         End Set
     End Property
@@ -856,7 +856,7 @@ Partial Public Class HSPI
             DeviceAPIIndex = MyAPIIndex
         End Get
         Set(value As Integer)
-            If g_bDebug Then Log("DeviceAPIIndex called for device = " & MyUPnPDeviceName & " with API Index = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceAPIIndex called for device = " & MyUPnPDeviceName & " with API Index = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyAPIIndex = value
         End Set
     End Property
@@ -881,7 +881,7 @@ Partial Public Class HSPI
             DeviceIPAddress = MyIPAddress
         End Get
         Set(value As String)
-            If SuperDebug Then Log("DeviceIPAddress called for UPnPDevice = " & MyUPnPDeviceName & " with IPAddress = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("DeviceIPAddress called for UPnPDevice = " & MyUPnPDeviceName & " with IPAddress = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyIPAddress = value
         End Set
     End Property
@@ -891,7 +891,7 @@ Partial Public Class HSPI
             DeviceIPPort = MyIPPort
         End Get
         Set(value As String)
-            If SuperDebug Then Log("DeviceIPPort called for UPnPDevice = " & MyUPnPDeviceName & " with IPPort = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("DeviceIPPort called for UPnPDevice = " & MyUPnPDeviceName & " with IPPort = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyIPPort = value
         End Set
     End Property
@@ -936,7 +936,7 @@ Partial Public Class HSPI
     Public Property Track As String
         Get
             Track = MyCurrentTrack
-            'If g_bDebug And gIOEnabled Then log( "Track Get for device = " & MyUPnPDeviceName & ". Track = " & MyCurrentTrack)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then log( "Track Get for device = " & MyUPnPDeviceName & ". Track = " & MyCurrentTrack)
         End Get
         Set(ByVal value As String)
             If MyCurrentTrack <> value And HSRefTrack <> -1 Then
@@ -945,14 +945,14 @@ Partial Public Class HSPI
             MyCurrentTrack = value
             CurrentLibEntry.Title = value
             CurrentLibKey.Title = value
-            If g_bDebug And gIOEnabled Then Log("Track Set for device = " & MyUPnPDeviceName & ". Track = " & MyCurrentTrack, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("Track Set for device = " & MyUPnPDeviceName & ". Track = " & MyCurrentTrack, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property NextTrack As String
         Get
             'Returns the name of the next track.
-            'If g_bDebug Then Log( "NextTrack called for device - " & MyUPnPDeviceName & ". Value= " & MyNextTrack.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "NextTrack called for device - " & MyUPnPDeviceName & ". Value= " & MyNextTrack.ToString)
             NextTrack = MyNextTrack
         End Get
         Set(ByVal value As String)
@@ -962,14 +962,14 @@ Partial Public Class HSPI
             MyNextTrack = value
             NextLibEntry.Title = value
             NextLibKey.Title = value
-            If SuperDebug And gIOEnabled Then Log("NextTrack Set for device = " & MyUPnPDeviceName & ". NextTrack = " & MyNextTrack, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextTrack Set for device = " & MyUPnPDeviceName & ". NextTrack = " & MyNextTrack, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property Artist As String
         Get
             Artist = MyCurrentArtist
-            'If g_bDebug And gIOEnabled Then log( "Artist Get for device = " & MyUPnPDeviceName & ". Artist = " & MyCurrentArtist)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then log( "Artist Get for device = " & MyUPnPDeviceName & ". Artist = " & MyCurrentArtist)
         End Get
         Set(ByVal value As String)
             If MyCurrentArtist <> value And HSRefArtist <> -1 Then
@@ -977,7 +977,7 @@ Partial Public Class HSPI
             End If
             MyCurrentArtist = value
             CurrentLibEntry.Artist = value
-            If SuperDebug And gIOEnabled Then Log("Artist Set for device = " & MyUPnPDeviceName & ". Artist = " & MyCurrentArtist, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Artist Set for device = " & MyUPnPDeviceName & ". Artist = " & MyCurrentArtist, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -992,14 +992,14 @@ Partial Public Class HSPI
             End If
             MyNextArtist = value
             NextLibEntry.Artist = value
-            If SuperDebug And gIOEnabled Then Log("NextArtist Set for device = " & MyUPnPDeviceName & ". NextArtist = " & MyNextArtist, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextArtist Set for device = " & MyUPnPDeviceName & ". NextArtist = " & MyNextArtist, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property Album As String
         Get
             Album = MyCurrentAlbum
-            'If g_bDebug And gIOEnabled Then log( "Album Get for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentAlbum)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then log( "Album Get for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentAlbum)
         End Get
         Set(ByVal value As String)
             If MyCurrentAlbum <> value And HSRefAlbum <> -1 Then
@@ -1007,7 +1007,7 @@ Partial Public Class HSPI
             End If
             MyCurrentAlbum = value
             CurrentLibEntry.Album = value
-            If SuperDebug And gIOEnabled Then Log("Album Set for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentAlbum, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Album Set for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentAlbum, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1022,7 +1022,7 @@ Partial Public Class HSPI
             End If
             MyNextAlbum = value
             NextLibEntry.Album = value
-            If SuperDebug And gIOEnabled Then Log("NextAlbum Set for device = " & MyUPnPDeviceName & ". NextAlbum = " & MyNextAlbum, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextAlbum Set for device = " & MyUPnPDeviceName & ". NextAlbum = " & MyNextAlbum, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1041,7 +1041,7 @@ Partial Public Class HSPI
                 hs.SetDeviceString(HSRefTrackDescr, value, True)
             End If
             MyCurrentTrackDescriptor = value
-            If SuperDebug And gIOEnabled Then Log("CurrentTrackDescription for device = " & MyUPnPDeviceName & ". Track Descriptor = " & MyCurrentTrackDescriptor, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("CurrentTrackDescription for device = " & MyUPnPDeviceName & ". Track Descriptor = " & MyCurrentTrackDescriptor, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1051,14 +1051,14 @@ Partial Public Class HSPI
         End Get
         Set(ByVal value As String)
             MyNextTrackDescriptor = value
-            If SuperDebug And gIOEnabled Then Log("NextTrackDescription for device = " & MyUPnPDeviceName & ". NextTrack Descriptor = " & MyNextTrackDescriptor, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextTrackDescription for device = " & MyUPnPDeviceName & ". NextTrack Descriptor = " & MyNextTrackDescriptor, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
 
     Public WriteOnly Property SetVolume As Integer
         Set(ByVal value As Integer)
-            If g_bDebug Then Log("SetVolume is setting HS Status Volume for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetVolume is setting HS Status Volume for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
             If MyCurrentVolumeLevel <> value Then
                 If HSRefVolume <> -1 Then
                     hs.SetDeviceValueByRef(HSRefVolume, value, True)
@@ -1070,7 +1070,7 @@ Partial Public Class HSPI
 
     Public WriteOnly Property SetMuteState As Boolean
         Set(ByVal value As Boolean)
-            If SuperDebug Then Log("SetMuteState is setting HS Status Mute for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefMute.ToString, LogType.LOG_TYPE_INFO) ' changed on 11/30/2018. Entry shows up due to polling
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SetMuteState is setting HS Status Mute for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefMute.ToString, LogType.LOG_TYPE_INFO) ' changed on 11/30/2018. Entry shows up due to polling
             If HSRefMute <> -1 Then
                 If MyCurrentMuteState <> value Then
                     If value Then
@@ -1088,7 +1088,7 @@ Partial Public Class HSPI
         Set(value As Boolean)
             If value <> MyCurrentLoudness Then
                 If HSRefLoudness <> -1 Then
-                    If SuperDebug Then Log("SetLoudnessState is setting HS Status Loundness for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("SetLoudnessState is setting HS Status Loundness for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
                     If value Then
                         hs.SetDeviceValueByRef(HSRefLoudness, lsLoudnessOn, True)
                         'hs.SetDeviceString(HSRefLoudness, "Loudness On", True)
@@ -1111,7 +1111,7 @@ Partial Public Class HSPI
                 hs.SetDeviceString(HSRefGenre, value, True)
             End If
             MyCurrentGenre = value
-            If SuperDebug And gIOEnabled Then Log("Genre Set for device = " & MyUPnPDeviceName & ". Genre = " & MyCurrentGenre, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Genre Set for device = " & MyUPnPDeviceName & ". Genre = " & MyCurrentGenre, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1122,7 +1122,7 @@ Partial Public Class HSPI
             Else
                 CurrentPlayerState = MyCurrentPlayerState
             End If
-            'If g_bDebug And gIOEnabled Then log( "CurrentPlayerState Get for device = " & MyUPnPDeviceName & ". Value = " & CurrentPlayerState.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then log( "CurrentPlayerState Get for device = " & MyUPnPDeviceName & ". Value = " & CurrentPlayerState.ToString)
             'log( "CurrentPlayerState Get for device = " & MyUPnPDeviceName & ". Value = " & MyCurrentPlayerState.ToString)
         End Get
         Set(ByVal value As player_state_values)
@@ -1130,12 +1130,12 @@ Partial Public Class HSPI
             'MyQueuePlayState = value  ' max need fixing
             'Else
             If MyCurrentPlayerState <> value And HSRefPlayState <> -1 Then
-                If SuperDebug Then Log("CurrentPlayerState is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("CurrentPlayerState is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
                 hs.SetDeviceValueByRef(HSRefPlayState, value, True)
             End If
             MyCurrentPlayerState = value
             'End If
-            'If g_bDebug And gIOEnabled And Not MyPollForTransportChangeFlag Then Log("CurrentPlayerState Set for device = " & MyUPnPDeviceName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled And Not MyPollForTransportChangeFlag Then Log("CurrentPlayerState Set for device = " & MyUPnPDeviceName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1145,11 +1145,11 @@ Partial Public Class HSPI
         End Get
         Set(value As Integer)
             If MyCurrentTransportPlaySpeed <> value And HSRefSpeed <> -1 Then
-                If SuperDebug Then Log("CurrentPlayerSpeed is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefSpeed.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("CurrentPlayerSpeed is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefSpeed.ToString, LogType.LOG_TYPE_INFO)
                 hs.SetDeviceValueByRef(HSRefSpeed, gsDefault + value, True)
             End If
             MyCurrentTransportPlaySpeed = value
-            If g_bDebug And gIOEnabled Then Log("CurrentPlayerSpeed Set for device = " & MyUPnPDeviceName & ". Value = " & MyCurrentTransportPlaySpeed.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("CurrentPlayerSpeed Set for device = " & MyUPnPDeviceName & ". Value = " & MyCurrentTransportPlaySpeed.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1168,7 +1168,7 @@ Partial Public Class HSPI
             MyBalance = 0
         End If
         If HSRefBalance <> -1 Then
-            If g_bDebug Then Log("UpdateBalance is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateBalance is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
             'hs.SetDeviceString(HSRefBalance, MyBalance.ToString, True)
             hs.SetDeviceValueByRef(HSRefBalance, MyBalance, True)
         End If
@@ -1186,7 +1186,7 @@ Partial Public Class HSPI
                 'MyCurrentArtworkURL = "http://" & hs.GetIPAddress & HTTPPort & value
             End If
             If MyCurrentArtworkURL <> value And HSRefArt <> -1 Then
-                If SuperDebug Then Log("ArtworkURL is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefArt.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("ArtworkURL is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefArt.ToString, LogType.LOG_TYPE_INFO)
                 hs.DeviceVSP_ClearAll(HSRefArt, True)
                 hs.DeviceVGP_ClearAll(HSRefArt, True)
                 Dim Pair As VSPair
@@ -1206,7 +1206,7 @@ Partial Public Class HSPI
             End If
             MyCurrentArtworkURL = value
             CurrentLibEntry.Cover_path = value
-            If SuperDebug And gIOEnabled Then Log("ArtworkURL Set for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentArtworkURL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("ArtworkURL Set for device = " & MyUPnPDeviceName & ". Album = " & MyCurrentArtworkURL, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1221,7 +1221,7 @@ Partial Public Class HSPI
                 ' MyNextAlbumURI = "http://" & hs.GetIPAddress & HTTPPort & value
             End If
             If MyNextAlbumURI <> value And HSRefNextArt <> -1 Then
-                If SuperDebug Then Log("NextArtworkURL is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefNextArt.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("NextArtworkURL is setting HS Status for device - " & MyUPnPDeviceName & " with Value = " & value.ToString & " and HSRef = " & HSRefNextArt.ToString, LogType.LOG_TYPE_INFO)
                 hs.DeviceVSP_ClearAll(HSRefNextArt, True)
                 hs.DeviceVGP_ClearAll(HSRefNextArt, True)
                 Dim Pair As VSPair
@@ -1241,7 +1241,7 @@ Partial Public Class HSPI
             End If
             MyNextAlbumURI = value
             NextLibEntry.Cover_path = value
-            If SuperDebug And gIOEnabled Then Log("NextArtworkURL Set for device = " & MyUPnPDeviceName & ". URL = " & MyNextAlbumURI, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextArtworkURL Set for device = " & MyUPnPDeviceName & ". URL = " & MyNextAlbumURI, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1251,7 +1251,7 @@ Partial Public Class HSPI
         End Get
         Set(ByVal value As String)
             MyIConURL = value
-            If g_bDebug Then Log("PlayerIconURL called for device = " & MyUPnPDeviceName.ToString & " and IConURL = " & MyIConURL.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerIconURL called for device = " & MyUPnPDeviceName.ToString & " and IConURL = " & MyIConURL.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -1264,7 +1264,7 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentStreamTitle As String 'Implements MediaCommon.MusicAPI.CurrentStreamTitle
         Get
             'The title of the currently playing music stream (e.g. from an Internet music source)
-            If g_bDebug Then Log("CurrentStreamTitle called for device - " & MyUPnPDeviceName & " and Value = " & MyCurrentTrack.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentStreamTitle called for device - " & MyUPnPDeviceName & " and Value = " & MyCurrentTrack.ToString, LogType.LOG_TYPE_INFO)
             CurrentStreamTitle = MyCurrentTrack
             'log( "CurrentStreamTitle called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentTrack.ToString)
         End Get
@@ -1274,7 +1274,7 @@ Partial Public Class HSPI
         Get
             'IITTrack
             'IWMPMedia3 	This returns the information on the currently playing track in iTunes (IIT Track) or Media Player (IWMPMedia3) API format.
-            If g_bDebug Then Log("CurrentTrackInfo called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentTrack.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentTrackInfo called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentTrack.ToString, LogType.LOG_TYPE_INFO)
             Return Nothing
             'Dim MyCurrentTrackInfo As New IITTRack
             'CurrentTrackInfo = MyCurrentTrackInfo
@@ -1285,14 +1285,14 @@ Partial Public Class HSPI
         Get
             ' implementation is slightly different and probably reverse. I return path here wheras in CurrentAlbumArtPath I download file and return path
             CurrentArtworkFile = MyCurrentArtworkURL
-            If g_bDebug Then Log("CurrentArtworkFile called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentArtworkURL.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentArtworkFile called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentArtworkURL.ToString, LogType.LOG_TYPE_INFO)
         End Get
     End Property
 
     Public ReadOnly Property CurrentTrack As String 'Implements MediaCommon.MusicAPI.CurrentTrack
         Get
             'Returns the name of the currently playing track.
-            'If g_bDebug Then log( "CurrentTrack called for device - " & MyUPnPDeviceName & ". Value= " & MyCurrentTrack.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CurrentTrack called for device - " & MyUPnPDeviceName & ". Value= " & MyCurrentTrack.ToString)
             CurrentTrack = MyCurrentTrack
             'log( "CurrentTrack called for device - " & MyUPnPDeviceName & ". Value= " & MyCurrentTrack.ToString)
         End Get
@@ -1301,14 +1301,14 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentAlbum As String 'Implements MediaCommon.MusicAPI.CurrentAlbum
         Get
             'Returns the album name of the currently playing track.
-            'If g_bDebug Then log( "CurrentAlbum called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentAlbum.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CurrentAlbum called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentAlbum.ToString)
             CurrentAlbum = MyCurrentAlbum
         End Get
     End Property
 
     Public ReadOnly Property CurrentAlbumArtPath As String
         Get
-            'If g_bDebug Then log( "CurrentAlbumArtPath called for device - " & MyUPnPDeviceName & " and CurrentAlbumArtPath = " & MyCurrentArtworkURL.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CurrentAlbumArtPath called for device - " & MyUPnPDeviceName & " and CurrentAlbumArtPath = " & MyCurrentArtworkURL.ToString)
             CurrentAlbumArtPath = MyCurrentArtworkURL
         End Get
     End Property
@@ -1316,7 +1316,7 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentArtist As String 'Implements MediaCommon.MusicAPI.CurrentArtist
         Get
             'Returns the artist's name of the currently playing track.
-            'If g_bDebug Then log( "CurrentArtist called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentArtist.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "CurrentArtist called for device - " & MyUPnPDeviceName & "Value= " & MyCurrentArtist.ToString)
             CurrentArtist = MyCurrentArtist
         End Get
     End Property
@@ -1335,7 +1335,7 @@ Partial Public Class HSPI
 
     Public Function SetLoudnessState(ByVal Channel As String, ByVal NewState As Boolean) As String
         SetLoudnessState = ""
-        'If g_bDebug Then Log("SetLoudnessState called for zoneplayer = " & ZoneName & " with Channel = " & Channel & " and NewState = " & NewState & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetLoudnessState called for zoneplayer = " & ZoneName & " with Channel = " & Channel & " and NewState = " & NewState & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Function
 
         Try
@@ -1358,7 +1358,7 @@ Partial Public Class HSPI
 
     Public Function GetLoudnessState(ByVal Channel As String) As Boolean
         GetLoudnessState = False
-        If g_bDebug Then Log("GetLoudnessState called for Device = " & MyUPnPDeviceName & " with values Channel = " & Channel & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetLoudnessState called for Device = " & MyUPnPDeviceName & " with values Channel = " & Channel & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Function
         Try
             Dim InArg(1)                'InstanceID UI4
@@ -1375,7 +1375,7 @@ Partial Public Class HSPI
 
     Public Function SetMute(ByVal Channel As String, ByVal NewState As Boolean) As String
         SetMute = ""
-        'If g_bDebug Then Log("SetMute called for zoneplayer = " & ZoneName & " with Channel = " & Channel & " and NewState = " & NewState & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetMute called for zoneplayer = " & ZoneName & " with Channel = " & Channel & " and NewState = " & NewState & " and DeviceStatus =" & DeviceStatus, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Function
         Try
             Dim InArg(2)
@@ -1449,7 +1449,7 @@ Partial Public Class HSPI
 
     Public Sub ShuffleToggle() 'Implements MediaCommon.MusicAPI.ShuffleToggle
         'Toggles through the 3 states for playlist shuffling: Shuffle, Order, Sort
-        If g_bDebug Then Log("ShuffleToggle called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ShuffleToggle called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         AVTGetTransportSettings()
         Dim CurrentShuffleState = MyCurrentPlayMode
         Select Case UCase(CurrentShuffleState)
@@ -1482,10 +1482,10 @@ Partial Public Class HSPI
                 Case Else
                     Shuffle = Shuffle_modes.Ordered
             End Select
-            'If g_bDebug Then log( "Get Shuffle called for device - " & MyUPnPDeviceName & " with Value : " & Shuffle.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get Shuffle called for device - " & MyUPnPDeviceName & " with Value : " & Shuffle.ToString)
         End Get
         Set(ByVal value As Integer) '(Property Set) 	Short Integer 	  	Sets the shuffle status to the indicated value: 1 = Shuffled, 2 = Ordered, 3 = Sorted
-            If g_bDebug Then Log("Shuffle set called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Shuffle set called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Dim RepeatState As repeat_modes = Repeat()
             Select Case value
                 Case Shuffle_modes.Shuffled  ' Shuffled
@@ -1523,10 +1523,10 @@ Partial Public Class HSPI
             Else
                 QueueShuffle = Shuffle_modes.Ordered
             End If
-            'If g_bDebug Then log( "Get QueueShuffle called for device - " & MyUPnPDeviceName & " with Value : " & Shuffle.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get QueueShuffle called for device - " & MyUPnPDeviceName & " with Value : " & Shuffle.ToString)
         End Get
         Set(ByVal value As Integer) '(Property Set) 	Short Integer 	  	Sets the shuffle status to the indicated value: 1 = Shuffled, 2 = Ordered, 3 = Sorted
-            If g_bDebug Then Log("QueueShuffle set called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("QueueShuffle set called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Select Case value
                 Case Shuffle_modes.Shuffled  ' Shuffled
                     MyQueueShuffleState = True
@@ -1571,10 +1571,10 @@ Partial Public Class HSPI
             Else
                 Repeat = repeat_modes.repeat_off
             End If
-            'If g_bDebug Then log( "Get Repeat called for device - " & MyUPnPDeviceName  & " with Value : " & Repeat.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get Repeat called for device - " & MyUPnPDeviceName  & " with Value : " & Repeat.ToString)
         End Get
         Set(ByVal value As repeat_modes)
-            If g_bDebug Then Log("Set Repeat called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString & " and MyPlayFromQueue = " & MyPlayFromQueue.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set Repeat called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString & " and MyPlayFromQueue = " & MyPlayFromQueue.ToString, LogType.LOG_TYPE_INFO)
             If value = repeat_modes.repeat_all Then
                 Select Case UCase(MyCurrentPlayMode)
                     Case "NORMAL"
@@ -1610,10 +1610,10 @@ Partial Public Class HSPI
             Else
                 QueueRepeat = repeat_modes.repeat_off
             End If
-            'If g_bDebug Then log( "Get Repeat called for device - " & MyUPnPDeviceName  & " with Value : " & Repeat.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get Repeat called for device - " & MyUPnPDeviceName  & " with Value : " & Repeat.ToString)
         End Get
         Set(ByVal value As repeat_modes)
-            If g_bDebug Then Log("Set QueueRepeat called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString & " and MyPlayFromQueue = " & MyPlayFromQueue.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set QueueRepeat called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString & " and MyPlayFromQueue = " & MyPlayFromQueue.ToString, LogType.LOG_TYPE_INFO)
             If value = repeat_modes.repeat_all Then
                 MyQueueRepeatState = True
                 hs.SetDeviceValueByRef(HSRefQueueRepeat, rsRepeat, True)
@@ -1627,7 +1627,7 @@ Partial Public Class HSPI
 
     Public Sub Play() 'Implements MediaCommon.MusicAPI.Play
         'Starts the player playing the currently loaded HomeSeer playlist.
-        If g_bDebug Then Log("Play called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Play called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             If MyQueuePlayState = player_state_values.Paused Or MyCurrentPlayerState = player_state_values.Forwarding Or MyCurrentPlayerState = player_state_values.Rewinding Then
@@ -1653,13 +1653,13 @@ Partial Public Class HSPI
         Try
             AVTPlay()
         Catch ex As Exception
-            If g_bDebug Then Log("Play called for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Play called for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub Pause() 'Implements MediaCommon.MusicAPI.Pause
         'Toggles the state of the pause function of the player.
-        If g_bDebug Then Log("Pause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Pause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             If MyQueuePlayState <> player_state_values.Stopped Then
@@ -1674,13 +1674,13 @@ Partial Public Class HSPI
         Try
             AVTPause()
         Catch ex As Exception
-            If g_bDebug Then Log("Pause called for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Pause called for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub PlayIfPaused() 'Implements MediaCommon.MusicAPI.PlayIfPaused
         'If the current state of the player is paused, the player will be resumed.
-        If g_bDebug Then Log("PlayIfPaused called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayIfPaused called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         ' states are Play Stop Pause Next Previous
         If MyPlayFromQueue Then
@@ -1705,7 +1705,7 @@ Partial Public Class HSPI
 
     Public Sub PauseIfPlaying() 'Implements MediaCommon.MusicAPI.PauseIfPlaying
         'If the current state of the player is playing, the player will be paused.
-        If g_bDebug Then Log("PauseIfPlaying called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PauseIfPlaying called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             If MyQueuePlayState <> player_state_values.Stopped Then
@@ -1732,7 +1732,7 @@ Partial Public Class HSPI
 
     Public Sub ResumeFromPause() 'Implements MediaCommon.MusicAPI.PauseIfPlaying
         'If the current state of the player is playing, the player will be paused.
-        If g_bDebug Then Log("ResumeFromPause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ResumeFromPause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         ' states are Play Stop Pause Next Previous
         If MyPlayFromQueue Then
@@ -1757,7 +1757,7 @@ Partial Public Class HSPI
 
     Public Sub TogglePause()
         'Toggles the state of the pause function of the player.
-        If g_bDebug Then Log("TogglePause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TogglePause called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim PlayState As String = ""
         Try
@@ -1771,14 +1771,14 @@ Partial Public Class HSPI
                 SetPlayState("Pause")
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TogglePause for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePause for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
 
     Public Sub TogglePlay()
         'Toggles the state of the play function of the player.
-        If g_bDebug Then Log("TogglePlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TogglePlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
         Dim PlayState As String = ""
         Try
@@ -1796,7 +1796,7 @@ Partial Public Class HSPI
                 SetPlayState("Play")
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TogglePlay for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePlay for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -1805,7 +1805,7 @@ Partial Public Class HSPI
 
     Public Sub TrackNext() 'Implements MediaCommon.MusicAPI.TrackNext
         'Causes the player to jump to the next track in the playlist and begin playing it.
-        If g_bDebug Then Log("TrackNext called for Zone - " & MyUPnPDeviceName & " and MyQueuePlayState = " & MyQueuePlayState.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackNext called for Zone - " & MyUPnPDeviceName & " and MyQueuePlayState = " & MyQueuePlayState.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             MyQueueDelay = 0
@@ -1832,7 +1832,7 @@ Partial Public Class HSPI
 
     Public Sub TrackPrev() 'Implements MediaCommon.MusicAPI.TrackPrev
         'Causes the player to start playing from the previous track in the playlist.
-        If g_bDebug Then Log("TrackPrev called for Zone - " & MyUPnPDeviceName & " and MyQueuePlayState = " & MyQueuePlayState.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackPrev called for Zone - " & MyUPnPDeviceName & " and MyQueuePlayState = " & MyQueuePlayState.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             MyQueueDelay = 0
@@ -1848,7 +1848,7 @@ Partial Public Class HSPI
 
     Public Sub SkipToTrack(ByVal track_num As Integer) 'Implements MediaCommon.MusicAPI.SkipToTrack
         '(Overloaded) 	Integer 	  	Jumps the player to the track number in the current HomeSeer playlist given in the Integer parameter.  Track numbers less than 0 or greater than the number of entries in the playlist are ignored.
-        If g_bDebug Then Log("SkipToTrack(integer) called for device - " & MyUPnPDeviceName & " with value = " & track_num.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipToTrack(integer) called for device - " & MyUPnPDeviceName & " with value = " & track_num.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             PlayFromQueue(track_num, True, True)
@@ -1865,7 +1865,7 @@ Partial Public Class HSPI
 
     Public Sub SkipToTrack(ByVal track_name As String) 'Implements MediaCommon.MusicAPI.SkipToTrack
         '(Overloaded) 	String 	  	Jumps the player to track matching the track name provided as the parameter.  If the track name does not match any entries in the current playlist, nothing happens.
-        If g_bDebug Then Log("SkipToTrack(String) called for device - " & MyUPnPDeviceName & " with value = " & track_name.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipToTrack(String) called for device - " & MyUPnPDeviceName & " with value = " & track_name.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         ' dcor to be fixed
         Dim QueueInformation() As String = Nothing
@@ -1885,7 +1885,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SelectTrackInPlayList(TrackInfo As String)
-        If g_bDebug Then Log("SelectTrackInPlayList called for device - " & MyUPnPDeviceName & " with value = " & TrackInfo.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SelectTrackInPlayList called for device - " & MyUPnPDeviceName & " with value = " & TrackInfo.ToString, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         ' this is in the form of Dim QItems As String() = Split(arplaylist(Index), ":;:-:")
         Try
@@ -1903,7 +1903,7 @@ Partial Public Class HSPI
             End If
             'MyQueuePlayState = player_state_values.Playing
             MyCurrentQueueIndex = GetQueueIndex(ObjectId)
-            If g_bDebug Then Log("SelectTrackInPlayList found queueindex for device - " & MyUPnPDeviceName & " with value = " & MyCurrentQueueIndex.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SelectTrackInPlayList found queueindex for device - " & MyUPnPDeviceName & " with value = " & MyCurrentQueueIndex.ToString, LogType.LOG_TYPE_INFO)
             MyNbrOfQueueItemsPlayed = 0
             MyPlayerWentThroughPlayState = False
             PlayDBItem(ObjectId, ServerUDN, True)
@@ -1918,7 +1918,7 @@ Partial Public Class HSPI
 
     Public Sub StartPlay() 'Implements MediaCommon.MusicAPI.StartPlay
         'Like Play, this command starts the player playing the currently loaded HomeSeer playlist, but StartPlay always starts at playlist entry 0 (the beginning).
-        If g_bDebug Then Log("StartPlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("StartPlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper <> "ONLINE" Then Exit Sub
         If MyPlayFromQueue Then
             'MyCurrentPlayerState = player_state_values.Playing
@@ -1937,7 +1937,7 @@ Partial Public Class HSPI
 
     Public Sub StopPlay() 'Implements MediaCommon.MusicAPI.StopPlay
         'Stops the player.
-        If g_bDebug Then Log("StopPlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("StopPlay called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         MyQueuePlayState = player_state_values.Stopped
         If MyPlayFromQueue Then
             CurrentPlayerState = player_state_values.Stopped
@@ -1959,7 +1959,7 @@ Partial Public Class HSPI
     Public ReadOnly Property LibLoading As Boolean 'Implements MediaCommon.MusicAPI.LibLoading
         Get '(Property Get) 	  	Boolean 	When True is returned, the internal track library is in the process of being updated (loading).
             LibLoading = False
-            If g_bDebug Then Log("LibLoading called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibLoading called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
             'PlayChangeNotifyCallback(player_status_change.PlayStatusChanged, CurrentPlayerState)
         End Get
     End Property
@@ -1967,10 +1967,10 @@ Partial Public Class HSPI
     Public Property PlayerMute As Boolean 'Implements MediaCommon.MusicAPI.PlayerMute
         Get ' (Property Get) Boolean Returns True if the player is muted, False if it is not.
             PlayerMute = MyCurrentMuteState
-            'If g_bDebug Then log( "Get PlayerMute called for device - " & MyUPnPDeviceName & " State = " & PlayerMute.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get PlayerMute called for device - " & MyUPnPDeviceName & " State = " & PlayerMute.ToString)
         End Get
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("Set PlayerMute called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set PlayerMute called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             If value Then
                 RCSetMute(True)
             Else
@@ -1992,16 +1992,16 @@ Partial Public Class HSPI
     Public Property Volume As Integer 'Implements MediaCommon.MusicAPI.Volume
         Get ' Returns the current volume setting of the player from 0 to 100.
             Volume = MyCurrentVolumeLevel
-            'If g_bDebug Then log( "Get Volume called for device - " & MyUPnPDeviceName & " with value = " & Volume.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get Volume called for device - " & MyUPnPDeviceName & " with value = " & Volume.ToString)
         End Get
         Set(ByVal value As Integer) '(Property Set) 	Integer 	  	Sets the volume of the player to the level indicated by the parameter, in the range 0-100.
             Dim Result As String
-            If g_bDebug Then Log("Set Volume called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set Volume called for device - " & MyUPnPDeviceName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             If Not VolumeIsConfigurable Then Exit Property
             Try
                 Result = SetVolumeLevel("Master", value)
                 If Result <> "OK" Then
-                    If g_bDebug Then Log("Volume called for device - " & MyUPnPDeviceName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Volume called for device - " & MyUPnPDeviceName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
                 End If
             Catch ex As Exception
                 Log("Volume called for device - " & MyUPnPDeviceName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -2018,22 +2018,22 @@ Partial Public Class HSPI
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("Phil Collins")                  Plays music by Phil Collins
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("", "", "", "Rock")             Plays music in the Rock genre
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("", "", "My Top Rated")   Plays music from the 'My Top Rated' playlist.
-        'If g_bDebug Then log( "PlayMusic called for device - " & MyUPnPDeviceName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and URL=" & URL & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & " and AddTrackToQueue = " & AddTrackToQueue.ToString)
-        If g_bDebug Then Log("PlayMusic called for device - " & MyUPnPDeviceName & " with NavigationString = " & NavigationString & " and ServerUDN = " & ServerUDN & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "PlayMusic called for device - " & MyUPnPDeviceName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and URL=" & URL & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & " and AddTrackToQueue = " & AddTrackToQueue.ToString)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMusic called for device - " & MyUPnPDeviceName & " with NavigationString = " & NavigationString & " and ServerUDN = " & ServerUDN & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
 
         If ServerUDN = "" Then
-            If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There is no Server assigned.", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There is no Server assigned.", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
 
         If Trim(NavigationString) = "" Then
-            If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". The NavigationString is empty.", LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". The NavigationString is empty.", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
 
         Dim ServerAPI As HSPI = MyReferenceToMyController.GetAPIByUDN(ServerUDN)
         If ServerAPI Is Nothing Then
-            If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". ServerAPI could not be retrieved with ServerUDN = " & ServerUDN, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". ServerAPI could not be retrieved with ServerUDN = " & ServerUDN, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
 
@@ -2042,15 +2042,15 @@ Partial Public Class HSPI
         Try
             ObjectNavigationParts = Split(NavigationString, ";--::")
             If ObjectNavigationParts Is Nothing Then
-                If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There are no ObjectNavigation parts found in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There are no ObjectNavigation parts found in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
                 Exit Sub
             End If
             If ObjectNavigationParts.Count = 0 Then
-                If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There are no ObjectNavigation parts found in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & ". There are no ObjectNavigation parts found in NavigationString = " & NavigationString, LogType.LOG_TYPE_ERROR)
                 Exit Sub
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & " retrieving the ObjectNavigation parts in NavigationString = " & NavigationString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayMusic for device = " & MyUPnPDeviceName & " retrieving the ObjectNavigation parts in NavigationString = " & NavigationString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
 
@@ -2088,7 +2088,7 @@ Partial Public Class HSPI
         End Try
 
         ' we got here because the stored object ID is not valid anymore. Generate a warning
-        If g_bDebug Then Log("Warning in PlayMusic retrieving the Object for device - " & MyUPnPDeviceName & " with NavigationString = " & NavigationString & ", ServerUDN = " & ServerUDN & ", ObjectID = " & ObjectID & ", ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_WARNING)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in PlayMusic retrieving the Object for device - " & MyUPnPDeviceName & " with NavigationString = " & NavigationString & ", ServerUDN = " & ServerUDN & ", ObjectID = " & ObjectID & ", ObjectTitle = " & ObjectTitle, LogType.LOG_TYPE_WARNING)
 
         Try
             ' go look for it using the Titles stored in the Navigation Tree
@@ -2126,7 +2126,7 @@ Partial Public Class HSPI
         TrackDescriptor.artist = MyCurrentArtist '"My Playlist Test Artist"
         TrackDescriptor.length = MyCurrentTrackDuration.ToString
         TrackDescriptor.album = MyCurrentAlbum
-        If g_bDebug Then Log("GetCurrentPlaylist called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylist called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Queue(0) = TrackDescriptor
             GetCurrentPlaylist = Queue
@@ -2141,7 +2141,7 @@ Partial Public Class HSPI
         Dim dv As Scheduler.Classes.DeviceClass
         Dim DevName As String = DeviceName
         Dim dvParent As Scheduler.Classes.DeviceClass = Nothing
-        If g_bDebug Then Log("CreateHSPlayerDevice called with device " & DeviceName & " with reference " & HSRef.ToString & " and NewDevice = " & NewDevice.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSPlayerDevice called with device " & DeviceName & " with reference " & HSRef.ToString & " and NewDevice = " & NewDevice.ToString, LogType.LOG_TYPE_INFO)
         Try
             If HSRef = -1 Then
                 HSRef = hs.NewDeviceRef("Player") '(DevName)
@@ -2571,7 +2571,7 @@ Partial Public Class HSPI
         If HSRef <> -1 Then
             Return HSRef
         End If
-        If g_bDebug Then Log("CreateHSServiceDevice called for Device = " & MyUPnPDeviceName & " and DeviceFunction = " & DevName & " and HSRef = " & HSRef.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSServiceDevice called for Device = " & MyUPnPDeviceName & " and DeviceFunction = " & DevName & " and HSRef = " & HSRef.ToString, LogType.LOG_TYPE_INFO)
         ' No HomeSeer Device Code yet
         Try
             HSRef = hs.NewDeviceRef(DevName)
@@ -2636,7 +2636,7 @@ Partial Public Class HSPI
                 dv.ImageLarge(hs) = MyIcon
             End If
             WriteStringIniFile(MyUDN, DeviceInfoIndex.diDeviceIConURL.ToString, MyIConURL)
-            If g_bDebug Then Log("CreateHSServiceDevice updated HS info for device " & MyUPnPDeviceName & " - " & DevName & " with HSRef " & HSRef.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSServiceDevice updated HS info for device " & MyUPnPDeviceName & " - " & DevName & " with HSRef " & HSRef.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in CreateHSServiceDevice with error : " & ex.Message & " and Ref = " & HSRef.ToString, LogType.LOG_TYPE_ERROR)
         End Try
@@ -3006,7 +3006,7 @@ Partial Public Class HSPI
         Dim HSRef As Integer = -1
         Try
             HSRef = hs.NewDeviceRef(DevName)
-            If g_bDebug Then Log("CreateHSDevice for Device = " & MyUPnPDeviceName & " created deviceType " & DeviceType.ToString & " with Ref " & HSRef.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateHSDevice for Device = " & MyUPnPDeviceName & " created deviceType " & DeviceType.ToString & " with Ref " & HSRef.ToString, LogType.LOG_TYPE_INFO)
             ' Force HomeSeer to save changes to devices and events so we can find our new device
             hs.SaveEventsDevices()
             If HSRef <> -1 Then WriteStringIniFile("UPnP HSRef to UDN", HSRef, MyUDN)
@@ -3688,7 +3688,7 @@ Partial Public Class HSPI
 
 
     Public Sub SetHSMainState()
-        If g_bDebug Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current HSRef = " & HSRefDevice & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current HSRef = " & HSRefDevice & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         If HSRefDevice = -1 Then Exit Sub ' we don't have a code yet
         If MyAdminStateActive Then
             If UCase(DeviceStatus) = "ONLINE" Then
@@ -3700,7 +3700,7 @@ Partial Public Class HSPI
             hs.SetDeviceValueByRef(HSRefDevice, dsDeactivated, True)
         End If
         If HSRefRemote = -1 Or HSRefRemote = HSRefDevice Then Exit Sub
-        If g_bDebug Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         Dim MyRemoteServiceAdminState As Boolean = GetBooleanIniFile(MyUDN, DeviceInfoIndex.diAdminStateRemote.ToString, False)
         If MyAdminStateActive Then
             If UCase(DeviceStatus) = "ONLINE" Then
@@ -3719,7 +3719,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SetHSRemoteState()
-        If g_bDebug Then Log("SetHSRemoteState called for device - " & MyUPnPDeviceName & " and Current Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString & " and RemoteServiceActive = " & MyRemoteServiceActive.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSRemoteState called for device - " & MyUPnPDeviceName & " and Current Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString & " and RemoteServiceActive = " & MyRemoteServiceActive.ToString, LogType.LOG_TYPE_INFO)
         If HSRefRemote = -1 Then Exit Sub
         Dim MyRemoteServiceAdminState As Boolean = GetBooleanIniFile(MyUDN, DeviceInfoIndex.diAdminStateRemote.ToString, False)
         If MyAdminStateActive And MyRemoteServiceAdminState Then
@@ -3758,7 +3758,7 @@ Partial Public Class HSPI
     End Property
 
     Public Sub SetAdministrativeState(Active As Boolean)
-        If g_bDebug Then Log("SetAdministrativeState called for device - " & MyUPnPDeviceName & " and Active = " & Active.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetAdministrativeState called for device - " & MyUPnPDeviceName & " and Active = " & Active.ToString, LogType.LOG_TYPE_INFO)
         Try
             If Active Then
                 MyAdminStateActive = True
@@ -3859,7 +3859,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SetAdministrativeStateRemote(Activate As Boolean)
-        If g_bDebug Then Log("SetAdministrativeStateRemote called for device - " & MyUPnPDeviceName & " and Activate = " & Activate.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetAdministrativeStateRemote called for device - " & MyUPnPDeviceName & " and Activate = " & Activate.ToString, LogType.LOG_TYPE_INFO)
         Dim RemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If Activate Then
             If RemoteType.ToUpper = "SONYIRRC" Then
@@ -3922,7 +3922,7 @@ Partial Public Class HSPI
 
     Public Sub DirectConnect(ByVal pDevice As MyUPnPDevice)
 
-        If g_bDebug Then Log("DirectConnect called for " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect called for " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         If pDevice Is Nothing Then
             Log("Error in DirectConnect. pDevice is Nothing", LogType.LOG_TYPE_ERROR)
             Exit Sub
@@ -3943,9 +3943,9 @@ Partial Public Class HSPI
 
         Try
             MyIConURL = pDevice.IconURL("image/png", 200, 200, 16) 'image/png image/x-png image/tiff image/bmp image/pjpeg image/jpeg
-            If g_bDebug Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " found IconURL = " & MyIConURL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " found IconURL = " & MyIConURL, LogType.LOG_TYPE_INFO)
             If MyIConURL <> "" Then ' changed v3.0.0.32
-                If g_bDebug Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " checking for file = " & CurrentAppPath & "/html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " checking for file = " & CurrentAppPath & "/html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
                 If Not File.Exists(CurrentAppPath & "dcor tralala" & "/html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png") Then
                     Dim IConImage As Image
                     IConImage = GetPicture(MyIConURL)
@@ -3955,15 +3955,15 @@ Partial Public Class HSPI
                         Dim SuccesfullSave As Boolean = False
                         SuccesfullSave = hs.WriteHTMLImage(IConImage, FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", True)
                         If Not SuccesfullSave Then
-                            If g_bDebug Then Log("Error in DirectConnect for Device = " & MyUPnPDeviceName & " had error storing Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DirectConnect for Device = " & MyUPnPDeviceName & " had error storing Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_ERROR)
                         Else
-                            If g_bDebug Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " stored Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " stored Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
                         End If
                         IConImage.Dispose()
                     End If
                 Else
                     MyIConURL = URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png"
-                    If g_bDebug Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " found Icon already stored at " & MyIConURL, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " found Icon already stored at " & MyIConURL, LogType.LOG_TYPE_INFO)
                 End If
 
                 Dim HSRef As Integer = HSRefDevice
@@ -3972,12 +3972,12 @@ Partial Public Class HSPI
                     dv = hs.GetDeviceByRef(HSRef)
                     dv.Image(hs) = MyIConURL
                     dv.ImageLarge(hs) = MyIConURL
-                    If g_bDebug Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " added Image = " & MyIConURL & " for HSRef = " & HSRef.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DirectConnect for Device = " & MyUPnPDeviceName & " added Image = " & MyIConURL & " for HSRef = " & HSRef.ToString, LogType.LOG_TYPE_INFO)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diDeviceIConURL.ToString, MyIConURL)
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in DirectConnect. Could not get ICON info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DirectConnect. Could not get ICON info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         DeviceStatus = "Online"
@@ -4000,28 +4000,28 @@ Partial Public Class HSPI
 
     Public Function Connect(ByVal inUDN As String) As String
         Connect = ""
-        'If g_bDebug Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " and inUDN = " & inUDN, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " and inUDN = " & inUDN, LogType.LOG_TYPE_INFO)
         If DeviceStatus.ToUpper = "ONLINE" Then
-            If g_bDebug Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " which is already on-line with UDN = " & inUDN & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " which is already on-line with UDN = " & inUDN & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
             Exit Function
         End If
         Dim MyDevice As MyUPnPDevice = Nothing
         Try
             MyDevice = MySSDPDevice.Item(inUDN)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & " and UDN = " & inUDN & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & " and UDN = " & inUDN & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Connect = "Failed"
             Exit Function
         End Try
         Try
             If MyDevice IsNot Nothing Then
                 MyUDN = Replace(inUDN, "uuid:", "")
-                'If SuperDebug Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " with UDN = " & inUDN & " and Device to find = " & Val(DeviceToFind), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlEvents Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " with UDN = " & inUDN & " and Device to find = " & Val(DeviceToFind), LogType.LOG_TYPE_INFO)
                 Connect = "OK"
                 ConnectUPnPDevice = False
                 myDeviceFinderCallback_DeviceFound(MyDevice)
             Else
-                'If g_bDebug Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & ". No device found with UDN = " & inUDN, LogType.LOG_TYPE_ERROR)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & ". No device found with UDN = " & inUDN, LogType.LOG_TYPE_ERROR)
                 Connect = "Failed"
             End If
         Catch ex As Exception
@@ -4038,7 +4038,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub DestroyObjects(Full As Boolean)
-        If g_bDebug Then Log("DestroyObjects called for UPnPDevice - " & MyUPnPDeviceName & " with Full = " & Full.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroyObjects called for UPnPDevice - " & MyUPnPDeviceName & " with Full = " & Full.ToString, LogType.LOG_TYPE_INFO)
         DeviceStatus = "Offline"
         Try
             If AVTransport IsNot Nothing Then AVTransport.RemoveCallback()
@@ -4108,15 +4108,15 @@ Partial Public Class HSPI
             MyUPnPModelNumber = pDevice.ModelNumber
         End If
 
-        If g_bDebug Then Log("Device Finder Callback received for UPnPDevice " & MyUPnPDeviceName & " with device name = " & pDevice.UniqueDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Device Finder Callback received for UPnPDevice " & MyUPnPDeviceName & " with device name = " & pDevice.UniqueDeviceName, LogType.LOG_TYPE_INFO)
 
         If (Mid(pDevice.UniqueDeviceName, 1, 12) = "uuid:RINCON_") And Not SonosDeviceIn Then
-            If SuperDebug Then Log("Device Finder Call Back for UPnPDevice = " & MyUPnPDeviceName & " found Sonos device with UDN =  " & pDevice.UniqueDeviceName & " Friendly Name = " & pDevice.FriendlyName, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Device Finder Call Back for UPnPDevice = " & MyUPnPDeviceName & " found Sonos device with UDN =  " & pDevice.UniqueDeviceName & " Friendly Name = " & pDevice.FriendlyName, LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
 
         If pDevice.UniqueDeviceName <> "uuid:" & MyUDN Then
-            If g_bDebug Then Log("Warning Device Finder Call Back for UPnPDevice = " & MyUPnPDeviceName & " received response from wrong device. If you are running XP, go to HS setup and turn off the 'HomeSeer is Discoverable Using UPNP'. The UDN that responded =  " & pDevice.UniqueDeviceName & " Friendly Name = " & pDevice.FriendlyName, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning Device Finder Call Back for UPnPDevice = " & MyUPnPDeviceName & " received response from wrong device. If you are running XP, go to HS setup and turn off the 'HomeSeer is Discoverable Using UPNP'. The UDN that responded =  " & pDevice.UniqueDeviceName & " Friendly Name = " & pDevice.FriendlyName, LogType.LOG_TYPE_WARNING)
             Exit Sub
         End If
 
@@ -4124,9 +4124,9 @@ Partial Public Class HSPI
 
         Try
             MyIConURL = pDevice.IconURL("image/png", 200, 200, 16)
-            If g_bDebug Then Log("Device Finder CallBack for Device = " & MyUPnPDeviceName & " found IconURL = " & MyIConURL, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Device Finder CallBack for Device = " & MyUPnPDeviceName & " found IconURL = " & MyIConURL, LogType.LOG_TYPE_INFO)
             If MyIConURL <> "" Then ' changed v3.0.0.32
-                If g_bDebug Then Log("Device Finder CallBack for Device = " & MyUPnPDeviceName & " checking for file = " & CurrentAppPath & "\html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Device Finder CallBack for Device = " & MyUPnPDeviceName & " checking for file = " & CurrentAppPath & "\html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
                 If Not File.Exists(CurrentAppPath & "dcor tralala" & "\html" & URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png") Then
                     Dim IConImage As Image
                     IConImage = GetPicture(MyIConURL)
@@ -4136,16 +4136,16 @@ Partial Public Class HSPI
                         Dim SuccesfullSave As Boolean = False
                         SuccesfullSave = hs.WriteHTMLImage(IConImage, FileArtWorkPath & "PlayerIcon_" & MyUDN.ToString & ".png", True)
                         If Not SuccesfullSave Then
-                            If g_bDebug Then Log("Error in myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " had error storing Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_ERROR)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " had error storing Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_ERROR)
                         Else
-                            If g_bDebug Then Log("myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " stored Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " stored Icon at " & FileArtWorkPath & "PlayerIcon_" & MyUDN & ".png", LogType.LOG_TYPE_INFO)
                         End If
                         'IConImage.Save(hs.GetAppPath & "\html" & URLArtWorkPath & "PlayerIcon_" & MyUPnPModelNumber.ToString & ".png", ImageFormat)
                         IConImage.Dispose()
                     End If
                 Else
                     MyIConURL = URLArtWorkPath & "PlayerIcon_" & MyUDN & ".png"
-                    If g_bDebug Then Log("myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " found Icon already stored at " & MyIConURL, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("myDeviceFinderCallback_DeviceFound for Device = " & MyUPnPDeviceName & " found Icon already stored at " & MyIConURL, LogType.LOG_TYPE_INFO)
                 End If
                 Dim HSRef As Integer = HSRefDevice
                 If HSRef <> -1 Then
@@ -4154,7 +4154,7 @@ Partial Public Class HSPI
                     dv.Image(hs) = MyIConURL
                     dv.ImageLarge(hs) = MyIConURL
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diDeviceIConURL.ToString, MyIConURL)
-                    If g_bDebug Then Log("Device Finder Call Back  for Device = " & MyUPnPDeviceName & " added Image = " & MyIConURL, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Device Finder Call Back  for Device = " & MyUPnPDeviceName & " added Image = " & MyIConURL, LogType.LOG_TYPE_INFO)
                 End If
 
             End If
@@ -4177,7 +4177,7 @@ Partial Public Class HSPI
         Try
             Dim ICon As Object
             ICon = pDevice.IconURL("image/jpeg", 200, 200, 16)
-            If SuperDebug Then Log("'            IconIRL = " & ICon.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("'            IconIRL = " & ICon.ToString, LogType.LOG_TYPE_INFO)
             MyIConURL = ICon.ToString
         Catch ex As Exception
         End Try
@@ -4227,7 +4227,7 @@ Partial Public Class HSPI
         Try
             Services = pDevice.Services
             If Services Is Nothing Then
-                If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found no services", LogType.LOG_TYPE_WARNING)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found no services", LogType.LOG_TYPE_WARNING)
                 Exit Sub
             End If
             Try
@@ -4235,8 +4235,8 @@ Partial Public Class HSPI
             Catch ex As Exception
                 Log("Error in ExtractAllServices for device = " & MyUPnPDeviceName & " processing the Service Document with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
-            If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found " & pDevice.Services.Count.ToString & " Services", LogType.LOG_TYPE_INFO)
-            If SuperDebug Then
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found " & pDevice.Services.Count.ToString & " Services", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then
                 Try
                     For Each objService As MyUPnPService In Services
                         If objService IsNot Nothing Then
@@ -4262,7 +4262,7 @@ Partial Public Class HSPI
                     If ObjectserviceID = "urn:upnp-org:serviceId:AVTransport" Or ObjectserviceID = "urn:schemas-upnp-org:service:AVTransport" Then
                         ' this was added for the wireless dock which is different from other zones
                         AVTransport = objService
-                        If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found AVTransport", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found AVTransport", LogType.LOG_TYPE_INFO)
                         If Not AVTransport Is Nothing Then
                             Dim AllowedValueString As String = SearchServiceDocument(MyDocumentURL, ObjectserviceID, "Play", "Speed")
                             If AllowedValueString <> "" Then
@@ -4299,7 +4299,7 @@ Partial Public Class HSPI
                     ElseIf ObjectserviceID = "urn:upnp-org:serviceId:ConnectionManager" Or ObjectserviceID = "urn:schemas-upnp-org:service:ConnectionManager" Then
                         Try
                             ConnectionManager = objService
-                            If g_bDebug Then Log("ExtractAllServices found ConnectionManager for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found ConnectionManager for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                             If Not ConnectionManager Is Nothing Then
                                 Try
                                     'CMGetCurrentConnectionIDs()
@@ -4322,7 +4322,7 @@ Partial Public Class HSPI
                     ElseIf ObjectserviceID = "urn:upnp-org:serviceId:ContentDirectory" Then 'Or ObjectserviceID = "urn:schemas-upnp-org:service:RenderingControl" Then removed in HS3, not sure why this is here?
                         Try
                             ContentDirectory = objService
-                            If g_bDebug Then Log("ExtractAllServices found ContentDirectory for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found ContentDirectory for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                             If Not ContentDirectory Is Nothing Then
                                 Try
                                     ContentDirectory.AddCallback(myContentDirectoryCallback)
@@ -4339,22 +4339,22 @@ Partial Public Class HSPI
                         End Try
                     ElseIf ObjectserviceID = "urn:upnp-org:serviceId:RenderingControl" Or ObjectserviceID = "urn:schemas-upnp-org:service:RenderingControl" Then ' added in HS3 
                         RenderingControl = objService
-                        If g_bDebug Then Log("ExtractAllServices found RenderingControl for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found RenderingControl for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         Try
                             Dim AllowedValueString As String = SearchServiceDocument(MyDocumentURL, ObjectserviceID, "SetVolume", "Channel")
                             If AllowedValueString <> "" Then
-                                If SuperDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found SetVolume/Channel allowed values = " & AllowedValueString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found SetVolume/Channel allowed values = " & AllowedValueString, LogType.LOG_TYPE_INFO)
                                 Dim MyPossibleBalanceSettings As String()
                                 MyPossibleBalanceSettings = GetXMLValues(AllowedValueString, "allowedValue")
                                 If Not MyPossibleBalanceSettings Is Nothing Then
                                     For index = 0 To UBound(MyPossibleBalanceSettings, 1)
                                         If MyPossibleBalanceSettings(index).ToUpper = "LF" Then
                                             BalanceIsConfigurable = True
-                                            If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set BalanceIsConfigurable", LogType.LOG_TYPE_INFO)
+                                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set BalanceIsConfigurable", LogType.LOG_TYPE_INFO)
                                             Exit For
                                         ElseIf MyPossibleBalanceSettings(index).ToUpper = "RF" Then
                                             BalanceIsConfigurable = True
-                                            If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set BalanceIsConfigurable", LogType.LOG_TYPE_INFO)
+                                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set BalanceIsConfigurable", LogType.LOG_TYPE_INFO)
                                             Exit For
                                         End If
                                     Next
@@ -4365,7 +4365,7 @@ Partial Public Class HSPI
                             AllowedValueString = SearchServiceDocument(MyDocumentURL, ObjectserviceID, "SetVolume", "DesiredVolume")
 
                             If AllowedValueString <> "" Then
-                                If SuperDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found SetVolume/DesiredVolume allowed values = " & AllowedValueString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlEvents Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found SetVolume/DesiredVolume allowed values = " & AllowedValueString, LogType.LOG_TYPE_INFO)
                                 Dim MyPossibleMinVolumeSettings As String()
                                 Dim MyPossibleMaxVolumeSettings As String()
                                 MyPossibleMinVolumeSettings = GetXMLValues(AllowedValueString, "minimum")
@@ -4373,13 +4373,13 @@ Partial Public Class HSPI
                                 If MyPossibleMinVolumeSettings IsNot Nothing Then
                                     If MyPossibleMinVolumeSettings(0) <> "" Then
                                         MyMinimumVolume = Val(MyPossibleMinVolumeSettings(0))
-                                        If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set MyMinimumVolume = " & MyMinimumVolume.ToString, LogType.LOG_TYPE_INFO)
+                                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set MyMinimumVolume = " & MyMinimumVolume.ToString, LogType.LOG_TYPE_INFO)
                                     End If
                                 End If
                                 If MyPossibleMaxVolumeSettings IsNot Nothing Then
                                     If MyPossibleMaxVolumeSettings(0) <> "" Then
                                         MyMaximumVolume = Val(MyPossibleMaxVolumeSettings(0))
-                                        If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set MyMaximumVolume = " & MyMaximumVolume.ToString, LogType.LOG_TYPE_INFO)
+                                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " set MyMaximumVolume = " & MyMaximumVolume.ToString, LogType.LOG_TYPE_INFO)
                                     End If
                                 End If
                             End If
@@ -4389,15 +4389,15 @@ Partial Public Class HSPI
 
                     ElseIf ObjectserviceID = "urn:ce-org:serviceId:RemoteUIServer1" Then
                         RemoteUIServer = objService
-                        If g_bDebug Then Log("ExtractAllServices found RemoteUIServerCallback for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found RemoteUIServerCallback for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
                     ElseIf ObjectserviceID = "urn:samsung.com:serviceId:TestRCRService" Then
                         RemoteControlService = objService
-                        If g_bDebug Then Log("ExtractAllServices found TestRCRService for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found TestRCRService for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
                     ElseIf ObjectserviceID = "urn:samsung.com:serviceId:MessageBoxService" Then
                         MessageBoxService = objService
-                        If g_bDebug Then Log("ExtractAllServices found MessageBoxService for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found MessageBoxService for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         HSRefMessage = GetIntegerIniFile(MyUDN, "di" & HSDevices.Message.ToString & "HSCode", -1)
                         If HSRefMessage = -1 Then
                             HSRefMessage = CreateHSServiceDevice(HSRefMessage, HSDevices.Message.ToString)
@@ -4427,14 +4427,14 @@ Partial Public Class HSPI
                         End If
                     ElseIf ObjectserviceID = "urn:schemas-sony-com:serviceId:IRCC" Then
                         RemoteControlService = objService
-                        If g_bDebug Then Log("ExtractAllServices found IRCC for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found IRCC for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "SonyIRRC")
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, MySonyRegisterMode)
                         SonySetupRemoteInfo()
                         SetHSRemoteState()
                     ElseIf ObjectserviceID = "urn:schemas-sony-com:serviceId:Party" Then
                         SonyPartyService = objService
-                        If g_bDebug Then Log("ExtractAllServices found Party for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found Party for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         SonyUpdatePartyButtons()
                         If Not SonyPartyService Is Nothing Then
                             Try
@@ -4445,7 +4445,7 @@ Partial Public Class HSPI
                             End Try
                         End If
                     ElseIf objectserviceType = "urn:dial-multiscreen-org:service:dial:1" Or objectserviceType = "urn:dial-multiscreen-org:device:dialreceiver:1" Then
-                        If g_bDebug Then Log("ExtractAllServices found DIAL Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found DIAL Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         If MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
                             If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
                                 If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
@@ -4457,7 +4457,7 @@ Partial Public Class HSPI
                         End If
                     ElseIf objectserviceType = "urn:lge-com:service:webos-second-screen:1" Then
                         RemoteControlService = objService
-                        If g_bDebug Then Log("ExtractAllServices found LG WebOS Second Screen for device = " & MyUPnPDeviceName & " with DeviceServiceType= " & MyUPnPDeviceServiceType, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found LG WebOS Second Screen for device = " & MyUPnPDeviceName & " with DeviceServiceType= " & MyUPnPDeviceServiceType, LogType.LOG_TYPE_INFO)
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "LG")
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "3000")
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "")
@@ -4480,7 +4480,7 @@ Partial Public Class HSPI
                             SetAdministrativeStateRemote(True)
                         End If
                     Else
-                        If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found additional service with ID = " & ObjectserviceID, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found additional service with ID = " & ObjectserviceID, LogType.LOG_TYPE_INFO)
                     End If
                 Next
             Catch ex As Exception
@@ -4488,7 +4488,7 @@ Partial Public Class HSPI
             End Try
             Try
                 If HSRefDevice = -1 Then
-                    If g_bDebug Then Log("Warning in ExtractAllServices for device = " & MyUPnPDeviceName & ". This needs fixing !! ", LogType.LOG_TYPE_WARNING)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ExtractAllServices for device = " & MyUPnPDeviceName & ". This needs fixing !! ", LogType.LOG_TYPE_WARNING)
                     ' update the IP adress if this was caused by a reconnect
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diIPAddress.ToString, MyIPAddress)
                     WriteStringIniFile(MyUDN, DeviceInfoIndex.diIPPort.ToString, MyIPPort)
@@ -4499,7 +4499,7 @@ Partial Public Class HSPI
             If Not RenderingControl Is Nothing Then
                 Try
                     RenderingControl.AddCallback(myRenderingControlCallback)
-                    If g_bDebug Then Log("RenderingControlCallback added for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RenderingControlCallback added for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                     Log("Error in ExtractAllServices for device = " & MyUPnPDeviceName & " adding RenderingControl Call Back  with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
@@ -4527,11 +4527,11 @@ Partial Public Class HSPI
                 UpdateTransportState()
             End If
             Try
-                If g_bDebug Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found DeviceManufacturer = " & MyUPnPDeviceManufacturer, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found DeviceManufacturer = " & MyUPnPDeviceManufacturer, LogType.LOG_TYPE_INFO)
                 If MyUPnPDeviceServiceType = "RCR" And MyUPnPDeviceManufacturer.ToUpper.IndexOf("SAMSUNG") <> -1 Then
                     If ExtractSamsungInfoFromDeviceXML(MyUPnPDevice.DeviceUPnPDocument) Then
                         ' this means we are websocket based as opposed to legacy. Now it can be with or without PIN
-                        If g_bDebug Then Log("ExtractAllServices found Samsung WebSocket based remote Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found Samsung WebSocket based remote Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
                         'If Not GetBooleanIniFile("Remote Service by UDN", MyUDN, False) Then
                         'SamsungCloseTCPConnection(False)
                         'Else
@@ -4640,11 +4640,11 @@ Partial Public Class HSPI
         'UPnPDocumentURL = MyUPnPDevice.Location & MyUPnPDevice.IPAddress 'pDescDoc.GetDocumentURL()
         'MyDocumentURL = UPnPDocumentURL
         'IPAddressInfo = ExtractIPInfo(UPnPDocumentURL)
-        If g_bDebug Then Log("CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " found IPAddress = " & MyUPnPDevice.IPAddress, LogType.LOG_TYPE_INFO)
-        If g_bDebug Then Log("CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " found IPPort    = " & MyUPnPDevice.IPPort, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " found IPAddress = " & MyUPnPDevice.IPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " found IPPort    = " & MyUPnPDevice.IPPort, LogType.LOG_TYPE_INFO)
         'UPnPDocumentURL = Nothing
         'Catch ex As Exception
-        'If g_bDebug Then log( "Error in CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " the device is off-line or the plugin did not find the documentURL with error = " &ex.Message, LogType.LOG_TYPE_ERROR)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Error in CheckIPAddressChange for UPnPDevice = " & MyUPnPDeviceName & " the device is off-line or the plugin did not find the documentURL with error = " &ex.Message, LogType.LOG_TYPE_ERROR)
         'Exit Function
         'End Try
         If MyUPnPDevice.IPAddress <> MyIPAddress Then
@@ -4668,7 +4668,7 @@ Partial Public Class HSPI
             If MyUPnPDevice.Alive Then
                 MyFailedPingCount = 0
                 If DeviceStatus = "Offline" Then
-                    If SuperDebug Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is reachable on network. Attempting to reconnect", LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is reachable on network. Attempting to reconnect", LogType.LOG_TYPE_INFO)
                     If MyUPnPDeviceServiceType = "RCR" Then
                         ' just put on line, no need to do anything else and update state
                         DeviceStatus = "Online"
@@ -4689,16 +4689,16 @@ Partial Public Class HSPI
                         Connect("uuid:" & MyUDN)
                     End If
                 Else
-                    'If SuperDebug Then log( "Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is reachable on network")
+                    'If piDebuglevel > DebugLevel.dlEvents Then log( "Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is reachable on network")
                 End If
                 Reachable = True
             Else
-                If SuperDebug Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable and DeviceStatus = " & DeviceStatus, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable and DeviceStatus = " & DeviceStatus, LogType.LOG_TYPE_INFO)
                 If DeviceStatus = "Online" Then
-                    If g_bDebug Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable but still on-line", LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable but still on-line", LogType.LOG_TYPE_INFO)
                     If CheckIPAddressChange() Then
                         Reachable = True
-                        If SuperDebug Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable but still on-line and we shouldn't be here", LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable but still on-line and we shouldn't be here", LogType.LOG_TYPE_INFO)
                         Exit Function
                     End If
                     Log("Reachable called for UPnPDevice " & MyUPnPDeviceName & " which is not reachable anymore and set Off-line", LogType.LOG_TYPE_WARNING)
@@ -4711,25 +4711,25 @@ Partial Public Class HSPI
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in Reachable for UPnPDevice " & MyUPnPDeviceName & " calling the ping status with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Reachable for UPnPDevice " & MyUPnPDeviceName & " calling the ping status with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Private Function GetUDNTag(ByVal InString As String) As String
         GetUDNTag = InString ' if there is no tag, return unmodified
         Dim Index As Integer = InString.IndexOf("<uuid:")
-        'If g_bDebug Then log( "GetUDNTag called with String = " & InString & " and UDN = " & GetUDNTag & " and Index " & Index.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "GetUDNTag called with String = " & InString & " and UDN = " & GetUDNTag & " and Index " & Index.ToString)
         If Index <= 0 Then Exit Function
         Try
             GetUDNTag = InString.Substring(Index, InString.Length - Index)
             GetUDNTag = GetUDNTag.Trim("<", ">")
         Catch ex As Exception
         End Try
-        'If g_bDebug Then log( "GetUDNTag called with String = " & InString & " and UDN = " & GetUDNTag)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "GetUDNTag called with String = " & InString & " and UDN = " & GetUDNTag)
     End Function
 
     Public Sub DeviceTrigger(ByVal triggerEvent As String)
-        If g_bDebug Then Log("DeviceTrigger called for device - " & MyUPnPDeviceName & " with Trigger = " & triggerEvent.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called for device - " & MyUPnPDeviceName & " with Trigger = " & triggerEvent.ToString, LogType.LOG_TYPE_INFO)
         Dim TrigsToCheck() As IPlugInAPI.strTrigActInfo
         'Dim TC As IPlugInAPI.strTrigActInfo
 
@@ -4745,7 +4745,7 @@ Partial Public Class HSPI
         End Try
         If TrigsToCheck IsNot Nothing AndAlso TrigsToCheck.Count > 0 Then
             For Each TC As IPlugInAPI.strTrigActInfo In TrigsToCheck
-                If SuperDebug Then Log("DeviceTrigger found Trigger: EvRef=" & TC.evRef.ToString & ", Trig/SubTrig=" & TC.TANumber.ToString & "/" & TC.SubTANumber.ToString & ", UID=" & TC.UID.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("DeviceTrigger found Trigger: EvRef=" & TC.evRef.ToString & ", Trig/SubTrig=" & TC.TANumber.ToString & "/" & TC.SubTANumber.ToString & ", UID=" & TC.UID.ToString, LogType.LOG_TYPE_INFO)
                 'Dim TrigsToCheck() As IAllRemoteAPI.strTrigActInfo = Nothing
                 'TrigsToCheck = callback.TriggerMatches(sIFACE_NAME, Info.TANumber, Info.SubTANumber)
                 'callback.TriggerFire(IFACE_NAME, Info)
@@ -4755,7 +4755,7 @@ Partial Public Class HSPI
                     Dim Command As String = ""
                     Dim PlayerUDN As String = ""
                     For Each sKey In trigger.Keys
-                        'If g_bDebug Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
                         Select Case True
                             Case InStr(sKey, "PlayerListTrigger") > 0 AndAlso trigger(sKey) <> ""
                                 If trigger(sKey) <> MyUDN Then
@@ -4764,18 +4764,18 @@ Partial Public Class HSPI
                                 PlayerUDN = trigger(sKey)
                                 If Command <> "" Then
                                     callback.TriggerFire(sIFACE_NAME, TC)
-                                    If g_bDebug Then Log("DeviceTrigger called TriggerFire for device - " & MyUPnPDeviceName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for device - " & MyUPnPDeviceName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                     Exit For
                                 End If
                             Case InStr(sKey, "CommandListTrigger") > 0 AndAlso trigger(sKey) <> ""
-                                'If g_bDebug Then Log("DeviceTrigger for Zone - " & ZoneName & " command = " & trigger(sKey) & " while looking for triggerEvent = " & triggerEvent, LogType.LOG_TYPE_INFO)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger for Zone - " & ZoneName & " command = " & trigger(sKey) & " while looking for triggerEvent = " & triggerEvent, LogType.LOG_TYPE_INFO)
                                 If trigger(sKey) <> triggerEvent Then
                                     Exit For ' not right state
                                 End If
                                 Command = trigger(sKey)
                                 If PlayerUDN <> "" Then
                                     callback.TriggerFire(sIFACE_NAME, TC)
-                                    If g_bDebug Then Log("DeviceTrigger called TriggerFire for device - " & MyUPnPDeviceName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for device - " & MyUPnPDeviceName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                     Exit For
                                 End If
                         End Select
@@ -4796,10 +4796,10 @@ Partial Public Class HSPI
         '        Library = 4               raised when the library changes
         '        DeviceStatusChanged = 11 'raised when the player goes on/off-line or an iPod is inserted/removed from the wireless dock
         '    End Enum
-        If g_bDebug Then Log("PlayChangeNotifyCallback called for device - " & MyUPnPDeviceName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayChangeNotifyCallback called for device - " & MyUPnPDeviceName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString, LogType.LOG_TYPE_INFO)
         'log( "PlayChangeNotifyCallback called for device - " & MyUPnPDeviceName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString)
         If gInterfaceStatus <> ERR_NONE Then
-            'If g_bDebug Then log( "Warning PlayChangeNotifyCallback called for device - " & MyUPnPDeviceName & " before plugin is initialized. Nothing sent")
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Warning PlayChangeNotifyCallback called for device - " & MyUPnPDeviceName & " before plugin is initialized. Nothing sent")
             Exit Sub ' no updates to be sent until completely intialized. Else the multizone API is hosed.
         End If
         Dim TriggerEvent As String = ""
@@ -4841,7 +4841,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Function GetAlbumArtPath(ByVal AlbumURI As String, ByVal NextTrack As Boolean) As String
-        If SuperDebug Then Log("GetAlbumArtPath called for device " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and NextTrack = " & NextTrack.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetAlbumArtPath called for device " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and NextTrack = " & NextTrack.ToString, LogType.LOG_TYPE_INFO)
         Dim AlbumArtImage As Image = Nothing
         GetAlbumArtPath = NoArtPath
         If AlbumURI = NoArtPath Or AlbumURI = "" Then
@@ -4860,13 +4860,13 @@ Partial Public Class HSPI
         If NextTrack Then
             If MyPreviousNextAlbumURI <> "" And MyPreviousNextAlbumURI = AlbumURI And MyPreviousAlbumArtPath <> "" Then
                 GetAlbumArtPath = MyPreviousNextAlbumArtPath
-                If SuperDebug Then Log("GetAlbumArtPath returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and cached returned path= " & GetAlbumArtPath, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetAlbumArtPath returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and cached returned path= " & GetAlbumArtPath, LogType.LOG_TYPE_INFO)
                 Exit Function
             End If
         Else
             If MyPreviousAlbumURI <> "" And MyPreviousAlbumURI = AlbumURI And MyPreviousAlbumArtPath <> "" Then
                 GetAlbumArtPath = MyPreviousAlbumArtPath
-                If SuperDebug Then Log("GetAlbumArtPath returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and cached returned path= " & GetAlbumArtPath, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("GetAlbumArtPath returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and cached returned path= " & GetAlbumArtPath, LogType.LOG_TYPE_INFO)
                 Exit Function
             End If
         End If
@@ -4888,7 +4888,7 @@ Partial Public Class HSPI
             Dim image_stream As New MemoryStream(web_client.DownloadData(url))
             GetPicture = Image.FromStream(image_stream, True, True)
         Catch ex As Exception
-            If g_bDebug Then Log("GetPicture called for device - " & MyUPnPDeviceName & " url= " & url.ToString & " caused error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPicture called for device - " & MyUPnPDeviceName & " url= " & url.ToString & " caused error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             GetPicture = Nothing
         Finally
             web_client.Dispose()
@@ -4898,7 +4898,7 @@ Partial Public Class HSPI
 
     Private Function SaveArtwork(AlbumArtImage As Image, ByVal AlbumURI As String, ByVal NextTrack As Boolean) As String
         If AlbumArtImage Is Nothing Then
-            SaveArtWork = NoArtPath
+            SaveArtwork = NoArtPath
             If NextTrack Then
                 MyPreviousNextAlbumArtPath = ""
                 MyPreviousNextAlbumURI = ""
@@ -4909,8 +4909,8 @@ Partial Public Class HSPI
             Exit Function
         End If
         If AlbumArtImage.Height = 0 Or AlbumArtImage.Width = 0 Then
-            SaveArtWork = NoArtPath
-            If SuperDebug Then Log("SaveArtWork encountered zero width/height picture for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+            SaveArtwork = NoArtPath
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SaveArtWork encountered zero width/height picture for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
             AlbumArtImage.Dispose()
             AlbumArtImage = Nothing
             GC.Collect()
@@ -4935,11 +4935,11 @@ Partial Public Class HSPI
                 If UCase(TempExtensiontype) = ".PNG" Then
                     ExtensionType = ".png"
                     'ImageFormat = System.Drawing.Imaging.ImageFormat.Png
-                    'If g_bDebug Then log( "SaveArtWork for device = " & MyUPnPDeviceName & " has set image to .PNG")
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "SaveArtWork for device = " & MyUPnPDeviceName & " has set image to .PNG")
                 End If
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in SaveArtWork for device = " & MyUPnPDeviceName & " when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveArtWork for device = " & MyUPnPDeviceName & " when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         'Dim FilePath As String = ""
         Dim TempFilePath As String = ""
@@ -4968,7 +4968,7 @@ Partial Public Class HSPI
                     File.Delete(FileFound) ' tralala tobe fixed dcor
                 Next
             Catch ex As Exception
-                If g_bDebug Then Log("Warning in SaveArtWork when deleting the previous art work for device = " & MyUPnPDeviceName & " with Filename = " & TempFilePath & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in SaveArtWork when deleting the previous art work for device = " & MyUPnPDeviceName & " with Filename = " & TempFilePath & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
 
@@ -4979,38 +4979,38 @@ Partial Public Class HSPI
                 Dim SuccesfullSave As Boolean = False
                 SuccesfullSave = hs.WriteHTMLImage(AlbumArtImage, FileArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType, True)
                 If Not SuccesfullSave Then
-                    If g_bDebug Then Log("Error in SaveArtWork for Device = " & MyUPnPDeviceName & " had error storing NextCover at " & FileArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveArtWork for Device = " & MyUPnPDeviceName & " had error storing NextCover at " & FileArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_ERROR)
                 Else
-                    If g_bDebug Then Log("SaveArtWork for Device = " & MyUPnPDeviceName & " stored NextCover at " & FileArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveArtWork for Device = " & MyUPnPDeviceName & " stored NextCover at " & FileArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_INFO)
                 End If
-                SaveArtWork = ArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType
-                MyPreviousNextAlbumArtPath = SaveArtWork
+                SaveArtwork = ArtWorkPath & "NextCover_" & MyUDN & "_" & MyNextArtFileIndex.ToString & ExtensionType
+                MyPreviousNextAlbumArtPath = SaveArtwork
                 MyPreviousNextAlbumURI = AlbumURI
             Else
                 Dim SuccesfullSave As Boolean = False
                 SuccesfullSave = hs.WriteHTMLImage(AlbumArtImage, FileArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType, True)
                 If Not SuccesfullSave Then
-                    If g_bDebug Then Log("Error in SaveArtWork for Device = " & MyUPnPDeviceName & " had error storing Cover at " & FileArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_ERROR)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveArtWork for Device = " & MyUPnPDeviceName & " had error storing Cover at " & FileArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_ERROR)
                 Else
-                    If g_bDebug Then Log("SaveArtWork for Device = " & MyUPnPDeviceName & " stored Cover at " & FileArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveArtWork for Device = " & MyUPnPDeviceName & " stored Cover at " & FileArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType, LogType.LOG_TYPE_INFO)
                 End If
-                SaveArtWork = ArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType
-                MyPreviousAlbumArtPath = SaveArtWork
+                SaveArtwork = ArtWorkPath & "Cover_" & MyUDN & "_" & MyArtFileIndex.ToString & ExtensionType
+                MyPreviousAlbumArtPath = SaveArtwork
                 MyPreviousAlbumURI = AlbumURI
             End If
         Catch ex As Exception
             If NextTrack Then
-                If g_bDebug Then Log("Error in SaveArtWork storing artwork for device - " & MyUPnPDeviceName & " and path = " & CurrentAppPath & "/html" & ArtWorkPath & "NextCover" & MyHSTMusicIndex.ToString & "_" & MyNextArtFileIndex.ToString & ExtensionType & " with error= " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveArtWork storing artwork for device - " & MyUPnPDeviceName & " and path = " & CurrentAppPath & "/html" & ArtWorkPath & "NextCover" & MyHSTMusicIndex.ToString & "_" & MyNextArtFileIndex.ToString & ExtensionType & " with error= " & ex.Message, LogType.LOG_TYPE_ERROR)
                 MyPreviousNextAlbumArtPath = ""
                 MyPreviousNextAlbumURI = ""
             Else
-                If g_bDebug Then Log("Error in SaveArtWork storing artwork for device - " & MyUPnPDeviceName & " and path = " & CurrentAppPath & "/html" & ArtWorkPath & "Cover" & MyHSTMusicIndex.ToString & "_" & MyArtFileIndex.ToString & ExtensionType & " with error= " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveArtWork storing artwork for device - " & MyUPnPDeviceName & " and path = " & CurrentAppPath & "/html" & ArtWorkPath & "Cover" & MyHSTMusicIndex.ToString & "_" & MyArtFileIndex.ToString & ExtensionType & " with error= " & ex.Message, LogType.LOG_TYPE_ERROR)
                 MyPreviousAlbumArtPath = ""
                 MyPreviousAlbumURI = ""
             End If
-            SaveArtWork = NoArtPath
+            SaveArtwork = NoArtPath
         End Try
-        If SuperDebug Then Log("SaveArtWork returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and returned path= " & SaveArtWork, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SaveArtWork returned for device - " & MyUPnPDeviceName & " with AlbumURI = " & AlbumURI & " and returned path= " & SaveArtwork, LogType.LOG_TYPE_INFO)
         Try
             AlbumArtImage.Dispose()
             AlbumArtImage = Nothing
@@ -5345,7 +5345,7 @@ Partial Public Class HSPI
 
     Private Function FindActionInServiceDocument(Service As String, Action As String) As Boolean
         FindActionInServiceDocument = False
-        If g_bDebug Then Log("FindActionInServiceDocument called for device = " & MyUPnPDeviceName & " with Service = " & Service.ToString & " and Action = " & Action.ToString & " and DocumentURL = " & MyDocumentURL.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindActionInServiceDocument called for device = " & MyUPnPDeviceName & " with Service = " & Service.ToString & " and Action = " & Action.ToString & " and DocumentURL = " & MyDocumentURL.ToString, LogType.LOG_TYPE_INFO)
         If MyDocumentURL = "" Then Exit Function
         Dim xmlDoc As New XmlDocument
         xmlDoc.XmlResolver = Nothing
@@ -5385,7 +5385,7 @@ Partial Public Class HSPI
         Do While Index < 100 ' can't be that there are 100 services
             Try
                 Dim ServiceId As String = xmlDoc.GetElementsByTagName("serviceId").Item(Index).InnerText
-                If g_bDebug Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString, LogType.LOG_TYPE_INFO)
                 If xmlDoc.GetElementsByTagName("serviceId").Item(Index).InnerText = Service Then
                     ServiceURL = xmlDoc.GetElementsByTagName("SCPDURL").Item(Index).InnerText
                     ServiceURL = Trim(ServiceURL)
@@ -5395,7 +5395,7 @@ Partial Public Class HSPI
                     'Mid(ServiceURL, 0, 1) = " "
                     'ServiceURL = Trim(ServiceURL)
                     'End If
-                    If g_bDebug Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO)
                     Dim ServiceHTML As String = ""
                     Try
                         Dim RequestUri = New Uri(DeriveIPAddress(MyDocumentURL, ServiceURL) & ServiceURL)
@@ -5427,9 +5427,9 @@ Partial Public Class HSPI
                     Dim ActionIndex As Integer = 0
                     Do While ActionIndex < 100
                         Dim actiontype As String = ServiceXmlDoc.GetElementsByTagName("name").Item(ActionIndex).InnerText
-                        If g_bDebug Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & actiontype.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & actiontype.ToString, LogType.LOG_TYPE_INFO)
                         If ServiceXmlDoc.GetElementsByTagName("name").Item(ActionIndex).InnerText = Action Then
-                            If g_bDebug Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found service = " & Service.ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(" FindActionInServiceDocument for device = " & MyUPnPDeviceName & " found service = " & Service.ToString, LogType.LOG_TYPE_INFO)
                             FindActionInServiceDocument = True
                             xmlDoc = Nothing
                             ServiceXmlDoc = Nothing
@@ -5450,7 +5450,7 @@ Partial Public Class HSPI
     End Function
 
     Private Sub ProcessServiceDocument(pDevice As MyUPnPDevice)
-        If g_bDebug Then Log("ProcessServiceDocument called for device = " & MyUPnPDeviceName & " with URL = " & MyDocumentURL, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument called for device = " & MyUPnPDeviceName & " with URL = " & MyDocumentURL, LogType.LOG_TYPE_INFO)
         'If MyDocumentURL = "" Then Exit Sub
         If pDevice Is Nothing Then Exit Sub
         Dim xmlDoc As New XmlDocument
@@ -5476,12 +5476,12 @@ Partial Public Class HSPI
         'End Try
 
         PageHTML = RemoveControlCharacters(PageHTML)
-        'If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is retrieving following DeviceUPnPDocument = " & PageHTML, LogType.LOG_TYPE_INFO) 
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is retrieving following DeviceUPnPDocument = " & PageHTML, LogType.LOG_TYPE_INFO) 
 
         Try
             xmlDoc.LoadXml(PageHTML)
-            If SuperDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
-            'If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO) 
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following document = " & xmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO) 
         Catch ex As Exception
             Log("Error in ProcessServiceDocument for device = " & MyUPnPDeviceName & " while retieving document with URL = " & MyDocumentURL & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
@@ -5495,17 +5495,17 @@ Partial Public Class HSPI
                 Try
                     Dim ServiceId As String = xmlDoc.GetElementsByTagName("serviceId").Item(Index).InnerText
                     Try
-                        'If g_bDebug Then log( "ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString)
                         ServiceURL = xmlDoc.GetElementsByTagName("SCPDURL").Item(Index).InnerText
                         ServiceURL = Trim(ServiceURL)
-                        If SuperDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString & " and ServiceURL = " & ServiceURL.ToString, LogType.LOG_TYPE_INFO)
-                        'If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString & " and ServiceURL = " & ServiceURL.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString & " and ServiceURL = " & ServiceURL.ToString, LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ServiceId = " & ServiceId.ToString & " and ServiceURL = " & ServiceURL.ToString, LogType.LOG_TYPE_INFO)
                         If ServiceURL <> "" Then
                             'If ServiceURL(0) = "/" Or ServiceURL(0) = "\" Then
                             ' we need to remove this
                             'Mid(ServiceURL, 1, 1) = " "
                             'ServiceURL = Trim(ServiceURL)
-                            'If SuperDebug Then log( "ProcessServiceDocument for device = " & MyUPnPDeviceName & " adjusted ServiceURL = " & ServiceURL.ToString)
+                            'If piDebuglevel > DebugLevel.dlEvents Then log( "ProcessServiceDocument for device = " & MyUPnPDeviceName & " adjusted ServiceURL = " & ServiceURL.ToString)
                             'End If
                             If ServiceId.ToString = "urn:schemas-sony-com:serviceId:IRCC" Then
                                 Dim ActionListURL As String = ""
@@ -5515,9 +5515,9 @@ Partial Public Class HSPI
                                 End Try
                                 If ActionListURL <> "" Then
                                     Try
-                                        If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ActionListURL = " & ActionListURL, LogType.LOG_TYPE_INFO)
+                                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found ActionListURL = " & ActionListURL, LogType.LOG_TYPE_INFO)
                                         RetrieveSonyActionList(ActionListURL)
-                                        'If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found MySonySystemInformationURL = " & MySonySystemInformationURL, LogType.LOG_TYPE_INFO) 
+                                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " found MySonySystemInformationURL = " & MySonySystemInformationURL, LogType.LOG_TYPE_INFO) 
                                         RetrieveSonySystemInformation(MySonySystemInformationURL)
                                         If GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
                                             ' check if still registered
@@ -5542,7 +5542,7 @@ Partial Public Class HSPI
                                 End If
                                 Try
                                     MySonyRDISEntryPort = xmlDoc.GetElementsByTagName("av:X_RDIS_ENTRY_PORT").Item(0).InnerText
-                                    If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved SonyRDISEntryPort = " & MySonyRDISEntryPort, LogType.LOG_TYPE_INFO)
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved SonyRDISEntryPort = " & MySonyRDISEntryPort, LogType.LOG_TYPE_INFO)
                                 Catch ex As Exception
                                 End Try
                             End If
@@ -5550,8 +5550,8 @@ Partial Public Class HSPI
                     Catch ex As Exception
                         Log("Error in ProcessServiceDocument2 for device = " & MyUPnPDeviceName & " and Index = " & Index.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
-                    If SuperDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO)
-                    'If g_bDebug Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO) 
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessServiceDocument for device = " & MyUPnPDeviceName & " is creating ServiceURL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL, LogType.LOG_TYPE_INFO) 
 
                     If ServiceURL <> "" Then
                         Dim ServiceHTML As String = ""
@@ -5583,14 +5583,14 @@ Partial Public Class HSPI
                             Catch ex As Exception
                                 Log("Error in ProcessServiceDocument for device = " & MyUPnPDeviceName & " loading the ServiceXML with URL = " & DeriveIPAddress(MyDocumentURL, ServiceURL) & " and ServiceURL = " & ServiceURL & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                             End Try
-                            If SuperDebug Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
-                            'If g_bDebug Then log( " ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString)
+                            If PIDebuglevel > DebugLevel.dlEvents Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( " ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString)
                             Dim ActionIndex As Integer = 0
                             Do While ActionIndex < 100
                                 Try
                                     Dim ActionType As String = ServiceXmlDoc.GetElementsByTagName("name").Item(ActionIndex).InnerText
-                                    If SuperDebug Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & ActionType.ToString, LogType.LOG_TYPE_INFO)
-                                    'If g_bDebug Then log( " ProcessServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & ActionType.ToString)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & ActionType.ToString, LogType.LOG_TYPE_INFO)
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( " ProcessServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & ActionType.ToString)
                                     SetServiceFlags(ServiceId, ActionType)
                                     ActionIndex = ActionIndex + 1
                                 Catch ex As Exception
@@ -5615,7 +5615,7 @@ Partial Public Class HSPI
 
     Private Function SearchServiceDocument(DocumentURL As String, ServiceID As String, Action As String, Argument As String) As String
         SearchServiceDocument = ""
-        If g_bDebug Then Log("SearchServiceDocument called for device = " & MyUPnPDeviceName & " with URL = " & DocumentURL & " and ServiceID = " & ServiceID & " and Action = " & Action & " and Argument = " & Argument, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SearchServiceDocument called for device = " & MyUPnPDeviceName & " with URL = " & DocumentURL & " and ServiceID = " & ServiceID & " and Action = " & Action & " and Argument = " & Argument, LogType.LOG_TYPE_INFO)
         If DocumentURL = "" Or ServiceID = "" Or Action = "" Or Argument = "" Then Exit Function
         If MyUPnPDevice.Services Is Nothing Then Exit Function
         Dim MyService As MyUPnPService = MyUPnPDevice.Services.Item(ServiceID)
@@ -5680,7 +5680,7 @@ Partial Public Class HSPI
             '</stateVariable>
             If MyServiceStateVar.allowedValueList IsNot Nothing Then
                 Try
-                    If SuperDebug Then Log("SearchServiceDocument found AllowedValueList for device = " & MyUPnPDeviceName & " = " & MyServiceStateVar.allowedValueList, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchServiceDocument found AllowedValueList for device = " & MyUPnPDeviceName & " = " & MyServiceStateVar.allowedValueList, LogType.LOG_TYPE_INFO)
                     SearchServiceDocument = MyServiceStateVar.allowedValueList
                     Exit Function
                 Catch ex As Exception
@@ -5688,7 +5688,7 @@ Partial Public Class HSPI
             End If
             If MyServiceStateVar.allowedValueRange IsNot Nothing Then
                 Try
-                    If SuperDebug Then Log("SearchServiceDocument found allowedValueRange for device = " & MyUPnPDeviceName & " = " & MyServiceStateVar.allowedValueRange, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("SearchServiceDocument found allowedValueRange for device = " & MyUPnPDeviceName & " = " & MyServiceStateVar.allowedValueRange, LogType.LOG_TYPE_INFO)
                     SearchServiceDocument = MyServiceStateVar.allowedValueRange
                     Exit Function
                 Catch ex As Exception
@@ -5703,7 +5703,7 @@ Partial Public Class HSPI
     Private Function GetXMLValues(inXML As String, Tag As String) As String()
         GetXMLValues = Nothing
         Dim TempResult As String() = Nothing
-        If SuperDebug Then Log("GetXMLValues called for device = " & MyUPnPDeviceName & " with inXML = " & inXML & " and Tag = " & Tag, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("GetXMLValues called for device = " & MyUPnPDeviceName & " with inXML = " & inXML & " and Tag = " & Tag, LogType.LOG_TYPE_INFO)
         If inXML = "" Or Tag = "" Then Exit Function
         Dim XMLDoc As New XmlDocument
         Try
@@ -5720,7 +5720,7 @@ Partial Public Class HSPI
             Do While Index < 100 ' can't be that there are 100 
                 Try
                     Dim FoundTagValue As String = XMLDoc.GetElementsByTagName(Tag).Item(Index).InnerText
-                    If SuperDebug Then Log("GetXMLValues for device = " & MyUPnPDeviceName & " found matching Tag = " & Tag.ToString & " and TagValue = " & FoundTagValue.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("GetXMLValues for device = " & MyUPnPDeviceName & " found matching Tag = " & Tag.ToString & " and TagValue = " & FoundTagValue.ToString, LogType.LOG_TYPE_INFO)
                     If TempResult Is Nothing Then
                         ReDim TempResult(0)
                     Else
@@ -5734,10 +5734,10 @@ Partial Public Class HSPI
                 Index = Index + 1
             Loop
         Catch ex As Exception
-            If SuperDebug Then Log("Warning in GetXMLValues for device = " & MyUPnPDeviceName & "  with error = " & ex.Message, LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("Warning in GetXMLValues for device = " & MyUPnPDeviceName & "  with error = " & ex.Message, LogType.LOG_TYPE_WARNING)
         End Try
         XMLDoc = Nothing
-        If SuperDebug Then
+        If PIDebuglevel > DebugLevel.dlEvents Then
             If TempResult Is Nothing Then
                 Log("GetXMLValues for device = " & MyUPnPDeviceName & " found no values for Tag = " & Tag.ToString, LogType.LOG_TYPE_INFO)
             Else
@@ -5776,7 +5776,7 @@ Partial Public Class HSPI
                     Case "X_GetSlideShowEffect"
                         GetSlideShowEffectIsConfigurable = True
                     Case Else
-                        If SuperDebug Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found unkown ActionType = " & ActionType & " for Service = " & ServiceId, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found unkown ActionType = " & ActionType & " for Service = " & ServiceId, LogType.LOG_TYPE_INFO)
                 End Select
             Case "urn:upnp-org:serviceId:AVTransport"
                 Select Case ActionType
@@ -5786,10 +5786,10 @@ Partial Public Class HSPI
                         If GetStringIniFile(MyUDN, DeviceInfoIndex.diUseNextAV.ToString, "") = "" Then
                             WriteBooleanIniFile(DeviceUDN, DeviceInfoIndex.diUseNextAV.ToString, True)
                         End If
-                        If g_bDebug Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
                     Case "SetPlayMode"
                         PlayModeisConfigurable = True
-                        If g_bDebug Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
                 End Select
             Case "urn:upnp-org:serviceId:ContentDirectory"
                 Select Case ActionType
@@ -5797,7 +5797,7 @@ Partial Public Class HSPI
                         SupportSearch = True
                 End Select
             Case Else
-                If SuperDebug Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found unkown Service = " & ServiceId & " and ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found unkown Service = " & ServiceId & " and ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
         End Select
     End Sub
 
@@ -5828,7 +5828,7 @@ Partial Public Class HSPI
     End Function
 
     Public Sub ReadDeviceIniSettings()
-        If g_bDebug Then Log("ReadDeviceIniSettings called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadDeviceIniSettings called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         Try
             Dim AnythingStored As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diTimeBetweenPictures.ToString, "")
             If AnythingStored = "" Then WriteIntegerIniFile(MyUDN, DeviceInfoIndex.diTimeBetweenPictures.ToString, 60) ' set to 1 minute as a default
@@ -5881,11 +5881,11 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SetTrackLength(ByVal TrackLength As Integer)
-        If SuperDebug Then Log("SetTrackLength called for device - " & MyUPnPDeviceName & " with TrackLength = " & TrackLength, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SetTrackLength called for device - " & MyUPnPDeviceName & " with TrackLength = " & TrackLength, LogType.LOG_TYPE_INFO)
         Try
             If MyTrackLength <> TrackLength Then
                 If HSRefTrackLength <> -1 Then
-                    If g_bDebug Then Log("SetTrackLength is setting HS Device TrackLength for device - " & MyUPnPDeviceName & " with Value = " & TrackLength.ToString & " and HSRef = " & HSRefTrackLength.ToString, LogType.LOG_TYPE_INFO)
+                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength is setting HS Device TrackLength for device - " & MyUPnPDeviceName & " with Value = " & TrackLength.ToString & " and HSRef = " & HSRefTrackLength.ToString, LogType.LOG_TYPE_INFO)
                     Select Case MyHSTrackLengthFormat
                         Case HSSTrackLengthSettings.TLSSeconds
                             hs.SetDeviceString(HSRefTrackLength, TrackLength.ToString, True)
@@ -5894,14 +5894,14 @@ Partial Public Class HSPI
                     End Select
                     hs.SetDeviceValueByRef(HSRefTrackLength, CType(TrackLength, Double), True)
                     If HSRefTrackPos <> -1 Then
-                        If g_bDebug Then Log("SetTrackLength is setting HS Status Max Position TrackPosition for device - " & MyUPnPDeviceName & " and HSRef = " & HSRefTrackPos.ToString, LogType.LOG_TYPE_INFO)
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength is setting HS Status Max Position TrackPosition for device - " & MyUPnPDeviceName & " and HSRef = " & HSRefTrackPos.ToString, LogType.LOG_TYPE_INFO)
                         ' update the slider control pair
                         Dim VSVGPair As VSPair
                         VSVGPair = hs.DeviceVSP_Get(HSRefTrackPos, 0, ePairStatusControl.Both) ' use value = 0 to be within the range
                         VSVGPair.Render_Location.Column = 2
                         VSVGPair.Render_Location.Row = 1
                         If VSVGPair.Render = HomeSeerAPI.Enums.CAPIControlType.ValuesRangeSlider Then
-                            If g_bDebug Then Log("SetTrackLength set Pair for device - " & MyUPnPDeviceName & " Old Max Range = " & VSVGPair.RangeEnd.ToString & " New Max Range = " & TrackLength.ToString, LogType.LOG_TYPE_INFO)
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength set Pair for device - " & MyUPnPDeviceName & " Old Max Range = " & VSVGPair.RangeEnd.ToString & " New Max Range = " & TrackLength.ToString, LogType.LOG_TYPE_INFO)
                             If MyHSTrackPositionFormat <> HSSTrackPositionSettings.TPSPercentage Then
                                 VSVGPair.RangeEnd = CType(TrackLength, Double)
                             Else
@@ -5932,7 +5932,7 @@ Partial Public Class HSPI
             GetSeconds = (CInt(Conversion(0)) * 60 * 60) + (CInt(Conversion(1)) * 60) + CInt(Conversion(2))
         Catch ex As Exception
             GetSeconds = 0
-            If g_bDebug Then Log("Error in GetSeconds for device = " & MyUPnPDeviceName & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSeconds for device = " & MyUPnPDeviceName & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -5942,7 +5942,7 @@ Partial Public Class HSPI
         Try
             ' remove any control characters
             Dim strIndex As Integer = inString.Length
-            If SuperDebug Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " retrieved document with length = " & strIndex.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " retrieved document with length = " & strIndex.ToString, LogType.LOG_TYPE_INFO)
             Dim SomethingGotRemoved As Boolean = False
             While strIndex > 0
                 strIndex = strIndex - 1
@@ -5952,7 +5952,7 @@ Partial Public Class HSPI
                 End If
             End While
             inString = Trim(inString)
-            If SuperDebug And SomethingGotRemoved Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " updated document to = " & inString.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents And SomethingGotRemoved Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " updated document to = " & inString.ToString, LogType.LOG_TYPE_INFO)
             RemoveControlCharacters = inString
         Catch ex As Exception
             Log("Error in RemoveControlCharacters for device = " & MyUPnPDeviceName & " while retieving document with URL = " & MyDocumentURL & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -5960,8 +5960,8 @@ Partial Public Class HSPI
     End Function
 
     Private Function DeriveIPAddress(inString As String, NextChar As String) As String
-        If SuperDebug Then Log("DeriveIPAddress called for Device = " & MyUPnPDeviceName & " and inString = " & inString & " and NextChar = " & NextChar, LogType.LOG_TYPE_INFO)
-        'If g_bDebug Then Log("DeriveIPAddress called for Device = " & MyUPnPDeviceName & " and inString = " & inString & " and NextChar = " & NextChar, LogType.LOG_TYPE_INFO) 
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("DeriveIPAddress called for Device = " & MyUPnPDeviceName & " and inString = " & inString & " and NextChar = " & NextChar, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeriveIPAddress called for Device = " & MyUPnPDeviceName & " and inString = " & inString & " and NextChar = " & NextChar, LogType.LOG_TYPE_INFO) 
         DeriveIPAddress = inString
         Dim NewURLDoc As String = Trim(inString)
         NextChar = Trim(NextChar)
@@ -5985,7 +5985,7 @@ Partial Public Class HSPI
                 DeriveIPAddress = inString.Substring(0, httpIndex + 1)
             End If
         End If
-        If SuperDebug Then Log("DeriveIPAddress for Device = " & MyUPnPDeviceName & " with inString = " & inString & " and NextChar = " & NextChar & " returned = " & DeriveIPAddress, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("DeriveIPAddress for Device = " & MyUPnPDeviceName & " with inString = " & inString & " and NextChar = " & NextChar & " returned = " & DeriveIPAddress, LogType.LOG_TYPE_INFO)
     End Function
 
 #Region "Music API methods"
@@ -5996,18 +5996,18 @@ Partial Public Class HSPI
 
     Public Property APIInstance As Integer 'Implements MediaCommon.MusicAPI.APIInstance
         Get
-            'If g_bDebug Then log( "Get APIInstance called for device - " & MyUPnPDeviceName & ". Index = " & MyHSTMusicIndex.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "Get APIInstance called for device - " & MyUPnPDeviceName & ". Index = " & MyHSTMusicIndex.ToString)
             APIInstance = MyHSTMusicIndex
         End Get
         Set(value As Integer)
             MyHSTMusicIndex = value
-            If g_bDebug Then Log("Set APIInstance called for device - " & MyUPnPDeviceName & ". Index = " & MyHSTMusicIndex.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set APIInstance called for device - " & MyUPnPDeviceName & ". Index = " & MyHSTMusicIndex.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public ReadOnly Property APIName As String 'Implements MediaCommon.MusicAPI.APIName
         Get
-            'If g_bDebug Then log( " Get APIName called for device - " & MyUPnPDeviceName)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( " Get APIName called for device - " & MyUPnPDeviceName)
             APIName = MyUPnPDeviceName
         End Get
     End Property
@@ -6021,16 +6021,16 @@ Partial Public Class HSPI
         '   forwarding = 4
         '   rewinding = 5
         'End Enum
-        If SuperDebug Then Log("PlayerState called for UPnPDevice - " & MyUPnPDeviceName & ". State = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("PlayerState called for UPnPDevice - " & MyUPnPDeviceName & ". State = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
         PlayerState = MyCurrentPlayerState
     End Function
 
     Public Function GetItems(ByVal ObjectID As String, Optional ByVal DownToItems As Boolean = False) As System.Array
         'Returns a list of all playlist names in the system.
-        If g_bDebug Then Log("GetItems called for device - " & MyUPnPDeviceName & " with ObjectId = " & ObjectID & " and DownToItems = " & DownToItems.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetItems called for device - " & MyUPnPDeviceName & " with ObjectId = " & ObjectID & " and DownToItems = " & DownToItems.ToString, LogType.LOG_TYPE_INFO)
         GetItems = {""}
         If ContentDirectory Is Nothing Then
-            If g_bDebug Then Log("Error in GetItems called for device - " & MyUPnPDeviceName & " has no ContentDirectory Handle", LogType.LOG_TYPE_WARNING)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetItems called for device - " & MyUPnPDeviceName & " has no ContentDirectory Handle", LogType.LOG_TYPE_WARNING)
             GetItems = Nothing
             Exit Function
         End If
@@ -6066,7 +6066,7 @@ Partial Public Class HSPI
             GetItems = Nothing
             Exit Function
         Else
-            If g_bDebug Then Log("GetItems called for device - " & MyUPnPDeviceName & " with ObjectID = " & ObjectID & " and found = " & BrowseTotalMatches.ToString & " records", LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetItems called for device - " & MyUPnPDeviceName & " with ObjectID = " & ObjectID & " and found = " & BrowseTotalMatches.ToString & " records", LogType.LOG_TYPE_INFO)
         End If
 
         ReDim MyItems(CInt(BrowseTotalMatches) - 1)
@@ -6109,13 +6109,13 @@ Partial Public Class HSPI
                         Try
                             Dim MyItemName As String = OuterXML.GetElementsByTagName("dc:title").Item(0).InnerText
                             MyItems(StartIndex + LoopIndex) = MyItemName
-                            'If g_bDebug Then log( "GetItems found for device - " & MyUPnPDeviceName & " Title = " & MyItemName.ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "GetItems found for device - " & MyUPnPDeviceName & " Title = " & MyItemName.ToString)
                         Catch ex As Exception
                             MyItems(StartIndex + LoopIndex) = ""
                         End Try
                         'Try
                         'Dim MyItemClass As String = OuterXML.GetElementsByTagName("upnp:class").Item(0).InnerText
-                        'If g_bDebug Then log( "GetItems found for device - " & MyUPnPDeviceName & " Class = " & MyItemClass.ToString)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( "GetItems found for device - " & MyUPnPDeviceName & " Class = " & MyItemClass.ToString)
                         'Catch ex As Exception
                         'End Try
                     End If
@@ -6128,7 +6128,7 @@ Partial Public Class HSPI
             If StartIndex >= BrowseTotalMatches Then
                 Exit Do
             End If
-            If g_bDebug Then Log("GetItems for device = " & MyUPnPDeviceName & ". Count =" & StartIndex.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetItems for device = " & MyUPnPDeviceName & ". Count =" & StartIndex.ToString, LogType.LOG_TYPE_INFO)
             'hs.WaitEvents()
         Loop
 
@@ -6137,7 +6137,7 @@ Partial Public Class HSPI
         xmlData = Nothing
         OuterXML = Nothing
         GetItems = MyItems
-        If g_bDebug Then Log("GetItems called for device - " & MyUPnPDeviceName & " returned " & BrowseTotalMatches.ToString & " playlists ", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetItems called for device - " & MyUPnPDeviceName & " returned " & BrowseTotalMatches.ToString & " playlists ", LogType.LOG_TYPE_INFO)
     End Function
 
 
@@ -6150,12 +6150,12 @@ Partial Public Class HSPI
 #End Region
 
     Public Function CurrentlyPlaying() As HomeSeerAPI.Lib_Entry_Key Implements HomeSeerAPI.IMediaAPI.CurrentlyPlaying
-        If g_bDebug Then Log("CurrentlyPlaying called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorPink)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentlyPlaying called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorPink)
         Return Nothing
     End Function
 
     Public Function CurrentPlayList() As HomeSeerAPI.Lib_Entry_Key() Implements HomeSeerAPI.IMediaAPI.CurrentPlayList
-        If g_bDebug Then Log("CurrentPlayList called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorPink)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayList called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO, LogColorPink)
         Return Nothing
     End Function
 
@@ -6188,7 +6188,7 @@ Partial Public Class HSPI
     End Function
 
     Public Function LibGetEntry(Key As HomeSeerAPI.Lib_Entry_Key) As HomeSeerAPI.Lib_Entry Implements HomeSeerAPI.IMediaAPI.LibGetEntry
-        If g_bDebug Then Log("LibGetEntry called for Player - " & MyUPnPDeviceName & " with iKey = " & Key.iKey & ", SKey = " & Key.sKey & ", title = " & Key.Title & ", Libaray = " & Key.Library & " whichKey = " & Key.WhichKey.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetEntry called for Player - " & MyUPnPDeviceName & " with iKey = " & Key.iKey & ", SKey = " & Key.sKey & ", title = " & Key.Title & ", Libaray = " & Key.Library & " whichKey = " & Key.WhichKey.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return Nothing
     End Function
 
@@ -6376,14 +6376,14 @@ Partial Public Class HSPI
 
     Public ReadOnly Property State As HomeSeerAPI.player_state_values Implements HomeSeerAPI.IMediaAPI_3.State
         Get
-            If g_bDebug Then Log("State called for device - " & MyUPnPDeviceName & " and State = " & CurrentPlayerState.ToString, LogType.LOG_TYPE_INFO, LogColorPink)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("State called for device - " & MyUPnPDeviceName & " and State = " & CurrentPlayerState.ToString, LogType.LOG_TYPE_INFO, LogColorPink)
             State = HomeSeerAPI.player_state_values.playing
         End Get
     End Property
 
     Public ReadOnly Property Volume1 As Integer Implements HomeSeerAPI.IMediaAPI_3.Volume
         Get
-            If g_bDebug Then Log("Volume1 called for device - " & MyUPnPDeviceName & " and Volume = " & Volume.ToString, LogType.LOG_TYPE_INFO, LogColorPink)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Volume1 called for device - " & MyUPnPDeviceName & " and Volume = " & Volume.ToString, LogType.LOG_TYPE_INFO, LogColorPink)
             Volume1 = Volume
         End Get
     End Property
