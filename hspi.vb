@@ -2003,7 +2003,7 @@ Public Class HSPI
                 ' every 5 minutes I want to see if any zones got added
                 MyTimeoutActionArray(TORediscover) = MyTimeoutActionArray(TORediscover) - 1
                 If MyTimeoutActionArray(TORediscover) <= 0 Then
-                    DoRediscover()
+                    If MyPIisInitialized Then DoRediscover() ' added 11/16/2019 as part of Sonos fixes
                     MyTimeoutActionArray(TORediscover) = TORediscoverValue
                 End If
             Case TOCheckAnnouncement
@@ -3471,6 +3471,7 @@ NextElement:
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
             If Not AllDevices Is Nothing And AllDevices.Count > 0 Then
                 For Each DLNADevice As MyUPnPDevice In AllDevices
+                    If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO) ' moved this here on 11/16/2019
                     If DLNADevice IsNot Nothing Then    ' added on 3/3/2019 to prevent errors happening here due to unknown causes
                         If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
                             ' check whether this devices was known to us and on-line
@@ -4430,8 +4431,8 @@ NextElement:
                                     AddText(fs, "       ReceivedSID = " & ParentService.MyReceivedSID & Environment.NewLine)
                                     If PIDebuglevel > DebugLevel.dlEvents Then Log(".        MySCPDURL = " & ParentService.MySCPDURL, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       MySCPDURL = " & ParentService.MySCPDURL & Environment.NewLine)
-                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ServiceActive = " & ParentService.MyServiceActive, LogType.LOG_TYPE_INFO)
-                                    AddText(fs, "       ServiceActive = " & ParentService.MyServiceActive & Environment.NewLine)
+                                    If PIDebuglevel > DebugLevel.dlEvents Then Log(".        ServiceActive = " & ParentService.hasActionListRetrieved, LogType.LOG_TYPE_INFO)
+                                    AddText(fs, "       ServiceActive = " & ParentService.hasActionListRetrieved & Environment.NewLine)
                                     If PIDebuglevel > DebugLevel.dlEvents Then Log(".        Timeout = " & ParentService.MyTimeout, LogType.LOG_TYPE_INFO)
                                     AddText(fs, "       Timeout = " & ParentService.MyTimeout & Environment.NewLine)
                                     Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Device.UniqueDeviceName) & "_" & ReplaceSpecialCharacters(ParentService.Id) & ".xml"
@@ -4518,8 +4519,8 @@ NextElement:
                                                 AddText(fs, "           ReceivedSID = " & ChildService.MyReceivedSID & Environment.NewLine)
                                                 If PIDebuglevel > DebugLevel.dlEvents Then Log(".            MySCPDURL = " & ChildService.MySCPDURL, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           MySCPDURL = " & ChildService.MySCPDURL & Environment.NewLine)
-                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ServiceActive = " & ChildService.MyServiceActive, LogType.LOG_TYPE_INFO)
-                                                AddText(fs, "           ServiceActive = " & ChildService.MyServiceActive & Environment.NewLine)
+                                                If PIDebuglevel > DebugLevel.dlEvents Then Log(".            ServiceActive = " & ChildService.hasActionListRetrieved, LogType.LOG_TYPE_INFO)
+                                                AddText(fs, "           ServiceActive = " & ChildService.hasActionListRetrieved & Environment.NewLine)
                                                 If PIDebuglevel > DebugLevel.dlEvents Then Log(".            Timeout = " & ChildService.MyTimeout, LogType.LOG_TYPE_INFO)
                                                 AddText(fs, "           Timeout = " & ChildService.MyTimeout & Environment.NewLine)
                                                 Dim SearchResultXMLFilePath As String = CurrentAppPath & SearchResultFile & "_" & ReplaceSpecialCharacters(Device.UniqueDeviceName) & "_" & ReplaceSpecialCharacters(ChildService.Id) & ".xml"
