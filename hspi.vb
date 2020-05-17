@@ -430,8 +430,8 @@ Public Class HSPI
                 If HSisRunningOnLinux Then
                     If Not File.Exists(CurrentAppPath & "/Config/" & tIFACE_NAME & ".ini") Then
                         Try
-                            WriteBooleanIniFile("Options", "Debug", False)
-                            WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
+                            WriteIntegerIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly)
+                            WriteIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
                         Catch ex As Exception
                             Log("Error in InitIO. Unable to create /Config/" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -439,8 +439,8 @@ Public Class HSPI
                 Else
                     If Not File.Exists(CurrentAppPath & "\Config\" & tIFACE_NAME & ".ini") Then
                         Try
-                            WriteBooleanIniFile("Options", "Debug", False)
-                            WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
+                            WriteIntegerIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly)
+                            WriteIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
                         Catch ex As Exception
                             Log("Error in InitIO. Unable to create \Config\" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
@@ -6035,4 +6035,22 @@ Module HS_GLOBAL_VARIABLES
         TPSHoursMinutesSeconds = 1
         TPSPercentage = 2
     End Enum
+
+    <Serializable>
+    Class NetworkInfo
+        Public description As String
+        Public mac As String
+        Public operationalstate As String
+        Public id As String
+        Public name As String
+        Public interfacetype As String
+        Public addressinfo As List(Of NetworkInfoAddrMask)
+    End Class
+
+    <Serializable>
+    Class NetworkInfoAddrMask
+        Public address As String
+        Public mask As String
+        Public addrtype As String
+    End Class
 End Module

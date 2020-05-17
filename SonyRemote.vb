@@ -327,6 +327,7 @@ Partial Public Class HSPI
                     If ActionName.ToUpper = "REGISTER" Then
                         MySonyRegisterURL = ActionURL
                         MySonyRegisterMode = outerNode.Attributes("mode").Value
+                        If MySonyRegisterMode = "3" Then MySonyRegisterMode = "JSON"    ' added for blue ray player on 5/16/2020 in v57
                     ElseIf ActionName.ToUpper = "GETSTATUS" Then
                         MySonyGetStatusURL = ActionURL
                     ElseIf ActionName.ToUpper = "GETREMOTECOMMANDLIST" Then
@@ -854,6 +855,7 @@ Partial Public Class HSPI
     Private Sub SonySetupRemoteInfo()
         MySonyRegisterMode = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "")
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonySetupRemoteInfo called for device = " & MyUPnPDeviceName & " with RegisterMode = " & MySonyRegisterMode, LogType.LOG_TYPE_INFO)
+
         If MySonyRegisterMode = "1" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyContentList(MySonyContentListURL)
