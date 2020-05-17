@@ -327,7 +327,6 @@ Partial Public Class HSPI
                     If ActionName.ToUpper = "REGISTER" Then
                         MySonyRegisterURL = ActionURL
                         MySonyRegisterMode = outerNode.Attributes("mode").Value
-                        If MySonyRegisterMode = "3" Then MySonyRegisterMode = "JSON"    ' added for blue ray player on 5/16/2020 in v57
                     ElseIf ActionName.ToUpper = "GETSTATUS" Then
                         MySonyGetStatusURL = ActionURL
                     ElseIf ActionName.ToUpper = "GETREMOTECOMMANDLIST" Then
@@ -398,6 +397,9 @@ Partial Public Class HSPI
             'URLDoc = URLDoc & "?action=register&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & MyMacAddress
             'URLDoc = URLDoc & "?action=register&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress)
             URLDoc = URLDoc & "&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress)
+        ElseIf MySonyRegisterMode = "3" Then
+            ' https://github.com/KHerron/SonyAPILib/blob/master/SonyAPILib/SonyAPILib/sonyAPILib.cs
+            URLDoc = URLDoc & "&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress) & "&wolSupport=true"
         Else  'If MySonyRegisterMode = "2" Then
             URLDoc = URLDoc & "?name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress)
         End If
@@ -875,11 +877,29 @@ Partial Public Class HSPI
                     MyRemoteServiceActive = False
                 End If
             End If
+        ElseIf MySonyRegisterMode = "3" Then    ' added 5/17/2020 in v58
+            GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
+            GetSonyWebServices(MySonyWebServiceList)
+            If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
+            If HSRefRemote <> -1 Then
+                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
+                    MyRemoteServiceActive = False
+                End If
+            End If
         ElseIf MySonyRegisterMode = "JSON" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyWebServices(MySonyWebServiceList)
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
             MyRemoteServiceActive = True
+        Else    ' maybe some future methods that are non JSON added 5/17/2020 in v.58
+            GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
+            GetSonyWebServices(MySonyWebServiceList)
+            If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
+            If HSRefRemote <> -1 Then
+                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
+                    MyRemoteServiceActive = False
+                End If
+            End If
         End If
     End Sub
 
