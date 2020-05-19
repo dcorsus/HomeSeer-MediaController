@@ -324,6 +324,8 @@ Public Class PlugInConfig
                                 End If
                                 If GetStringIniFile(DLNADevice.Key, DeviceInfoIndex.diRemoteType.ToString, "") = "SonyIRRC" And GetStringIniFile(DLNADevice.Key, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "") = "JSON" Then
                                     stbPlayerTable.Append(BuildSonyAuthenticationOverlay("Authenticate", PlayerListTableRow.ToString, DLNADevice.Key))
+                                ElseIf GetStringIniFile(DLNADevice.Key, DeviceInfoIndex.diRemoteType.ToString, "") = "SonyIRRC" And GetStringIniFile(DLNADevice.Key, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "") = "3" Then
+                                    stbPlayerTable.Append(BuildSonyAuthenticationOverlay("Authenticate", PlayerListTableRow.ToString, DLNADevice.Key))
                                 ElseIf GetStringIniFile(DLNADevice.Key, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocketPIN" Then
                                     Dim AuthenticateBtn As New clsJQuery.jqButton("AuthenticateBtn" & "_" & PlayerListTableRow.ToString, "Get PIN", MyPageName, False)
                                     AuthenticateBtn.toolTip = "Click to open the PIN page on your TV"

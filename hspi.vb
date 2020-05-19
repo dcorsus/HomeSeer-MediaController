@@ -2317,9 +2317,9 @@ Public Class HSPI
                             'If Not ImRunningOnLinux Then ' removed v.38
                             Dim MACAddress As String = GetMACAddress(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress).ToString
                             If MACAddress <> "" Then
-                                If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.Replace("-", ":").ToUpper Then
                                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                    WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
+                                    WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress.Replace("-", ":"))
                                 End If
                             End If
                             'End If
@@ -2355,9 +2355,9 @@ Public Class HSPI
                         'If Not ImRunningOnLinux Then ' removed v.38
                         Dim MACAddress As String = GetMACAddress(UPnPDeviceInfoArray(I).UPnPDeviceIPAddress).ToString
                         If MACAddress <> "" Then
-                            If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                            If GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.Replace("-", ":").ToUpper Then
                                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfoArray(I).UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
+                                WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress.Replace("-", ":"))
                             End If
                         End If
                         'End If
@@ -2648,9 +2648,9 @@ NextElement:
                                 'If Not ImRunningOnLinux Then removed v.38
                                 Dim MACAddress As String = GetMACAddress(UPnPDeviceInfo.UPnPDeviceIPAddress).ToString
                                 If MACAddress <> "" Then
-                                    If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                    If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.Replace("-", ":").ToUpper Then
                                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & UPnPDeviceInfo.UPnPDeviceIPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                        WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
+                                        WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress.Replace("-", ":"))
                                     End If
                                 End If
                                 'End If
@@ -2682,9 +2682,9 @@ NextElement:
                             'If Not ImRunningOnLinux Then ' removed v.38
                             Dim MACAddress As String = GetMACAddress(NewUPnPDevice.IPAddress).ToString
                             If MACAddress <> "" Then
-                                If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.ToUpper Then
+                                If GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "").ToUpper <> MACAddress.Replace("-", ":").ToUpper Then
                                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DetectUPnPDevices. The MAC Address is different. IPAddress = " & NewUPnPDevice.IPAddress & " and stored Mac Address = " & GetStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, "") & " and on-line MACAddress = " & MACAddress, LogType.LOG_TYPE_WARNING)
-                                    WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress)
+                                    WriteStringIniFile(NewUDN, DeviceInfoIndex.diMACAddress.ToString, MACAddress.Replace("-", ":"))
                                 End If
                             End If
                             'End If
@@ -3758,8 +3758,13 @@ NextElement:
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AuthenticateSony called with DeviceUDN = " & DeviceUDN & " and SonyPIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
         Try
             Dim UPnPDevice As HSPI = GetAPIByUDN(DeviceUDN)
-            If UPnPDevice IsNot Nothing Then
-                AuthenticateSony = UPnPDevice.SendJSONAuthentication(SonyPIN)
+            If UPnPDevice IsNot Nothing Then    ' added 5/17/2020 in v60
+                If UPnPDevice.MySonyRegisterMode = "JSON" Then
+                    AuthenticateSony = UPnPDevice.SendJSONAuthentication(SonyPIN)
+                Else
+                    AuthenticateSony = UPnPDevice.SendMode3Authentication(SonyPIN, False)
+                End If
+                If AuthenticateSony Then UPnPDevice.SetHSRemoteState()
             End If
         Catch ex As Exception
             Log("Error in AuthenticateSony for DeviceUDN = " & DeviceUDN & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)

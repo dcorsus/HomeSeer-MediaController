@@ -248,7 +248,7 @@ Partial Public Class HSPI
                             If TagContent.ToLower = "true" Then isTV = True
                             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found isTV", LogType.LOG_TYPE_INFO)
                         ElseIf TagName.ToLower = "ethernet-mac" Then
-                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, TagContent)
+                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, TagContent.Replace("-", ":"))
                             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList for device - " & MyUPnPDeviceName & " found eMAC = " & TagContent, LogType.LOG_TYPE_INFO)
                         ElseIf TagName.ToLower = "wifi-mac" Then
                             WriteStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, TagContent)

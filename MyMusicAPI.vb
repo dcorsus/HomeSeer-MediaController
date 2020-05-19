@@ -5523,6 +5523,7 @@ Partial Public Class HSPI
                                             ' check if still registered
                                             If Not SonyRegister(MySonyRegisterURL, True) Then
                                                 WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
+                                                SetHSRemoteState()
                                             End If
                                         End If
                                     Catch ex As Exception

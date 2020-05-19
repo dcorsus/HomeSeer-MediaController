@@ -12,7 +12,7 @@ Partial Public Class HSPI
 
     Private MySonyRegisterURL As String = ""
     Private MySonyAppControlURL As String = ""
-    Private MySonyRegisterMode As String = ""
+    Public MySonyRegisterMode As String = ""
     Private MySonyRemoteCommandListURL As String = ""
     Private MySonyContentListURL As String = ""
     Private MySonySystemInformationURL As String = ""
@@ -359,7 +359,7 @@ Partial Public Class HSPI
             For index = 10 To 2 Step -2
                 inMacAddress = inMacAddress.Insert(index, "-")
             Next
-            AdjustMacAddressforSony = inMacAddress
+            AdjustMacAddressforSony = inMacAddress.ToUpper
         Catch ex As Exception
         End Try
     End Function
@@ -382,10 +382,12 @@ Partial Public Class HSPI
 
         SonyRegister = False
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyRegister called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString & " and SendRenew = " & SendRenew.ToString, LogType.LOG_TYPE_INFO)
+        Dim sonyPIN As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
 
         If MySonyRegisterMode = "JSON" Then
-            SendJSONAuthentication(GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, ""))
-            Exit Function
+            Return SendJSONAuthentication(sonyPIN)
+        ElseIf MySonyRegisterMode = "3" Then
+            Return SendMode3Authentication(sonyPIN, SendRenew)
         End If
 
         ' http://192.168.1.131:50002/register?action=register&name=DeviceName&RegistrationType=initial&deviceId=MediaRemote:MA-CA-DD-RE-SS
@@ -399,7 +401,7 @@ Partial Public Class HSPI
             URLDoc = URLDoc & "&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress)
         ElseIf MySonyRegisterMode = "3" Then
             ' https://github.com/KHerron/SonyAPILib/blob/master/SonyAPILib/SonyAPILib/sonyAPILib.cs
-            URLDoc = URLDoc & "&name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress) & "&wolSupport=true"
+            URLDoc = URLDoc & "?name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress) & "&wolSupport=true"
         Else  'If MySonyRegisterMode = "2" Then
             URLDoc = URLDoc & "?name=" & sIFACE_NAME & "&registrationType=" & RegistrationType & "&deviceId=" & "TVSideView" & "%3A" & AdjustMacAddressforSony(MyMacAddress)
         End If
@@ -563,13 +565,20 @@ Partial Public Class HSPI
             Dim RequestUri = New Uri(URLDoc)
             Dim p = ServicePointManager.FindServicePoint(RequestUri)
             p.Expect100Continue = False
-            wRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest) 'HttpWebRequest.Create(RequestUri)
+            wRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
             wRequest.Method = "GET"
-            wRequest.KeepAlive = False
+            wRequest.Host = RequestUri.Authority
+            wRequest.KeepAlive = True
+            wRequest.AllowAutoRedirect = True
             wRequest.ProtocolVersion = HttpVersion.Version11
-            '            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "MediaController/MediaController/MediaController,1")
-            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
+            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1")
             wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
+            Dim sonyPIN As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
+            If sonyPIN <> "" Then
+                Dim authInfo As String = ":" & sonyPIN
+                authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo))
+                wRequest.Headers.Add("Authorization", "Basic " & authInfo)
+            End If
         Catch ex As Exception
             Log("Error in GetSonyRemoteCommandList for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
@@ -638,6 +647,16 @@ Partial Public Class HSPI
         ' example at http://msdn.microsoft.com/en-us/library/debx8sh9.aspx
         ' SONY SMP-N200
 
+
+        ' this Blue Ray player
+        ' <?xml version="1.0" encoding="UTF-8"?>
+        '<contentInformation>
+        '   <infoItem field = "class" value="video" />
+        '   <infoItem field = "source" value="BD" />
+        '   <infoItem field = "mediaType" value="BD-ROM" />
+        '   <infoItem field = "mediaFormat" value="BDMV" />
+        '</contentInformation>
+
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
         Dim wRequest As HttpWebRequest = Nothing
@@ -648,12 +667,18 @@ Partial Public Class HSPI
             p.Expect100Continue = False
             wRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest) 'HttpWebRequest.Create(RequestUri)
             wRequest.Method = "GET"
-            wRequest.KeepAlive = False
+            wRequest.KeepAlive = True
             wRequest.ProtocolVersion = HttpVersion.Version11
-            '            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "MediaController/MediaController/MediaController,1")
+            wRequest.AllowAutoRedirect = True
+            wRequest.Host = RequestUri.Authority
             wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
-            'wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & MyMacAddress)
             wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
+            Dim sonyPIN As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
+            If sonyPIN <> "" Then
+                Dim authInfo As String = ":" & sonyPIN
+                authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo))
+                wRequest.Headers.Add("Authorization", "Basic " & authInfo)
+            End If
         Catch ex As Exception
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub ' there is none, exit function
@@ -675,46 +700,17 @@ Partial Public Class HSPI
             Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " doing a GetResponseStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " found XML = " & webStream.ToString, LogType.LOG_TYPE_INFO)
         Try
             xmlDoc.Load(webStream)
         Catch ex As Exception
             Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " loading the XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " found XML = " & xmlDoc.InnerXml.ToString, LogType.LOG_TYPE_INFO)
         Try
             webStream.Close()
             webResponse.Close()
         Catch ex As Exception
             Log("Error in GetSonyContentList for device - " & MyUPnPDeviceName & " closing everything with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-        End Try
-        Dim ButtonIndex As Integer = 20
-        Dim RowIndex As Integer = 2
-        Dim ColumnIndex As Integer = 1
-        Try
-            If xmlDoc.HasChildNodes Then
-                'Get a list of all the child elements
-                Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
-                'Parse through all nodes
-                For Each outerNode As XmlNode In nodelist
-                    Dim CommandName As String = outerNode.Attributes("name").Value
-                    Dim CommandType As String = outerNode.Attributes("type").Value
-                    Dim CommandValue As String = outerNode.Attributes("value").Value
-                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Name: " & CommandName, LogType.LOG_TYPE_INFO)
-                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Type: " & CommandType, LogType.LOG_TYPE_INFO)
-                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyContentList for device - " & MyUPnPDeviceName & "------> Command Value: " & CommandValue, LogType.LOG_TYPE_INFO)
-                    'If CommandType.ToUpper = "IRCC" Then processSonyCommand(CommandName, CommandValue, ButtonIndex, RowIndex, ColumnIndex)
-                    ButtonIndex += 1
-                    ColumnIndex += 1
-                    If ColumnIndex > 4 Then
-                        RowIndex += 1
-                        ColumnIndex = 1
-                    End If
-                Next
-            End If
-        Catch ex As Exception
-            Log("Error in GetSonyContentList for UPnPDevice = " & MyUPnPDeviceName & "  processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -741,10 +737,15 @@ Partial Public Class HSPI
             wRequest.KeepAlive = False
             wRequest.ProtocolVersion = HttpVersion.Version11
             wRequest.ContentLength = 0
-            'wRequest.Headers.Add("X-CERS-DEVICE-INFO", "MediaController/MediaController/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
+            wRequest.Host = RequestUri.Authority
             wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
             wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
-            'wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & MyMacAddress) ' X-CERS-DEVICE-ID
+            Dim sonyPIN As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
+            If sonyPIN <> "" Then
+                Dim authInfo As String = ":" & sonyPIN
+                authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo))
+                wRequest.Headers.Add("Authorization", "Basic " & authInfo)
+            End If
         Catch ex As Exception
             Log("Error in GetSonyWebServices for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
@@ -777,31 +778,13 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("Error in GetSonyWebServices for device - " & MyUPnPDeviceName & " closing everything with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        Dim ButtonIndex As Integer = 20
-        Dim RowIndex As Integer = 2
-        Dim ColumnIndex As Integer = 1
-        Try
-            If xmlDoc.HasChildNodes Then
-                'Get a list of all the child elements
-                Dim nodelist As XmlNodeList = xmlDoc.DocumentElement.ChildNodes
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Nbr of items in XML Data = " & nodelist.Count, LogType.LOG_TYPE_INFO)
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Document root node: " & xmlDoc.DocumentElement.Name, LogType.LOG_TYPE_INFO)
-                'Parse through all nodes
-                For Each outerNode As XmlNode In nodelist
-                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then
-                        Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Found Node Name = " & outerNode.Name, LogType.LOG_TYPE_INFO)
-                        Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " Found Innertext Name = " & outerNode.InnerText, LogType.LOG_TYPE_INFO)
-                    End If
-                Next
-            End If
-        Catch ex As Exception
-            Log("Error in GetSonyWebServices for UPnPDevice = " & MyUPnPDeviceName & "  processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-        End Try
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyWebServices for device - " & MyUPnPDeviceName & " found XML = " & xmlDoc.InnerXml.ToString, LogType.LOG_TYPE_INFO)
         xmlDoc = Nothing
 
     End Sub
 
     Private Sub RetrieveSonySystemInformation(URLDoc As String)
+        ' https://forums.homeseer.com/forum/media-plug-ins/media-discussion/media-controller-dcorsus/1386002-can-t-add-remote-buttons-for-sony-ubp-x1100es-blu-ray-player
 
         ' <action name="getSystemInformation" url="http://192.168.1.147:31038/cers?action=getSystemInformation"/>
 
@@ -818,6 +801,46 @@ Partial Public Class HSPI
         '    </supportSource>
         '</systemInformation>
 
+        '<systemInformation>
+        '   <name>BDPlayer</name>
+        '   <generation>2017</generation>
+        '   <remoteType>RMT-B119A</remoteType>
+        '   <remoteType>RMT-B120A</remoteType>
+        '   <remoteType>RMT-B122A</remoteType>
+        '   <remoteType>RMT-B123A</remoteType>
+        '   <remoteType bundled = "true" > RMT - B126A</remoteType>
+        '   <remoteType>RMT-B119J</remoteType>
+        '   <remoteType>RMT-B127J</remoteType>
+        '   <remoteType>RMT-B119P</remoteType>
+        '   <remoteType>RMT-B120P</remoteType>
+        '   <remoteType>RMT-B121P</remoteType>
+        '   <remoteType>RMT-B122P</remoteType>
+        '   <remoteType>RMT-B127P</remoteType>
+        '   <remoteType>RMT-B119C</remoteType>
+        '   <remoteType>RMT-B120C</remoteType>
+        '   <remoteType>RMT-B122C</remoteType>
+        '   <remoteType>RMT-B127C</remoteType>
+        '   <remoteType>RMT-B127T</remoteType>
+        '   <remoteType>RMT-B115A</remoteType>
+        '   <actionHeader name = "CERS-DEVICE-ID" />
+        '   <supportContentsClass>
+        '        <class>video</Class>
+        '       <class>music</Class>
+        '   </supportContentsClass>
+        '   <supportSource>
+        '       <source>BD</source>
+        '       <source>DVD</source>
+        '       <source>CD</source>
+        '       <source>Net</source>
+        '   </supportSource>
+        '   <supportFunction>
+        '       <function name = "Notification" />
+        '        <function name="WOL">
+        '             <functionItem field="MAC" value="94-db-56-08-24-25"/>
+        '        </function>
+        '   </supportFunction>
+        '</systemInformation>
+
 
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveSonySystemInformation called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
         If URLDoc = "" Then Exit Sub
@@ -826,13 +849,11 @@ Partial Public Class HSPI
         Try
             Dim p = ServicePointManager.FindServicePoint(RequestUri)
             p.Expect100Continue = False
-            Dim wRequest As HttpWebRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest) ' HttpWebRequest.Create(RequestUri)
+            Dim wRequest As HttpWebRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
             wRequest.Method = "GET"
             wRequest.KeepAlive = False
             wRequest.ProtocolVersion = HttpVersion.Version11
-            '            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "MediaController/MediaController/MediaController,1")
-            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1") '"iPhone OS7.1.1/MediaRemote2.5.0/iPhone5,1") ' iPhone OS9.2/MediaRemote3.0.0/iPhone7,1
-            'wRequest.Headers.Add("X-CERS-DEVICE-ID", sIFACE_NAME & ":" & MyMacAddress)
+            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1")
             Dim webResponse As WebResponse = Nothing
             webResponse = wRequest.GetResponse
             Dim webStream As Stream = Nothing
@@ -851,55 +872,111 @@ Partial Public Class HSPI
             MySonyActionHeader = "X-CERS-DEVICE-ID"
         End Try
         MySonyActionHeader = "X-CERS-DEVICE-ID" ' test dcor
+        Try
+            Dim functionNodeList As XmlNodeList = xmlDoc.GetElementsByTagName("functionItem")
+            If functionNodeList IsNot Nothing AndAlso functionNodeList.Count > 0 Then
+                For Each functionNode As XmlNode In functionNodeList
+                    If functionNode.Attributes("field").Value = "MAC" Then
+                        Dim macaddr As String = functionNode.Attributes("value").Value
+                        If macaddr <> "" Then WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diMACAddress.ToString, macaddr.Replace("-", ":"))
+                    End If
+                Next
+            End If
+        Catch ex As Exception
+            Log("Error in RetrieveSonySystemInformation for device - " & MyUPnPDeviceName & " retrieving the MAC with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
         xmlDoc = Nothing
     End Sub
+
+    Private Sub GetSonyStatus(URLDoc As String)
+        ' <?xml version="1.0" encoding="UTF-8"?>
+        '<statusList>
+        '   <status name = "disc">
+        '       <statusItem field="type" value="BD" />
+        '       <statusItem field = "mediaType" value="BD-ROM" />
+        '       <statusItem field = "mediaFormat" value="BDMV" />
+        '   </status>
+        '</statusList>
+
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyStatus called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
+        If URLDoc = "" Then Exit Sub
+        Dim wRequest As HttpWebRequest = Nothing
+        Dim xmlDoc As New XmlDocument
+        Try
+            Dim RequestUri = New Uri(URLDoc)
+            Dim p = ServicePointManager.FindServicePoint(RequestUri)
+            p.Expect100Continue = False
+            wRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
+            wRequest.Method = "GET"
+            wRequest.KeepAlive = False
+            wRequest.ProtocolVersion = HttpVersion.Version11
+            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1")
+            wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress))
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub ' there is none, exit function
+        End Try
+        Dim webResponse As WebResponse = Nothing
+        Try
+            webResponse = wRequest.GetResponse
+        Catch ex As WebException
+            Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " doing a GetResponse with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        Catch ex As Exception
+            Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " doing a GetResponse with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End Try
+        Dim webStream As Stream = Nothing
+        Try
+            webStream = webResponse.GetResponseStream
+        Catch ex As Exception
+            Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " doing a GetResponseStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End Try
+
+        Try
+            xmlDoc.Load(webStream)
+        Catch ex As Exception
+            Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " loading the XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSonyStatus for device - " & MyUPnPDeviceName & " found XML = " & xmlDoc.InnerXml.ToString, LogType.LOG_TYPE_INFO)
+        Try
+            webStream.Close()
+            webResponse.Close()
+        Catch ex As Exception
+            Log("Error in GetSonyStatus for device - " & MyUPnPDeviceName & " closing everything with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+    End Sub
+
 
     Private Sub SonySetupRemoteInfo()
         MySonyRegisterMode = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "")
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonySetupRemoteInfo called for device = " & MyUPnPDeviceName & " with RegisterMode = " & MySonyRegisterMode, LogType.LOG_TYPE_INFO)
-
+        MyRemoteServiceActive = True
         If MySonyRegisterMode = "1" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyContentList(MySonyContentListURL)
             CreateButtonInfoInInifile()
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
-            If HSRefRemote <> -1 Then
-                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
-                    MyRemoteServiceActive = False
-                End If
-            End If
         ElseIf MySonyRegisterMode = "2" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyWebServices(MySonyWebServiceList)
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
-            If HSRefRemote <> -1 Then
-                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
-                    MyRemoteServiceActive = False
-                End If
-            End If
         ElseIf MySonyRegisterMode = "3" Then    ' added 5/17/2020 in v58
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
-            GetSonyWebServices(MySonyWebServiceList)
+            GetSonyContentList(MySonyContentListURL)
+            GetSonyStatus(MySonyGetStatusURL)  ' added in v60
+            CreateButtonInfoInInifile()
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
-            If HSRefRemote <> -1 Then
-                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
-                    MyRemoteServiceActive = False
-                End If
-            End If
         ElseIf MySonyRegisterMode = "JSON" Then
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
             GetSonyWebServices(MySonyWebServiceList)
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
-            MyRemoteServiceActive = True
         Else    ' maybe some future methods that are non JSON added 5/17/2020 in v.58
             GetSonyRemoteCommandList(MySonyRemoteCommandListURL)
-            GetSonyWebServices(MySonyWebServiceList)
+            GetSonyContentList(MySonyContentListURL)
+            CreateButtonInfoInInifile()
             If HSRefRemote = -1 Then CreateHSSonyRemoteButtons(False)
-            If HSRefRemote <> -1 Then
-                If Not GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) Then
-                    MyRemoteServiceActive = False
-                End If
-            End If
         End If
     End Sub
 
@@ -1135,7 +1212,7 @@ Partial Public Class HSPI
                                     Next
                                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & "  for SystemSupportedFunction found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsonyy
                                     If Name = "WOL" Then
-                                        WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diMACAddress.ToString, Value) ' in the format 70:18:8B:97:34:14
+                                        WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diMACAddress.ToString, Value.Replace("-", ":")) ' in the format 70:18:8B:97:34:14
                                         'processSonyCommand("WOL", Value, psWOL, RowIndex, ColumnIndex)
                                         'ColumnIndex += 1
                                         'If ColumnIndex > 5 Then
@@ -1485,6 +1562,111 @@ Partial Public Class HSPI
         End Try
     End Function
 
+    Private Function SendMode3Authentication(SonyPIN As String, sendRenew As Boolean) As Boolean
+        ' https://github.com/KHerron/SonyAPILib/blob/master/SonyAPILib/SonyAPILib/sonyAPILib.cs
+
+        SendMode3Authentication = False
+
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMode3Authentication called for device - " & MyUPnPDeviceName & " with SonyRegisterURL = " & MySonyRegisterURL.ToString & " and PIN = " & SonyPIN, LogType.LOG_TYPE_INFO)
+        If MySonyRegisterURL = "" Then Exit Function
+        SonyPIN = Trim(SonyPIN)
+
+        Dim registerURL As String = ""
+        If sendRenew Then
+            registerURL = MySonyRegisterURL & "?name=" & sIFACE_NAME & "&registrationType=renewal&deviceId=TVSideView%3A" & AdjustMacAddressforSony(MyMacAddress) & "&wolSupport=true"
+        Else
+            registerURL = MySonyRegisterURL & "?name=" & sIFACE_NAME & "&registrationType=initial&deviceId=TVSideView%3A" & AdjustMacAddressforSony(MyMacAddress) & "&wolSupport=true "
+        End If
+
+        Dim wRequest As HttpWebRequest = Nothing
+        Dim webResponse As WebResponse = Nothing
+        Dim webStream As Stream = Nothing
+        Dim ResponseHTML As String = ""
+        Dim authInfo As String = ""
+
+        Try
+            Dim RequestUri = New Uri(registerURL)
+            Dim p = ServicePointManager.FindServicePoint(RequestUri)
+            p.Expect100Continue = False
+            wRequest = DirectCast(System.Net.HttpWebRequest.Create(RequestUri), HttpWebRequest)
+            wRequest.Method = "GET"
+            wRequest.Host = RequestUri.Authority
+            wRequest.KeepAlive = True
+            wRequest.AllowAutoRedirect = True
+            wRequest.ProtocolVersion = HttpVersion.Version11
+            wRequest.Headers.Add("X-CERS-DEVICE-INFO", "iPhone OS9.2/MediaController1.0.0/MediaController,1")
+            wRequest.Headers.Add(MySonyActionHeader, "TVSideView" & ":" & AdjustMacAddressforSony(MyMacAddress)) ' X-CERS-DEVICE-ID
+            If SonyPIN <> "" Then
+                authInfo = ":" & SonyPIN
+                authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo))
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMode3Authentication for device - " & MyUPnPDeviceName & " created Authentication string = " & "Basic " & authInfo, LogType.LOG_TYPE_INFO)
+                wRequest.Headers.Add("Authorization", "Basic " & authInfo)
+            End If
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " creating a webrequest with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Function ' there is none, exit function
+        End Try
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMode3Authentication for device - " & MyUPnPDeviceName & " is sending registerString = " & registerURL.ToString & " with authInfo = " & authInfo, LogType.LOG_TYPE_INFO)
+
+        Try
+            webResponse = wRequest.GetResponse
+        Catch ex As WebException ' if we are trying to renew and the response = 403 than the device is not registered and the registration flag should be reset!!
+            ' a 401 Unauthorized may indicate our PIN is invalid
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " registering with URL = " & registerURL.ToString & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
+            WriteStringIniFile(MyUDN, DeviceInfoIndex.diSonyAuthenticationPIN.ToString, "")
+            webResponse = ex.Response
+            If webResponse IsNot Nothing Then
+                webStream = webResponse.GetResponseStream
+                Dim strmRdr As New System.IO.StreamReader(webStream)
+                ResponseHTML = strmRdr.ReadToEnd()
+                strmRdr.Dispose()
+            End If
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " registering with URL = " & registerURL.ToString & " with HTML = " & ResponseHTML, LogType.LOG_TYPE_ERROR)
+            Exit Function
+        Catch ex As Exception
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " doing a GetResponse with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Function
+        End Try
+
+        Try
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMode3Authentication for device - " & MyUPnPDeviceName & " has Response Header = " & webResponse.Headers.ToString(), LogType.LOG_TYPE_INFO) ' dcorsony  
+        Catch ex As Exception
+        End Try
+
+
+        Try
+            webStream = webResponse.GetResponseStream
+        Catch ex As Exception
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " doing a GetResponseStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Function
+        End Try
+
+        Dim receivedResponse As String = ""
+
+        Try
+            Dim strmRdr As New System.IO.StreamReader(webStream)
+            receivedResponse = strmRdr.ReadToEnd()
+            strmRdr.Dispose()
+        Catch ex As Exception
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " reading the ResponseStream with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Function
+        End Try
+
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMode3Authentication for device - " & MyUPnPDeviceName & " received = " & receivedResponse.ToString, LogType.LOG_TYPE_INFO)
+
+        SendMode3Authentication = True
+        WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
+
+        Try
+            webStream.Close()
+            webResponse.Close()
+        Catch ex As Exception
+            Log("Error in SendMode3Authentication for device - " & MyUPnPDeviceName & " closing everything with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+
+    End Function
+
     Private Sub processSonyCommand(CommandName As String, CommandValue As String, ButtonIndex As Integer, Row As Integer, Column As Integer)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("processSonyCommand called for device - " & MyUPnPDeviceName & " with CommandName = " & CommandName & " and CommandValue = " & CommandValue, LogType.LOG_TYPE_INFO)
         Dim objRemoteFile As String = gRemoteControlPath
@@ -1508,8 +1690,9 @@ Partial Public Class HSPI
         Dim Pair As VSPair
 
         Dim Column As Integer = 1
+        Dim registrationMode = GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "")
 
-        If GetStringIniFile(MyUDN, DeviceInfoIndex.diSonyRemoteRegisterType.ToString, "") <> "JSON" Then
+        If (registrationMode <> "JSON") And (registrationMode = "3") Then
             Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
             Pair.PairType = VSVGPairType.SingleValue
             Pair.Value = psRegister

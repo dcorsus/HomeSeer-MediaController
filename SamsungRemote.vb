@@ -968,13 +968,13 @@ Partial Public Class HSPI
                                     Dim Macaddress As String = ""
                                     IPPart = IPPart.Remove(0, 14)
                                     'IPPart.CopyTo(15, Macaddress, 0, IPParts.Length - 15)
-                                    WriteStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, Macaddress)
+                                    WriteStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, Macaddress.Replace("-", ":"))
                                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored wifiMac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
                                 ElseIf TagParts(0) = "eth0MacAddress" Then
                                     Dim Macaddress As String = ""
                                     IPPart = IPPart.Remove(0, 14)
                                     'IPPart.CopyTo(15, Macaddress, 0, IPParts.Length - 15)
-                                    WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, Macaddress)
+                                    WriteStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, Macaddress.Replace("-", ":"))
                                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML for device = " & MyUPnPDeviceName & " stored Mac Address = " & Macaddress, LogType.LOG_TYPE_INFO)
                                 End If
                             End If
