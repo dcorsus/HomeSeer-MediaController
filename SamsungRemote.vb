@@ -439,7 +439,6 @@ Partial Public Class HSPI
             'WriteStringIniFile(MyUDN, "100", "Stop" & ":;:-:" & "KEY_STOP" & ":;:-:14:;:-:3", objRemoteFile)
             WriteStringIniFile(MyUDN, "107", "SmartHub" & ":;:-:" & "KEY_CONTENTS" & ":;:-:14:;:-:4", objRemoteFile)
             'WriteStringIniFile(MyUDN, "108", "Text" & ":;:-:" & "SamsungEnterText" & ":;:-:15:;:-:1:;:-:" & "www.cnnfn.com", objRemoteFile)    'dcortizen
-            'WriteStringIniFile(MyUDN, "108", "Test" & ":;:-:" & "SamsungTest" & ":;:-:15:;:-:1:;:-:" & "", objRemoteFile)    'dcor2014
         ElseIf SamsungRemoteType = "SamsungWebSocketPIN" Then
             WriteStringIniFile(MyUDN, "20", "Power" & ":;:-:" & "KEY_POWER" & ":;:-:1:;:-:1", objRemoteFile)
             'WriteStringIniFile(MyUDN, "21", "PowerOn" & ":;:-:" & "KEY_POWERON" & ":;:-:1:;:-:2", objRemoteFile)
@@ -781,9 +780,10 @@ Partial Public Class HSPI
                         ElseIf Entry.Key.ToString = "icon" Then
                             Icon = Value
                             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
-                            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""iconPath"":""" & Icon & """,""event"": ""ed.apps.icon"", ""to"":""host""}}"), True) Then
-                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
-                            End If
+                            ' 6/4/2020 going to remove this for now, it really isn't useful
+                            'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""iconPath"":""" & Icon & """,""event"": ""ed.apps.icon"", ""to"":""host""}}"), True) Then
+                            'If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAddAppButtons for Device = " & MyUPnPDeviceName & " retrieving icon info =" & Icon, LogType.LOG_TYPE_INFO)
+                            'End If
                         End If
                     End If
                 Next
@@ -848,8 +848,13 @@ Partial Public Class HSPI
                     SamsungOpenPinPage()
                 End If
             Case psWOL
-                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
-                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
+                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress)
+                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress)
+                Dim deviceIpAddress As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diIPAddress.ToString, "")
+                If deviceIpAddress <> "" Then
+                    SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), deviceIpAddress)
+                    SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), deviceIpAddress)
+                End If
             Case psCreateRemoteAppButtons
                 'CreateSamsungAppButtons(HSRefRemote)
             Case Else
@@ -865,7 +870,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Function SamsungActivateRemote() As Boolean
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungActivateRemote called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungActivateRemote called for UPnPDevice = " & MyUPnPDeviceName & " has ServiceStateActive = " & MyRemoteServiceActive.ToString & " and admin state = " & MyAdminStateActive.ToString, LogType.LOG_TYPE_INFO)
         SamsungActivateRemote = False
         If Not MyRemoteServiceActive And MyAdminStateActive Then
             If GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then
@@ -1232,28 +1237,25 @@ Partial Public Class HSPI
 
     Private Sub SamsungCloseTCPConnection(Force As Boolean)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungCloseTCPConnection called for UPnPDevice = " & MyUPnPDeviceName & ", Force = " & Force.ToString & " and RemoteServiceActive = " & MyRemoteServiceActive.ToString, LogType.LOG_TYPE_INFO)
-        If Not (MyRemoteServiceActive Or Force) Then Exit Sub
+        'If Not (MyRemoteServiceActive Or Force) Then Exit Sub
         Dim SamsungRemoteType As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
         If SamsungRemoteType = "Samsungiapp" Then
-            RemoveHandler MySamsungAsyncSocket.DataReceived, AddressOf HandleSamsungTCPDataReceived
-            Try
-                MySamsungAsyncSocket.CloseSocket()
-            Catch ex As Exception
-                Log("Error in CloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-            End Try
-            Try
-                MySamsungClient = Nothing
+            If MySamsungAsyncSocket IsNot Nothing Then
+                Try
+                    RemoveHandler MySamsungAsyncSocket.DataReceived, AddressOf HandleSamsungTCPDataReceived
+                Catch ex As Exception
+                End Try
+                Try
+                    MySamsungAsyncSocket.CloseSocket()
+                Catch ex As Exception
+                    Log("Error in CloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                End Try
                 MySamsungAsyncSocket = Nothing
-            Catch ex As Exception
-                Log("Error in CloseTCPConnection 1 for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-            End Try
+            End If
+            MySamsungClient = Nothing
+
         Else
             If MySamsungWebSocket IsNot Nothing Then
-                Try
-                    MySamsungWebSocket.CloseSocket()
-                Catch ex As Exception
-                    Log("Error in CloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " closing the websocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                End Try
                 Try
                     RemoveHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
                 Catch ex As Exception
@@ -1261,6 +1263,11 @@ Partial Public Class HSPI
                 Try
                     RemoveHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
                 Catch ex As Exception
+                End Try
+                Try
+                    MySamsungWebSocket.CloseSocket()
+                Catch ex As Exception
+                    Log("Error in CloseTCPConnection for UPnPDevice = " & MyUPnPDeviceName & " closing the websocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 MySamsungWebSocket = Nothing
             End If
@@ -1521,8 +1528,7 @@ step1:
         ReturnHeader = ""
         ReturnBody = ""
         PayLoad = "{""auth_Data"":{""auth_type"":""SPC"",""GeneratorServerHello"":""" & HelloString & """}}"
-        'If piDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungAuthenticateUsePIN  for device - " & MyUPnPDeviceName & "  Sending GeneratorServerHello with payload = " & PayLoad, LogType.LOG_TYPE_INFO)
 
         If Not SendWebRequest(RequestURL, "POST", True, PayLoad, ReturnHeader, ReturnBody) Then
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " Unsuccessful GeneratorServerHello", LogType.LOG_TYPE_INFO)
@@ -1610,7 +1616,7 @@ Step2:
         Catch ex As Exception
             Return ""
         End Try
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " is sending ServerAckMsg with content = " & PayLoad, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " is sending ServerAckMsg with content = " & PayLoad, LogType.LOG_TYPE_INFO)
 
         If Not SendWebRequest(RequestURL, "POST", True, PayLoad, ReturnHeader, ReturnBody) Then
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " unsuccessful sending ServerAckMsg", LogType.LOG_TYPE_INFO)
@@ -1633,7 +1639,7 @@ Step2:
         Dim ClientAckMsg As String = ""
         Dim SessionID As String = ""
         Dim SessionKey As String = ""
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " received authentication data for ClientAck with content = " & ReturnBody, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " received authentication data for ClientAck with content = " & ReturnBody, LogType.LOG_TYPE_INFO)
 
         AuthData = FindPairInJSONString(ReturnBody, "auth_data").ToString
         If AuthData IsNot Nothing AndAlso AuthData <> "" Then
@@ -1644,7 +1650,7 @@ Step2:
 
         If SessionID IsNot Nothing Then SessionID = ""
 
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " ClientAckMsg = " & ClientAckMsg, LogType.LOG_TYPE_INFO) 'dcor2014
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " ClientAckMsg = " & ClientAckMsg, LogType.LOG_TYPE_INFO)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionID = " & SessionID, LogType.LOG_TYPE_INFO)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionKey = " & SessionKey, LogType.LOG_TYPE_INFO)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " AESKey = " & ByteArrayToHexString(AESKey), LogType.LOG_TYPE_INFO)
@@ -1903,6 +1909,7 @@ Step2:
         End If
 
         If Not MySamsungWebSocket.ConnectSocket(MyIPAddress, GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")) Then
+            MySamsungWebSocket = Nothing
             Return False
         End If
 
@@ -1915,11 +1922,20 @@ Step2:
         End While
 
         If Not MySamsungWebSocket.Receive() Then
+            Try
+                MySamsungWebSocket.CloseSocket()
+            Catch ex As Exception
+            End Try
+            MySamsungWebSocket = Nothing
             Return False
         End If
 
         If Not MySamsungWebSocket.UpgradeWebSocket(WebSocketURL & "websocket/" & HandshakeToken, GetStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, ""), 0, False) Then
-            MySamsungWebSocket.CloseSocket()
+            Try
+                MySamsungWebSocket.CloseSocket()
+            Catch ex As Exception
+            End Try
+            MySamsungWebSocket = Nothing
             Return False
         End If
 
@@ -1948,9 +1964,9 @@ Step2:
         Return True
     End Function
 
-    Private Sub SamsungOpenUnEncryptedWebSocket(Port As String, Location As String)
+    Private Sub SamsungOpenUnEncryptedWebSocket(WebSocketPort As String, Location As String)
 
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket called for UPnPDevice = " & MyUPnPDeviceName & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket called for UPnPDevice = " & MyUPnPDeviceName & ", WebSocketPort = " & WebSocketPort & ", location = " & Location & " and MyRemoteServiceActive = " & MyRemoteServiceActive, LogType.LOG_TYPE_INFO)
 
 
         'key in http://192.168.1.165:8001/api/v2/ and get
@@ -1983,7 +1999,7 @@ Step2:
         '"uri": "http://192.168.1.165:8001/api/v2/"
         '}
         ' {"device":{"FrameTVSupport":"false","GamePadSupport":"true","ImeSyncedSupport":"true","OS":"Tizen","TokenAuthSupport":"true","VoiceSupport":"true","countryCode":"NO","description":"Samsung DTV RCR","developerIP":"0.0.0.0","developerMode":"0","duid":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","firmwareVersion":"Unknown","id":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","ip":"192.168.2.247","model":"18_KANTM2_QTV","modelName":"QE65Q9FNA","name":"[TV] Samsung Q9 Series (65)","networkType":"wired","resolution":"3840x2160","smartHubAgreement":"true","type":"Samsung SmartTV","udn":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","wifiMac":"c0:48:e6:c3:3b:8d"},"id":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","isSupport":"{"DMP_DRM_PLAYREADY":"false","DMP_DRM_WIDEVINE":"false","DMP_available":"true","EDEN_available":"true","FrameTVSupport":"false","ImeSyncedSupport":"true","TokenAuthSupport":"true","remote_available":"true","remote_fourDirections":"true","remote_touchPad":"true","remote_voiceControl":"true"}","name":"[TV] Samsung Q9 Series (65)","remote":"1.0","type":"Samsung SmartTV","uri":"http://192.168.2.247:8001/api/v2/","version":"2.0.25"}
-        Dim WebSocketPort As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")
+
         Dim URL As String = "http://" & MyIPAddress & ":" & WebSocketPort & "/api/v2/"
         Dim RequestUri = New Uri(URL)
         Dim StreamText As String = ""
@@ -1998,7 +2014,7 @@ Step2:
             webResponse = wRequest.GetResponse
             Dim reader As New StreamReader(webResponse.GetResponseStream())
             StreamText = reader.ReadToEnd()
-            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " retrieving info = " & StreamText, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for device - " & MyUPnPDeviceName & " from URL = " & URL & " retrieving info = " & StreamText, LogType.LOG_TYPE_INFO)
             reader.Close()
             webResponse.Close()
         Catch ex As Exception
@@ -2013,7 +2029,7 @@ Step2:
                     ' not sure this will be a boolean or text representing a boolean
                     If TokenAuthSupport IsNot Nothing Then
                         If TokenAuthSupport.ToString.ToLower = "true" Then
-                            ' set token to be found. Maybe change port to 8002. dcorssl
+                            ' set token to be found. Maybe change port to 8002.
                             WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diSamsungTokenAuthSupport.ToString, True)
                             WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "8002")  ' this will force the SSL port to be used
                         End If
@@ -2113,6 +2129,15 @@ Step2:
         AddHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
 
         If Not MySamsungWebSocket.ConnectSocket(MyIPAddress, GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")) Then
+            Try
+                RemoveHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
+            Catch ex As Exception
+            End Try
+            Try
+                RemoveHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
+            Catch ex As Exception
+            End Try
+            MySamsungWebSocket = Nothing
             Exit Sub
         End If
 
@@ -2125,6 +2150,19 @@ Step2:
         End While
 
         If Not MySamsungWebSocket.Receive() Then
+            Try
+                MySamsungWebSocket.CloseSocket()
+            Catch ex As Exception
+            End Try
+            Try
+                RemoveHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
+            Catch ex As Exception
+            End Try
+            Try
+                RemoveHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
+            Catch ex As Exception
+            End Try
+            MySamsungWebSocket = Nothing
             Exit Sub
         End If
 
@@ -2135,8 +2173,19 @@ Step2:
 
         If Not MySamsungWebSocket.UpgradeWebSocket(WebSocketURL, GetStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, ""), 0, False) Then
             MySamsungWebSocket.CloseSocket()
+            Try
+                RemoveHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
+            Catch ex As Exception
+            End Try
+            Try
+                RemoveHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
+            Catch ex As Exception
+            End Try
+            MySamsungWebSocket = Nothing
             Exit Sub
         End If
+
+        MyRemoteServiceActive = True
 
         wait(5)
 
@@ -2592,14 +2641,6 @@ Step2:
                     ' should I add sending text ie {"method":"ms.remote.control","params":{"Cmd":"$BASE64ENCODEDSTRING$","TypeOfRemote":"SendInputString","DataOfCmd":"base64"}}
                     Dim SamsungText As String = ButtonInfos(4)
                     MessagePart = "{""method"":""ms.remote.control"",""params"":{""Cmd"":""" & ToBase64(SamsungText) & """,""TypeOfRemote"":""SendInputString"",""DataOfCmd"":""base64""}}"
-                ElseIf ButtonInfos(1) = "SamsungTest" Then ' dcor2014
-                    Dim aes_key As Byte() = Nothing
-                    Dim data_hash As Byte() = Nothing
-                    GenerateServerHello("654321", "8581", aes_key, data_hash)
-                    Dim GeneratorClientHello As String = "010100000000000000009E0000000636353433323121AB2E861F631C0D3F564CFB14058BA8227B917722CAF5E027C4B8051C6579137B2A39BE4B679CABAAFD8ADC6F8B6630DCDEC7A77AD3124C321ADE39B4EA082AFE243E69D9E66A7DACD306E2A9C1D61CDE7C72A5A692C483F1CE690B3C6948AC057B73422A2611231D1F3BF78196C83F8E1EF850126ECDCA1D649D453C4140EBFDDCFD053501AEDDC01DB91F21FE58E047F7EC490000000000"
-                    Dim skPrime As Byte() = Nothing
-                    ParseClientHello(GeneratorClientHello, data_hash, aes_key, "654321", skPrime)
-                    Exit Sub
                 Else
                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungSendKeyCode was called for UPnPDevice = " & MyUPnPDeviceName & " with key = " & KeyCode.ToString & " and has created code = " & MessagePart, LogType.LOG_TYPE_INFO)
                 End If
@@ -2705,6 +2746,7 @@ Step2:
 
     Public Sub HandleSamsungWebSocketDataReceived(sender As Object, e As Byte())
         If e Is Nothing Then Exit Sub
+
         If PIDebuglevel > DebugLevel.dlEvents Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " and Line = " & Encoding.UTF8.GetString(e, 0, e.Length), LogType.LOG_TYPE_INFO)
         'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleSamsungWebSocketDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & e.Length.ToString, LogType.LOG_TYPE_INFO)
 
@@ -2795,14 +2837,23 @@ Step2:
     End Sub
 
     Private Sub SamsungTreatJSONResponse(Input As String)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with Input = " & Input, LogType.LOG_TYPE_INFO)
+        ' too much logging ...
+        If PIDebuglevel > DebugLevel.dlEvents Then
+            Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with Input = " & Input, LogType.LOG_TYPE_INFO)
+        ElseIf PIDebuglevel > DebugLevel.dlErrorsOnly Then
+            If Input.Length > 100 Then
+                Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with InputLength = " & Input.Length.ToString, LogType.LOG_TYPE_INFO)
+            Else
+                Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " processing JSON with Input = " & Input, LogType.LOG_TYPE_INFO)
+            End If
+        End If
         If PIDebuglevel > DebugLevel.dlEvents Then
             Try
                 Dim json As New JavaScriptSerializer
                 Dim JSONdataLevel1 As Object
                 JSONdataLevel1 = json.DeserializeObject(Input)
                 For Each Entry As Object In JSONdataLevel1
-                    Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " found Key = " & Entry.key.ToString & " and Value = " & Entry.value.ToString, LogType.LOG_TYPE_INFO)
+                    Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " found Key = " & Entry.key.ToString, LogType.LOG_TYPE_INFO) ' too much logging & " and Value = " & Entry.value.ToString, LogType.LOG_TYPE_INFO)
                 Next
                 JSONdataLevel1 = Nothing
                 json = Nothing
@@ -2835,6 +2886,10 @@ Step2:
                 ' {"data": {"clients": [{"attributes": {"name": "fooBase64=="},"connectTime": 1541354167097,"deviceName": "fooBase64==","id": "xy123","isHost": false}],"id": "xy123","token": "65811577"},"event": "ms.channel.connect"}
                 '   note the token is something to be used to keep authentication going ie.  wss://@ip:8002/api/v2/channels/samsung.remote.control?name=base64Name&token=THETOKEN
                 ' {"data":{"clients":[{"attributes":{"name":"TWVkaWFDb250cm9sbGVy"},"connectTime":1543990640045,"deviceName":"TWVkaWFDb250cm9sbGVy","id":"1a95c2a7-c4d-47e2-829-22c4b313e52","isHost":false}],"id":"1a95c2a7-c4d-47e2-829-22c4b313e52"},"event":"ms.channel.connect"} 
+
+
+                ' I seem to be getting all these multiple connect messages, how do I avoid doing the same thing over and over?
+
                 WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
                 Try
                     Dim Data As Object = FindPairInJSONString(Input, "data")
@@ -2846,7 +2901,7 @@ Step2:
                         Dim Token As String = FindPairInJSONString(Data, "token").ToString
                         If Token <> "" Then
                             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " received and stored token = " & Token, LogType.LOG_TYPE_INFO)
-                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungToken.ToString, Token)   ' dcorssl
+                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungToken.ToString, Token)
                         End If
                         'Dim Clients As Object = FindPairInJSONString(Data, "clients")
                         'If Clients IsNot Nothing Then
@@ -2856,7 +2911,7 @@ Step2:
                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungTreatJSONResponse for device - " & MyUPnPDeviceName & " no token found error was = " & ex.Message, LogType.LOG_TYPE_INFO)
                 End Try
 
-                ' I believe when EDEN_available is set in the isSupport info, we should do a "event":"ed.edednApp.get" else a "ed.installedApp.get"
+                ' I believe when EDEN_available is set in the isSupport info, we should do a "event":"ed.edenApp.get" else a "ed.installedApp.get"
 
                 Dim isSupportInfo As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungisSupportInfo.ToString, "")
                 Dim EdenSupport As Boolean = False

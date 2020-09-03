@@ -545,8 +545,13 @@ Partial Public Class HSPI
                     Case dsDeactivate
                         SetAdministrativeState(False)
                     Case dsWOL
-                        SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
-                        SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
+                        SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress)
+                        SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress)
+                        Dim deviceIpAddress As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diIPAddress.ToString, "")
+                        If deviceIpAddress <> "" Then
+                            SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), deviceIpAddress)
+                            SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), deviceIpAddress)
+                        End If
                     Case Else
                         Select Case MyUPnPDeviceServiceType
                             Case "DIAL"
@@ -821,7 +826,7 @@ Partial Public Class HSPI
             DeviceName = MyUPnPDeviceName
         End Get
         Set(value As String)
-            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceName called for device - " & MyUPnPDeviceName & " with value = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceName called with current device name = " & MyUPnPDeviceName & " and new = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyUPnPDeviceName = value
         End Set
     End Property
@@ -831,7 +836,7 @@ Partial Public Class HSPI
             DeviceServiceType = MyUPnPDeviceServiceType
         End Get
         Set(value As String)
-            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceServiceType Set called  for device - " & MyUPnPDeviceName & " with ServiceType = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceServiceType Set called for device - " & MyUPnPDeviceName & " with ServiceType = " & value.ToString, LogType.LOG_TYPE_INFO)
             MyUPnPDeviceServiceType = value
             If MyUPnPDeviceServiceType = "HST" Then
                 'DeviceStatus = "Online"
@@ -3688,7 +3693,7 @@ Partial Public Class HSPI
 
 
     Public Sub SetHSMainState()
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current HSRef = " & HSRefDevice & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current HSRef = " & HSRefDevice & " and Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         If HSRefDevice = -1 Then Exit Sub ' we don't have a code yet
         If MyAdminStateActive Then
             If UCase(DeviceStatus) = "ONLINE" Then
@@ -3699,6 +3704,7 @@ Partial Public Class HSPI
         Else
             hs.SetDeviceValueByRef(HSRefDevice, dsDeactivated, True)
         End If
+        HSRefRemote = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1) ' added here 6/12/2020 because at start-up if the remote is not on-line the remotereference is not picked up
         If HSRefRemote = -1 Or HSRefRemote = HSRefDevice Then Exit Sub
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSMainState called for device - " & MyUPnPDeviceName & " and Current Remote HSRef = " & HSRefRemote & " and AdminStateActive = " & MyAdminStateActive.ToString & " and DeviceStatus = " & DeviceStatus.ToString, LogType.LOG_TYPE_INFO)
         Dim MyRemoteServiceAdminState As Boolean = GetBooleanIniFile(MyUDN, DeviceInfoIndex.diAdminStateRemote.ToString, False)
@@ -3768,6 +3774,9 @@ Partial Public Class HSPI
                     SetHSMainState()
                     Exit Sub
                 ElseIf MyUPnPDeviceServiceType = "DIAL" Then
+                    ' so this can be a DIAL device just by itself or it could have a remote device hiding under it.
+                    Dim myHSRemoteRef As Integer = GetIntegerIniFile(MyUDN, "di" & HSDevices.Remote.ToString & "HSCode", -1)
+                    Dim myRemoteType = GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "")
                     If DeviceStatus.ToUpper <> "ONLINE" Then
                         Connect("uuid:" & MyUDN)
                         If MyUPnPDevice IsNot Nothing Then
@@ -3777,6 +3786,9 @@ Partial Public Class HSPI
                                         DeviceStatus = "Online"
                                         If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
                                     End If
+                                ElseIf myHSRemoteRef <> -1 And myRemoteType.ToUpper = "SAMSUNGWEBSOCKET" Then ' added 6/12/2020 because a Samsung remote under DIAL is put by default on-line which would be wrong
+                                    ' do I need to do anything?
+                                    ' I should for sure not update the status
                                 Else
                                     If RetrieveDIALAppList(MyUPnPDevice.ApplicationURL) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
                                         DeviceStatus = "Online"
@@ -4016,12 +4028,12 @@ Partial Public Class HSPI
         Try
             If MyDevice IsNot Nothing Then
                 MyUDN = Replace(inUDN, "uuid:", "")
-                'If piDebuglevel > DebugLevel.dlEvents Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " with UDN = " & inUDN & " and Device to find = " & Val(DeviceToFind), LogType.LOG_TYPE_INFO)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("Connect called for UPnPDevice - " & MyUPnPDeviceName & " with UDN = " & inUDN, LogType.LOG_TYPE_INFO)
                 Connect = "OK"
                 ConnectUPnPDevice = False
                 myDeviceFinderCallback_DeviceFound(MyDevice)
             Else
-                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & ". No device found with UDN = " & inUDN, LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlEvents Then Log("Error in Connect for UPnPDevice - " & MyUPnPDeviceName & ". No device found with UDN = " & inUDN, LogType.LOG_TYPE_ERROR)
                 Connect = "Failed"
             End If
         Catch ex As Exception
@@ -4528,39 +4540,28 @@ Partial Public Class HSPI
             End If
             Try
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found DeviceManufacturer = " & MyUPnPDeviceManufacturer, LogType.LOG_TYPE_INFO)
-                If MyUPnPDeviceServiceType = "RCR" And MyUPnPDeviceManufacturer.ToUpper.IndexOf("SAMSUNG") <> -1 Then
+                If (MyUPnPDeviceServiceType = "RCR" Or MyUPnPDeviceServiceType = "DIAL") And MyUPnPDeviceManufacturer.ToUpper.IndexOf("SAMSUNG") <> -1 Then
                     If ExtractSamsungInfoFromDeviceXML(MyUPnPDevice.DeviceUPnPDocument) Then
                         ' this means we are websocket based as opposed to legacy. Now it can be with or without PIN
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found Samsung WebSocket based remote Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-                        'If Not GetBooleanIniFile("Remote Service by UDN", MyUDN, False) Then
-                        'SamsungCloseTCPConnection(False)
-                        'Else
-                        'If GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then
-                        'SamsungOpenUnEncryptedWebSocket(GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, ""), GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, ""))
-                        'ElseIf GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocketPIN" Then
-                        'If SamsungGetIdentifyParms() Then
-                        'If SamsungAuthenticateUsePIN(GetStringIniFile(DeviceUDN, DeviceInfoIndex.diSamsungRemotePIN.ToString, ""), True) <> "" Then
-                        'SamsungOpenEncryptedWebSocket(GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungSessionID.ToString, ""))
-                        'End If
-                        'End If
-                        'End If
-                        'End If
                     Else
-                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "Samsungiapp")
-                        Try
-                            If Not GetBooleanIniFile("Remote Service by UDN", MyUDN, False) Then
-                                SamsungCloseTCPConnection(False)
-                            Else
-                                SamsungEstablishTCPConnection()
-                            End If
-                        Catch ex As Exception
-                            Log("Error in ExtractAllServices for Samsung device = " & MyUPnPDeviceName & " setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
-                        End Try
+                        If (MyUPnPDeviceServiceType = "RCR") Then
+                            ' legacy implementation
+                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "Samsungiapp")
+                            Try
+                                If Not GetBooleanIniFile("Remote Service by UDN", MyUDN, False) Then
+                                    SamsungCloseTCPConnection(False)
+                                Else
+                                    SamsungEstablishTCPConnection()
+                                End If
+                            Catch ex As Exception
+                                Log("Error in ExtractAllServices for Samsung device = " & MyUPnPDeviceName & " setting Remote Service flag with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            End Try
+
+                        End If
                     End If
 
                     If HSRefRemote = -1 Then
-                        'WriteSamsungKeyInfoToInfoFile()
-                        'CreateSamsungRemoteIniFileInfo()
                         CreateHSSamsungRemoteButtons(False)
                     End If
 
@@ -5953,7 +5954,7 @@ Partial Public Class HSPI
                 End If
             End While
             inString = Trim(inString)
-            If PIDebuglevel > DebugLevel.dlEvents And SomethingGotRemoved Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " updated document to = " & inString.ToString, LogType.LOG_TYPE_INFO)
+            'dcor removed too much logging If PIDebuglevel > DebugLevel.dlEvents And SomethingGotRemoved Then Log("RemoveControlCharacters for device = " & MyUPnPDeviceName & " updated document to = " & inString.ToString, LogType.LOG_TYPE_INFO)
             RemoveControlCharacters = inString
         Catch ex As Exception
             Log("Error in RemoveControlCharacters for device = " & MyUPnPDeviceName & " while retieving document with URL = " & MyDocumentURL & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)

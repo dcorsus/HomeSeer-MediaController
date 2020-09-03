@@ -446,6 +446,12 @@ Public Class PlugInConfig
                                 Catch ex As Exception
                                     Log("Error in postBackProc for PluginControl saving Speaker Proxy flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
+                            Case "PostAnnouncementActionBox"    ' added 5/25/2020 v62
+                                Try
+                                    WriteIntegerIniFile("Options", "PostAnnouncementAction", ObjectValue)
+                                Catch ex As Exception
+                                    Log("Error in postBackProc for PluginControl saving PostAnnouncementActions. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                End Try
                             Case "UPNPNbrOfElementsBox"
                                 Try
                                     WriteStringIniFile("Options", "MaxNbrofUPNPObjects", ObjectValue)

@@ -656,7 +656,7 @@ Public Class WebSocketClient
             If bytesRead > 0 Then
                 ' There might be more data, so store the data received so far.
                 If PIDebuglevel > DebugLevel.dlEvents Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
-                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallbackSSLSocket received data = " & Encoding.UTF8.GetString(SSLState.buffer, 0, bytesRead), LogType.LOG_TYPE_INFO)
+                'If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReceiveCallbackSSLSocket received datalength = " & bytesRead.ToString, LogType.LOG_TYPE_INFO)
                 response = True
                 Dim ByteA As Byte()
                 ReDim ByteA(bytesRead - 1)
@@ -783,9 +783,8 @@ Public Class WebSocketClient
     End Sub   '
 
     Public Function SendDataOverWebSocket(Opcode As Integer, SocketData As Byte(), UseMask As Boolean) As Boolean
-        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket called for ipAddress = " & MyRemoteIPAddress & " with DataLength = " & SocketData.Length & " and UseMask = " & UseMask.ToString, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket called for ipAddress = " & MyRemoteIPAddress & " with DataLength = " & SocketData.Length & ", Opcode = " & Opcode.ToString & " and UseMask = " & UseMask.ToString, LogType.LOG_TYPE_INFO)
         SendDataOverWebSocket = False
-
         If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket for ipAddress - " & MyRemoteIPAddress & " will send data = " & Encoding.UTF8.GetString(SocketData, 0, SocketData.Length), LogType.LOG_TYPE_INFO)
         Dim GenerateANewIndex As Integer = MyRandomNumberGenerator.Next(1, 429496729)
 
@@ -1074,7 +1073,7 @@ Public Class WebSocketClient
             Exit Sub
         End If
 
-        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has " & InDataStream.Length.ToString & " bytes to process", LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has " & InDataStream.Length.ToString & " bytes to process and is at Index = " & InDataStreamReadIndex.ToString, LogType.LOG_TYPE_INFO)
         If ReEntrancyFlag Then
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has reentracy", LogType.LOG_TYPE_WARNING)
             StartTreatInDataTimer() ' reset the timer
@@ -1141,6 +1140,7 @@ Public Class WebSocketClient
         Dim TempPosition = 0
         InDataStream.Seek(InDataStreamReadIndex, SeekOrigin.Begin)
         Dim DataRead As Integer = InDataStream.Read(inData, 0, 2)
+
         If PIDebuglevel > DebugLevel.dlEvents Then Log("ReadFromInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & DataRead.ToString & " bytes from Index = " & InDataStreamReadIndex.ToString & " and is now at position = " & InDataStream.Position.ToString, LogType.LOG_TYPE_INFO)
 
         Dim FIN As Boolean = False
@@ -1376,7 +1376,7 @@ Public Class WebSocketClient
             Exit Sub
         End If
         Try
-            If PIDebuglevel > DebugLevel.dlEvents Then Log("MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & InDataStreamReadIndex.ToString & " and in buffer = " & InDataStream.Length.ToString, LogType.LOG_TYPE_INFO)
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("MoreBytesInDataStream for ipAddress - " & MyRemoteIPAddress & " has read = " & InDataStreamReadIndex.ToString & " bytes and has bytes in buffer = " & InDataStream.Length.ToString, LogType.LOG_TYPE_INFO)
             If InDataStream.Length = InDataStreamReadIndex Then
                 ' all is read' flush the buffer
                 InDataStream.Close()

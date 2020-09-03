@@ -215,7 +215,7 @@ Partial Public Class HSPI
 
     Private Sub CreateLGRemoteServiceButtons(HSRef As Integer)
 
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons called for device - " & MyUPnPDeviceName & " and HSRef = " & HSRef.ToString, LogType.LOG_TYPE_INFO)
 
         Dim objRemoteFile As String = gRemoteControlPath
         Dim RemoteButtons As New System.Collections.Generic.Dictionary(Of String, String)()
@@ -226,7 +226,7 @@ Partial Public Class HSPI
         Try
             RemoteButtons = GetIniSection(MyUDN, objRemoteFile) '  As Dictionary(Of String, String)
             If RemoteButtons Is Nothing Then
-                Log("Error in CreateLGRemoteServiceButtons for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
+                If PIDebuglevel > DebugLevel.dlOff Then Log("Error in CreateLGRemoteServiceButtons for device - " & MyUPnPDeviceName & ". No buttons are specified in the RemoteControl.ini file", LogType.LOG_TYPE_ERROR)
                 Exit Try
             Else
                 Dim RemoteButtonString As String = ""
@@ -261,6 +261,7 @@ Partial Public Class HSPI
                                     Pair.PairButtonImage = ImagesPath & "Artwork/" & RemoteButtonInfos(6) & ".png"
                                 End If
                                 hs.DeviceVSP_AddPair(HSRef, Pair)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons added launch for device - " & MyUPnPDeviceName & " with name = " & RemoteButtonName, LogType.LOG_TYPE_INFO)
                             ElseIf RemoteButtonInfos(1).IndexOf("LGsetinput") = 0 Then
                                 RemoteButtonName = RemoteButtonInfos(0)
                                 RemoteButtonValue = Val(RemoteButton.Key)
@@ -282,6 +283,7 @@ Partial Public Class HSPI
                                     Pair.PairButtonImage = ImagesPath & "Artwork/" & RemoteButtonInfos(6) & ".png"
                                 End If
                                 hs.DeviceVSP_AddPair(HSRef, Pair)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons added input for device - " & MyUPnPDeviceName & " with name = " & RemoteButtonName, LogType.LOG_TYPE_INFO)
                             ElseIf RemoteButtonInfos(1).IndexOf("LGsetchannel") = 0 Then
                                 RemoteButtonName = RemoteButtonInfos(0)
                                 RemoteButtonValue = Val(RemoteButton.Key)
@@ -303,6 +305,7 @@ Partial Public Class HSPI
                                     Pair.PairButtonImage = ImagesPath & "Artwork/" & RemoteButtonInfos(5) & ".png"
                                 End If
                                 hs.DeviceVSP_AddPair(HSRef, Pair)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGRemoteServiceButtons added channel for device - " & MyUPnPDeviceName & " with name = " & RemoteButtonName, LogType.LOG_TYPE_INFO)
                             End If
                         End If
                     End If
@@ -907,8 +910,13 @@ Partial Public Class HSPI
                 CreateRemoteButtons(HSRefRemote)
                 CreateLGRemoteServiceButtons(HSRefServiceRemote)
             Case psWOL
-                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
-                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
+                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress)
+                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), PlugInIPAddress)
+                Dim deviceIpAddress As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diIPAddress.ToString, "")
+                If deviceIpAddress <> "" Then
+                    SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), deviceIpAddress)
+                    SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diWifiMacAddress.ToString, ""), deviceIpAddress)
+                End If
             Case psCreateRemoteAppButtons
                 CreateLGAppandInputButtons(HSRefRemote)
             Case Else

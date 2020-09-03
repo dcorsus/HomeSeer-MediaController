@@ -1210,7 +1210,7 @@ Partial Public Class HSPI
                                             Value = ValuePair.value
                                         End If
                                     Next
-                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & "  for SystemSupportedFunction found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsonyy
+                                    If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonyProcessIRCCInfo for device = " & MyUPnPDeviceName & "  for SystemSupportedFunction found JSON name = " & Name & " and Value = " & Value, LogType.LOG_TYPE_INFO) 'dcorsony
                                     If Name = "WOL" Then
                                         WriteStringIniFile(DeviceUDN, DeviceInfoIndex.diMACAddress.ToString, Value.Replace("-", ":")) ' in the format 70:18:8B:97:34:14
                                         'processSonyCommand("WOL", Value, psWOL, RowIndex, ColumnIndex)
@@ -2006,7 +2006,11 @@ Partial Public Class HSPI
                 CreateHSSonyRemoteButtons(True)
                 CreateRemoteButtons(HSRefRemote)
             Case psWOL
-                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress, GetSubnetMask())
+                SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), PlugInIPAddress)
+                Dim deviceIpAddress As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diIPAddress.ToString, "")
+                If deviceIpAddress <> "" Then
+                    SendMagicPacket(GetStringIniFile(MyUDN, DeviceInfoIndex.diMACAddress.ToString, ""), deviceIpAddress)
+                End If
             Case Else
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetIOExSony called for UPnPDevice = " & MyUPnPDeviceName & " and Buttonvalue = " & ButtonValue & " and Registration = " & GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) & " and DeviceState = " & DeviceStatus, LogType.LOG_TYPE_INFO)
                 If GetBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False) And UCase(DeviceStatus) = "ONLINE" Then

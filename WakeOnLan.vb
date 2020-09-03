@@ -1,4 +1,6 @@
 ﻿
+Imports System.Net
+
 Partial Public Class HSPI
 
 
@@ -13,26 +15,49 @@ Partial Public Class HSPI
         End Try
     End Function
 
-    Public Function GetSubnetMask() As String
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask called", LogType.LOG_TYPE_INFO)
+    Public Function GetSubnetMask(inIPAddress As String) As String
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask called with IP Address = " & inIPAddress, LogType.LOG_TYPE_INFO)
         GetSubnetMask = ""
+        If inIPAddress = "" Then Exit Function
+        Dim searchIPAddress As IPAddress = Nothing
         Try
-            Dim LocalIPAddress = hs.GetIPAddress()
-            If LocalIPAddress = "" Then
-                Log("Error in GetSubnetMask trying to get own IP address", LogType.LOG_TYPE_ERROR)
-                Exit Function
-            End If
+            System.Net.IPAddress.TryParse(inIPAddress, searchIPAddress)
+        Catch ex As Exception
+            Exit Function
+        End Try
+        Try
             For Each nic As System.Net.NetworkInformation.NetworkInterface In System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
                 If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The MAC address of {0} is {1}{2}", nic.Description, Environment.NewLine, nic.GetPhysicalAddress()), LogType.LOG_TYPE_INFO)
                 For Each Ipa In nic.GetIPProperties.UnicastAddresses
                     If PIDebuglevel > DebugLevel.dlEvents Then Log(String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString), LogType.LOG_TYPE_INFO)
                     'If piDebuglevel > DebugLevel.dlErrorsOnly Then hs.writelog(IFACE_NAME, String.Format("The IPaddress address of {0} is {1}{2}", nic.Description, Environment.NewLine, Ipa.Address.ToString))
-                    If Ipa.Address.ToString = LocalIPAddress Then
-                        ' OK we found our IPaddress
-                        GetSubnetMask = Ipa.IPv4Mask.ToString
-                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
-                        Exit Function
+                    If Ipa.Address.AddressFamily = Net.Sockets.AddressFamily.InterNetwork Then
+                        ' IPV4. Mask both address with the network mask to make sure this ip Address is part of this NIC
+                        Dim mask As Byte() = Ipa.IPv4Mask.GetAddressBytes
+                        Dim nicIpAddress As Byte() = Ipa.Address.GetAddressBytes
+                        Dim searchIpWMask As Byte() = searchIPAddress.GetAddressBytes
+                        Dim equal As Boolean = True
+                        For i = 0 To 3
+                            If (nicIpAddress(i) And mask(i)) <> (searchIpWMask(i) And mask(i)) Then
+                                equal = False
+                                Exit For
+                            End If
+                        Next
+                        If equal Then
+                            ' OK we found our IPaddress
+                            GetSubnetMask = Ipa.IPv4Mask.ToString
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
+                            Exit Function
+                        End If
+                    Else
+                        If Ipa.Address.ToString = inIPAddress Then ' this would be IPV6, we don't support it so not sure what the code would be
+                            ' OK we found our IPaddress
+                            GetSubnetMask = Ipa.IPv4Mask.ToString
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetSubnetMask found IP Mask = " & Ipa.IPv4Mask.ToString, LogType.LOG_TYPE_INFO)
+                            Exit Function
+                        End If
                     End If
+
                 Next
             Next
         Catch ex As Exception
@@ -40,9 +65,9 @@ Partial Public Class HSPI
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSubnetMask, none found", LogType.LOG_TYPE_ERROR)
     End Function
 
-    Private Sub SendMagicPacket(MacAddress As String, WANIPAddr As String, LanSubnet As String)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMagicPacket called for device - " & MyUPnPDeviceName & " and MacAddress = " & MacAddress & " and IPAddress = " & WANIPAddr & " and Subnetmask " & LanSubnet, LogType.LOG_TYPE_INFO)
-        If MacAddress = "" Or WANIPAddr = "" Or LanSubnet = "" Then Exit Sub
+    Private Sub SendMagicPacket(MacAddress As String, WANIPAddr As String)
+        If MacAddress = "" Or WANIPAddr = "" Then Exit Sub
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendMagicPacket called for device - " & MyUPnPDeviceName & " and MacAddress = " & MacAddress & " and IPAddress = " & WANIPAddr, LogType.LOG_TYPE_INFO)
         Dim udpClient As System.Net.Sockets.UdpClient = Nothing
         Dim sendBytes As [Byte]() = Nothing
         Dim myAddress As String
@@ -89,7 +114,7 @@ Partial Public Class HSPI
             Dim sm1, sm2, sm3, sm4 As Byte
             Dim ip1, ip2, ip3, ip4 As Byte
 
-            mySubnetArray = LanSubnet.Split("."c)
+            mySubnetArray = GetSubnetMask(WANIPAddr).Split("."c)
             myIPAddressArray = myAddress.Split("."c)
 
             For i = 0 To mySubnetArray.GetUpperBound(0)
@@ -134,12 +159,6 @@ Partial Public Class HSPI
             Log("Error in SendMagicPacket for device - " & MyUPnPDeviceName & " sending bytes with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
-        Try
-            'udpClient.Send(sendBytes, sendBytes.Length, "255.255.255.255", 9)
-            'udpClient.Send(sendBytes, sendBytes.Length, "255.255.255.255", 3)
-        Catch ex As Exception
-
-        End Try
         Try
             udpClient.Close()
         Catch ex As Exception

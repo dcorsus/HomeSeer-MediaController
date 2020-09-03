@@ -2325,6 +2325,7 @@ Public Class HSPI
                             'End If
                         End If
                         WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceServiceTypes.ToString, InterestedServices) ' store the supported services
+                        WriteStringIniFile(UPnPDeviceInfoArray(I).UPnPDeviceUDN, DeviceInfoIndex.diDeviceType.ToString, UPnPDeviceInfoArray(I).UPnPDeviceDeviceType) ' added 6/2/2020 overwrite just incase the definition in the .ini file was updated
                     Catch ex As Exception
                         Log("Error in DetectUPnPDevices while adding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         Exit Sub
@@ -2426,7 +2427,7 @@ NextElement:
                                 If PIDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDevice found Sonos device with UDN =  " & Device.UniqueDeviceName & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location, LogType.LOG_TYPE_WARNING)
                             Else
                                 Dim NewUDN As String = Replace(Device.UniqueDeviceName, "uuid:", "")
-                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindUPnPDevice is adding a " & Device.ManufacturerName & " device with UDN = " & NewUDN & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location & " and adding it to the array with index = " & DeviceCount.ToString, LogType.LOG_TYPE_INFO)
+                                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindUPnPDevice is adding a " & Device.ManufacturerName & " device with UDN = " & NewUDN & " and Friendly Name = " & Device.FriendlyName & " at Location = " & Device.Location & " with DeviceServiceType = " & DeviceServiceType, LogType.LOG_TYPE_INFO) ' changed 6/2/2020 to trace better
                                 DeviceCount = DeviceCount + 1
                                 ReDim Preserve LocalUPnPDevicesInfo(DeviceCount)
                                 Dim NewDevice As New MyUPnpDeviceInfo
@@ -3321,6 +3322,12 @@ NextElement:
         DeleteEntryIniFile(DeviceUDN, "diRemoteHSCode")
         DeleteEntryIniFile(DeviceUDN, "diDeviceControlHSCode")
         DeleteEntryIniFile(DeviceUDN, "diServerHSCode")
+        ' added 9/2/2020 because removing the remote and re-creating was causing issues of not getting the remote buttons for apps etc
+        DeleteEntryIniFile(DeviceUDN, "diStatusHSCode")
+        DeleteEntryIniFile(DeviceUDN, "diVolumeHSCode")
+        DeleteEntryIniFile(DeviceUDN, "diMuteHSCode")
+        DeleteEntryIniFile(DeviceUDN, "diSamsungWebSocketPort")
+
 
         Dim PartyServiceHSCode As String = ""
         PartyServiceHSCode = GetStringIniFile(DeviceUDN, "diPartyHSCode", "")
@@ -3471,8 +3478,8 @@ NextElement:
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
             If Not AllDevices Is Nothing And AllDevices.Count > 0 Then
                 For Each DLNADevice As MyUPnPDevice In AllDevices
-                    If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO) ' moved this here on 11/16/2019
                     If DLNADevice IsNot Nothing Then    ' added on 3/3/2019 to prevent errors happening here due to unknown causes
+                        If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO) ' moved this here on 11/16/2019
                         If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
                             ' check whether this devices was known to us and on-line
                             ' go find it in the array
@@ -3485,7 +3492,7 @@ NextElement:
                                     End If
                                 Next
                             End If
-                            If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
+                            'If PIDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
                             If Not NeedsToBeAdded Then GoTo NextElement
                             If Not GetBooleanIniFile(DLNADevice.UniqueDeviceName, DeviceInfoIndex.diDeviceIsAdded.ToString, False) Then GoTo NextElement ' is not added
                             Try
@@ -5983,6 +5990,14 @@ Module HS_GLOBAL_VARIABLES
         diSamsungTokenAuthSupport = 94
         diSamsungisSupportInfo = 95
         diSamsungClientID = 96
+
+        ' because this is shared with Sonos v3 and MediaController, I need to make sure they don't overlap
+        diInstanceDebugFlag = 201
+        diInstanceDebugParams = 202
+        diUPnPDebugParams = 203
+        diUPnPDebugFlag = 204
+
+
     End Enum
 
 
