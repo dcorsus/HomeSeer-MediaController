@@ -1089,7 +1089,7 @@ Public Class HSPI
                     stb.Append(InputBox.Build)
                     Return stb.ToString
                 Case "Play URL"
-                    Dim InputEditBox As New clsJQuery.jqTextBox("InputEditAction" & sUnique, "text", "", ActionsPageName, 1000, True)
+                    Dim InputEditBox As New clsJQuery.jqTextBox("InputEditAction" & sUnique, "text", InputString, ActionsPageName, 250, True)   ' fixed in v69, inputstring was missing and causing issues in HS4, set from 1000 to 250
                     stb.Append("Enter URL:")
                     stb.Append(InputEditBox.Build)
                     Return stb.ToString
@@ -3597,6 +3597,7 @@ NextElement:
             hs.DeviceVSP_ClearAll(HSRef, True)
             hs.DeviceVGP_ClearAll(HSRef, True)
 
+            CreateActivateDeactivateButtons(HSRef, True) ' dcor needs fixing!
             CreateActivateDeactivateButtons(HSRef, True) ' dcor needs fixing!
             WriteIntegerIniFile(DeviceUDN, DeviceInfoIndex.diHSDeviceRef.ToString, HSRef) ' store it
 

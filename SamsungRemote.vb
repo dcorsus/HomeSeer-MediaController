@@ -26,6 +26,8 @@ Partial Public Class HSPI
     Dim SamsungDeviceID As String = "MediaControllerPI"
     Dim SamsungPIN As String = ""
 
+    Friend WithEvents myRetrieveInitInfoTimer As Timers.Timer
+
     Dim wbKey As String = "abbb120c09e7114243d1fa0102163b27"
     Dim transKey As String = "6c9474469ddf7578f3e5ad8a4c703d99"
     Dim publicKey As String = "2cb12bb2cbf7cec713c0fff7b59ae68a96784ae517f41d259a45d20556177c0ffe951ca60ec03a990c9412619d1bee30adc7773088c5721664cffcedacf6d251cb4b76e2fd7aef09b3ae9f9496ac8d94ed2b262eee37291c8b237e880cc7c021fb1be0881f3d0bffa4234d3b8e6a61530c00473ce169c025f47fcc001d9b8051"
@@ -940,6 +942,8 @@ Partial Public Class HSPI
     Private Function ExtractSamsungInfoFromDeviceXML(PageHTML As String) As Boolean
         ExtractSamsungInfoFromDeviceXML = False
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        ' added on 9/23/2020 to cover the cases where you have no more info on remotes. Version .68
+        If GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then ExtractSamsungInfoFromDeviceXML = True
         If PageHTML = "" Then
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ExtractSamsungInfoFromDeviceXML called for device = " & MyUPnPDeviceName & ". Empty HTML", LogType.LOG_TYPE_INFO)
             Exit Function
@@ -1806,6 +1810,7 @@ Step2:
         'When the TV Is paired then, to send a command only step 1 Is made before the websocket connection will be established as described. The problem now Is that I have no idea how the hash Is composed.
 
         ' https://github.com/eclair4151/samsung_encrypted_POC/blob/master/main.py
+        ' https://github.com/eclair4151/SmartCrypto
 
         'GET /common/1.0.0/service/startService?appID=com.samsung.companion HTTP/1.1
         'HOST: 192.168.1.165:8000
@@ -1941,6 +1946,8 @@ Step2:
 
         AddHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
         AddHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for UPnPDevice = " & MyUPnPDeviceName & " added handlers", LogType.LOG_TYPE_INFO)
+
 
         Dim WaitForConnect As Integer
         While WaitForConnect < 10
@@ -1959,6 +1966,7 @@ Step2:
         If Not MySamsungWebSocket.WebSocketActive Then
             Return False
         End If
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenEncryptedWebSocket for UPnPDevice = " & MyUPnPDeviceName & " has now an active remote", LogType.LOG_TYPE_INFO)
 
         MyRemoteServiceActive = True
         Return True
@@ -2127,6 +2135,8 @@ Step2:
         'moved here in v32 from 2 blocks down
         AddHandler MySamsungWebSocket.DataReceived, AddressOf HandleSamsungWebSocketDataReceived
         AddHandler MySamsungWebSocket.WebSocketClosed, AddressOf HandleSamsungSocketClosed
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for UPnPDevice = " & MyUPnPDeviceName & " added handlers", LogType.LOG_TYPE_INFO)
+
 
         If Not MySamsungWebSocket.ConnectSocket(MyIPAddress, GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")) Then
             Try
@@ -2187,8 +2197,7 @@ Step2:
 
         MyRemoteServiceActive = True
 
-        wait(5)
-
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungOpenUnEncryptedWebSocket for UPnPDevice = " & MyUPnPDeviceName & " has now an active remote", LogType.LOG_TYPE_INFO)
 
         ' This is what comes back
         ' HTTP/1.1 101 Switching Protocols
@@ -2893,7 +2902,7 @@ Step2:
                 WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, True)
                 Try
                     Dim Data As Object = FindPairInJSONString(Input, "data")
-                    ' appears no SSL encryption will need to use port 8002 and turn info will be something like this
+                    ' appears no SSL encryption will need to use port 8002 and return info will be something like this
                     ' {"data": {"clients": [{"attributes": {"name": "fooBase64=="},"connectTime": 1541354167097,"deviceName": "fooBase64==","id": "xy123","isHost": false}],"id": "xy123","token": "65811577"},"event": "ms.channel.connect"}
                     If Data IsNot Nothing Then
                         Dim ID As String = FindPairInJSONString(Data, "id").ToString
@@ -2925,39 +2934,10 @@ Step2:
                 Catch ex As Exception
                 End Try
 
-                If EdenSupport Then
-                    If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.get"", ""to"":""host""}}"), True) Then
-                        ' {"data":{"data":[{"accelerators":[],"action_type":null,"appId":"com.samsung.tv.store","appType":"volt_app","icon":"/usr/apps/com.samsung.tv.csfs.res.tizen30/shared/res/Resource/apps/apps/sysAppsNromal.png","id":"APPS","isLock":false,"launcherType":"system","mbrIndex":null,"mbrSource":null,"name":"APPS","position":0,"sourceTypeNum":null},{"accelerators":[],"action_type":null,"appId":"org.tizen.browser","appType":"web_app","icon":"/opt/share/webappservice/apps_icon/FirstScreen/webbrowser/245x138.png","id":"org.tizen.browser","isLock":false,"launcherType":"launcher","mbrIndex":null,"mbrSource":null,"name":"Internet","position":1,"sourceTypeNum":null}]},"event":"ed.edenApp.get","from":"host"} 
-                    End If
-                Else
-                    If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.installedApp.get"", ""to"":""host""}}"), True) Then
-                    End If
-                End If
+                myRetrieveInitInfoTimer = New Timers.Timer With {
+                    .AutoReset = False, .Interval = 1000, .Enabled = True}
 
 
-
-
-
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.getChannel.get"", ""to"":""host""}}"), True) Then
-                'End If
-
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""say"", ""data"":""Hello World!"",""to"":""all""}}"), True) Then
-                'End If
-
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.update"",""to"":""host""}}"), True) Then
-                'End If
-
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.get"",""to"":""host""}}"), True) Then
-                'End If
-
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.update"",""to"":""host""}}"), True) Then
-                'End If
-
-                ' {"event":"ed.edenTV.update","data":{"update_type":"ed.edenApp.update"}}
-                ' 
-                'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.read"",""params"":{""event"": ""ed.appStateRequest.get"", ""to"":""host""}}"), True) Then
-                'End If
-                ' ms.channel.anything
 
 
 
@@ -3007,6 +2987,60 @@ Step2:
         End Try
 
     End Sub
+
+    Private Sub myRetrieveInitInfoTimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles myRetrieveInitInfoTimer.Elapsed
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("myRetrieveInitInfoTimer_Elapsed called for device - " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+
+        Try
+            Dim isSupportInfo As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungisSupportInfo.ToString, "")
+            Dim EdenSupport As Boolean = False
+            Try
+                If isSupportInfo <> "" Then
+                    Dim EdenAvail As String = FindPairInJSONString(isSupportInfo, "EDEN_available")
+                    If EdenAvail <> "" Then
+                        If EdenAvail.ToLower = "true" Then EdenSupport = True
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+            ' https://review.tizen.org/git/?p=platform/core/convergence/app-comm-svc.git;a=blob;f=MSF-Node/org.tizen.multiscreen/server/plugins/plugin-api-v2/channels/index.js;h=8d548dcdda4e9fd12a9d280e7ee4cc3199e8e967;hb=refs/heads/tizen_3.0#l374
+
+            If EdenSupport Then
+                If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.get"", ""to"":""host""}}"), True) Then
+                    '{"data":{"data":[{"accelerators":[],"action_type":null, "appId":  "com.samsung.tv.store","appType":"volt_app","icon":"/usr/apps/com.samsung.tv.csfs.res.tizen30/shared/res/Resource/apps/apps/sysAppsNromal.png","id":"APPS","isLock":false,"launcherType":"system","mbrIndex":null, "mbrSource": null, "name":  "APPS","position":0,"sourceTypeNum":null}, {"accelerators":  [],"action_type":null, "appId":  "org.tizen.browser","appType":"web_app","icon":"/opt/share/webappservice/apps_icon/FirstScreen/webbrowser/245x138.png","id":"org.tizen.browser","isLock":false,"launcherType":"launcher","mbrIndex":null, "mbrSource": null, "name":  "Internet","position":1,"sourceTypeNum":null}]}, "event":  "ed.edenApp.get","from":"host"} 
+                End If
+            Else
+                If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.installedApp.get"", ""to"":""host""}}"), True) Then
+                End If
+            End If
+
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.getChannel.get"", ""to"":""host""}}"), True) Then
+            End If
+
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""say"", ""data"":""Hello World!"",""to"":""all""}}"), True) Then
+            End If
+
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.update"",""to"":""host""}}"), True) Then
+            End If
+
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.get"",""to"":""host""}}"), True) Then
+            End If
+
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.update"",""to"":""host""}}"), True) Then
+            End If
+
+            ' {"event":"ed.edenTV.update","data":{"update_type":"ed.edenApp.update"}}
+            ' 
+            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.read"",""params"":{""event"": ""ed.appStateRequest.get"", ""to"":""host""}}"), True) Then
+            End If
+            ' ms.channel.anything
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlOff Then Log("Error in myRetrieveInitInfoTimer_Elapsed with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+        e = Nothing
+        sender = Nothing
+    End Sub
+
 
     Public Sub HandleSamsungTCPDataReceived(sender As Object, e As Byte())
         If e Is Nothing Then Exit Sub
@@ -3590,5 +3624,60 @@ Step2:
         Return encryptor.TransformFinalBlock(Input, 0, Input.Length)
 
     End Function
+
+#Region "Queue handling"
+    Private NotificationHandlerReEntryFlag As Boolean = False
+    Private MyNotificationQueue As Queue(Of String) = New Queue(Of String)()
+    Private MissedNotificationHandlerFlag As Boolean = False
+    Friend WithEvents MyNotifyTimer As Timers.Timer
+
+    Private Sub HandleDataReceived(sender As Object, e As String)
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungRemote.HandleDataReceived received Line = " & e, LogType.LOG_TYPE_INFO)
+        Try
+            SyncLock (MyNotificationQueue)
+                MyNotificationQueue.Enqueue(e)
+            End SyncLock
+            MyNotifyTimer.Enabled = True
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlOff Then Log("Error in SamsungRemote.HandleDataReceived queuing the Notification = " & e.ToString & " and Error = " & ex.Message, LogType.LOG_TYPE_INFO)
+        End Try
+        sender = Nothing
+        e = Nothing
+    End Sub
+
+
+
+    Private Sub TreatNotficationQueue()
+        If NotificationHandlerReEntryFlag Then
+            If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungRemote.TreatNotficationQueue has Re-Entry while processing Notification queue with # elements = " & MyNotificationQueue.Count.ToString, LogType.LOG_TYPE_WARNING)
+            MissedNotificationHandlerFlag = True
+            Exit Sub
+        End If
+        NotificationHandlerReEntryFlag = True
+        If PIDebuglevel > DebugLevel.dlEvents Then Log("SamsungRemote.TreatNotficationQueue is processing Notification queue with # elements = " & MyNotificationQueue.Count.ToString, LogType.LOG_TYPE_INFO)
+        Dim NotificationEvent As String = ""
+
+        Try
+            While MyNotificationQueue.Count > 0
+
+                SyncLock (MyNotificationQueue)
+                    NotificationEvent = MyNotificationQueue.Dequeue
+                End SyncLock
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungRemote.TreatNotficationQueue is processing Notification = " & NotificationEvent, LogType.LOG_TYPE_INFO, LogColorGreen)
+                Try
+                Catch ex As Exception
+                    If PIDebuglevel > DebugLevel.dlOff Then Log("Error in SamsungRemote.TreatNotficationQueue for Event = " & NotificationEvent.ToString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                End Try
+            End While
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlOff Then Log("Error in SamsungRemote.TreatNotficationQueue with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+        NotificationEvent = ""
+        If MissedNotificationHandlerFlag Then MyNotifyTimer.Enabled = True ' rearm the timer to prevent events from getting lost
+        MissedNotificationHandlerFlag = False
+        NotificationHandlerReEntryFlag = False
+    End Sub
+
+#End Region
 
 End Class

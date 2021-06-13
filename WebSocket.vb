@@ -715,7 +715,6 @@ Public Class WebSocketClient
     Public Function SendSSLSocket(ByVal inData As Byte()) As Boolean
         ' Convert the string data to byte data using ASCII encoding.
         If PIDebuglevel > DebugLevel.dlEvents Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
-        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SendSSLSocket called with Data = " & Encoding.ASCII.GetString(inData, 0, UBound(inData)), LogType.LOG_TYPE_INFO)
         SendSSLSocket = False
         Try
             If MySSLStream Is Nothing Then
@@ -783,6 +782,7 @@ Public Class WebSocketClient
     End Sub   '
 
     Public Function SendDataOverWebSocket(Opcode As Integer, SocketData As Byte(), UseMask As Boolean) As Boolean
+
         If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket called for ipAddress = " & MyRemoteIPAddress & " with DataLength = " & SocketData.Length & ", Opcode = " & Opcode.ToString & " and UseMask = " & UseMask.ToString, LogType.LOG_TYPE_INFO)
         SendDataOverWebSocket = False
         If PIDebuglevel > DebugLevel.dlEvents Then Log("SendDataOverWebSocket for ipAddress - " & MyRemoteIPAddress & " will send data = " & Encoding.UTF8.GetString(SocketData, 0, SocketData.Length), LogType.LOG_TYPE_INFO)

@@ -4491,6 +4491,14 @@ Partial Public Class HSPI
                             End If
                             SetAdministrativeStateRemote(True)
                         End If
+                    ElseIf objectserviceType = "urn:samsung.com:serviceId:IPControlService:1" Then
+                        ' ok, this is my attempt to force this, no more looking for all kind of indicators to find out whether this Samsung TV support IP remotes or not
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found Ip Control Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "SamsungWebSocket")
+                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "8001")
+                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "api/v2/channels/samsung.remote.control?name=" & ToBase64("MediaController"))
+                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "u5Y00EnwvXkhM4CqnAGJVQ==")
+                        ' 
                     Else
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found additional service with ID = " & ObjectserviceID, LogType.LOG_TYPE_INFO)
                     End If
