@@ -662,7 +662,7 @@ Partial Public Class HSPI
                     End If
                 Next
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInputButtons for Device = " & MyUPnPDeviceName & " found device = " & Label & " with id=" & id & ", AppID=" & AppID & ", Port=" & Port & " and ICON=" & Icon, LogType.LOG_TYPE_INFO)
-                WriteStringIniFile(MyUDN, ButtonIndex.ToString, Label & ":;:-:" & "LGsetinput" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & id & ":;:-:" & Port & ":;:-:" & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString.ToString, objRemoteFile)
+                WriteStringIniFile(MyUDN, ButtonIndex.ToString, Label & ":;:-:" & "LGsetinput" & ":;:-:" & RowIndex.ToString & ":;:-:" & ColumnIndex.ToString & ":;:-:" & id & ":;:-:" & Port & ":;:-:" & "LGDeviceImage_" & MyUDN & "_" & SeqNbr.ToString.ToString & ":;:-:" & AppID, objRemoteFile)
                 If Icon <> "" And id <> "" Then
                     Try
                         AppImage = GetPicture(Icon.ToString)
@@ -1018,6 +1018,10 @@ Partial Public Class HSPI
                                 Dim FoundAppID As String = ""
                                 If (RemoteButtonInfos(1).IndexOf("LGlaunch") = 0) Or (RemoteButtonInfos(1).IndexOf("LGsetinput") = 0) Or (RemoteButtonInfos(1).IndexOf("LGsetchannel") = 0) Then
                                     FoundAppID = RemoteButtonInfos(4)
+                                    If (RemoteButtonInfos(1).IndexOf("LGsetinput") = 0) And UBound(RemoteButtonInfos, 1) > 6 Then
+                                        ' this was added 6/15/2022, the AppId is NOT at offset 4, now at offset 7
+                                        FoundAppID = RemoteButtonInfos(7)
+                                    End If
                                     If FoundAppID = AppId.ToString Then
                                         UpdateLGREmoteState(RemoteButton.Key, RemoteButtonInfos(0))
                                         Exit Sub

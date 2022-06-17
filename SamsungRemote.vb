@@ -2008,7 +2008,8 @@ Step2:
         '}
         ' {"device":{"FrameTVSupport":"false","GamePadSupport":"true","ImeSyncedSupport":"true","OS":"Tizen","TokenAuthSupport":"true","VoiceSupport":"true","countryCode":"NO","description":"Samsung DTV RCR","developerIP":"0.0.0.0","developerMode":"0","duid":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","firmwareVersion":"Unknown","id":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","ip":"192.168.2.247","model":"18_KANTM2_QTV","modelName":"QE65Q9FNA","name":"[TV] Samsung Q9 Series (65)","networkType":"wired","resolution":"3840x2160","smartHubAgreement":"true","type":"Samsung SmartTV","udn":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","wifiMac":"c0:48:e6:c3:3b:8d"},"id":"uuid:c15fc058-0ab1-4c8d-80ca-b3f11d81e291","isSupport":"{"DMP_DRM_PLAYREADY":"false","DMP_DRM_WIDEVINE":"false","DMP_available":"true","EDEN_available":"true","FrameTVSupport":"false","ImeSyncedSupport":"true","TokenAuthSupport":"true","remote_available":"true","remote_fourDirections":"true","remote_touchPad":"true","remote_voiceControl":"true"}","name":"[TV] Samsung Q9 Series (65)","remote":"1.0","type":"Samsung SmartTV","uri":"http://192.168.2.247:8001/api/v2/","version":"2.0.25"}
 
-        Dim URL As String = "http://" & MyIPAddress & ":" & WebSocketPort & "/api/v2/"
+        'Dim URL As String = "http://" & MyIPAddress & ":" & WebSocketPort & "/api/v2/"
+        Dim URL As String = "http://" & MyIPAddress & ":8001/api/v2/"
         Dim RequestUri = New Uri(URL)
         Dim StreamText As String = ""
         Try
@@ -3005,35 +3006,44 @@ Step2:
             End Try
             ' https://review.tizen.org/git/?p=platform/core/convergence/app-comm-svc.git;a=blob;f=MSF-Node/org.tizen.multiscreen/server/plugins/plugin-api-v2/channels/index.js;h=8d548dcdda4e9fd12a9d280e7ee4cc3199e8e967;hb=refs/heads/tizen_3.0#l374
 
+            ' this seems to be taken away as of Y2020 series tvs URGGHHH
             If EdenSupport Then
                 If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.get"", ""to"":""host""}}"), True) Then
-                    '{"data":{"data":[{"accelerators":[],"action_type":null, "appId":  "com.samsung.tv.store","appType":"volt_app","icon":"/usr/apps/com.samsung.tv.csfs.res.tizen30/shared/res/Resource/apps/apps/sysAppsNromal.png","id":"APPS","isLock":false,"launcherType":"system","mbrIndex":null, "mbrSource": null, "name":  "APPS","position":0,"sourceTypeNum":null}, {"accelerators":  [],"action_type":null, "appId":  "org.tizen.browser","appType":"web_app","icon":"/opt/share/webappservice/apps_icon/FirstScreen/webbrowser/245x138.png","id":"org.tizen.browser","isLock":false,"launcherType":"launcher","mbrIndex":null, "mbrSource": null, "name":  "Internet","position":1,"sourceTypeNum":null}]}, "event":  "ed.edenApp.get","from":"host"} 
+                    '{"data":{"data":[{"accelerators":[],"action_type":null, "appId":  "com.samsung.tv.store","appType":"volt_app","icon":"/usr/apps/com.samsung.tv.csfs.res.tizen30/shared/res/Resource/apps/apps/sysAppsNromal.png","id":"APPS","isLock":false,"launcherType":"system","mbrIndex":null, "mbrSource": null, "name":  "APPS","position":0,"sourceTypeNum":null}, {"accelerators":  [],"action_type":null, "appId":  "org.tizen.browser","appType":"web_app","icon":"/opt/share/webappservice/apps_icon/FirstScreen/webbrowser/245x138.png","id":"org.tizen.browser","isLock":false,"launcherType":"launcher","mbrIndex":null, "mbrSource": null, "name":  "Internet","position":1,"sourceTypeNum":null}]}, "event":  "ed.edenApp.get","from":"host"}          
                 End If
             Else
                 If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.installedApp.get"", ""to"":""host""}}"), True) Then
                 End If
             End If
+            wait(0.1)
 
             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.getChannel.get"", ""to"":""host""}}"), True) Then
             End If
+            wait(0.1)
 
-            If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""say"", ""data"":""Hello World!"",""to"":""all""}}"), True) Then
-            End If
+            'If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""say"", ""data"":""Hello World!"",""to"":""all""}}"), True) Then
+            'End If
+            'wait(0.1)
 
             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.update"",""to"":""host""}}"), True) Then
             End If
+            wait(0.1)
 
             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenTV.get"",""to"":""host""}}"), True) Then
             End If
+            wait(0.1)
 
             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.emit"",""params"":{""event"": ""ed.edenApp.update"",""to"":""host""}}"), True) Then
             End If
+            wait(0.1)
 
             ' {"event":"ed.edenTV.update","data":{"update_type":"ed.edenApp.update"}}
             ' 
             If Not MySamsungWebSocket.SendDataOverWebSocket(OpcodeText, ASCIIEncoding.ASCII.GetBytes("{""method"":""ms.channel.read"",""params"":{""event"": ""ed.appStateRequest.get"", ""to"":""host""}}"), True) Then
             End If
             ' ms.channel.anything
+            wait(0.1)
+
         Catch ex As Exception
             If PIDebuglevel > DebugLevel.dlOff Then Log("Error in myRetrieveInitInfoTimer_Elapsed with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
