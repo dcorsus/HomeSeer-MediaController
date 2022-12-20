@@ -1284,8 +1284,14 @@ Partial Public Class HSPI
                         ReturnError = ""
                     End Try
                     If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
-                    If Id = "register_0" Then
+                    ' some examples of errors
+                    ' 409 register already in progress
+                    ' 403 User denied access (receive this when we time out the accept pop up or hit deny in the pop up
+                    ' 
+                    Dim errorCode As Integer = RetrieveErrorCodeFromHTTPResponse(ReturnError)
+                    If Id = "register_0" And errorCode = 403 Then
                         ' we registered unsuccessfully
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in HandleLGDataReceived for device " & MyUPnPDeviceName & ". Unsuccesfull registration and clientKey is reset. You must allow access shown in the pop-up on your TV", LogType.LOG_TYPE_WARNING)
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, "")
                         WriteBooleanIniFile(MyUDN, DeviceInfoIndex.diRegistered.ToString, False)
                         LGCloseWebSocket()

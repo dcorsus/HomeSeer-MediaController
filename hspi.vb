@@ -3520,7 +3520,6 @@ NextElement:
                         End If
                     Else
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoRediscover found missing DLNA Object", LogType.LOG_TYPE_WARNING)
-
                     End If
 NextElement:
                 Next
