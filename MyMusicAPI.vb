@@ -483,9 +483,9 @@ Partial Public Class HSPI
             StopAVPollTimer()           ' added 12/2/2018 v.039
             StopRenderPollTimer()
             Try
-                MyMusicAPITimer.Enabled = False
-                MyUPnPDeviceTimer.Enabled = False
-                MyCheckQueueTimer.Enabled = False
+                If MyMusicAPITimer IsNot Nothing Then MyMusicAPITimer.Enabled = False
+                If MyUPnPDeviceTimer IsNot Nothing Then MyUPnPDeviceTimer.Enabled = False
+                If MyCheckQueueTimer IsNot Nothing Then MyCheckQueueTimer.Enabled = False
                 'MyPollAVTransportTimer.Enabled = False ' removed 12/2/2018 v.039
                 'MyPollRenderStateTimer.Enabled = False
                 MyMusicAPITimer = Nothing
@@ -4108,7 +4108,7 @@ Partial Public Class HSPI
         End Try
         MessageBoxService = Nothing
         Try
-            MyUPnPDevice.Dispose(True)
+            If MyUPnPDevice IsNot Nothing Then MyUPnPDevice.Dispose(True)
         Catch ex As Exception
         End Try
         MyUPnPDevice = Nothing
@@ -4471,7 +4471,7 @@ Partial Public Class HSPI
                         RemoteControlService = objService
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found LG WebOS Second Screen for device = " & MyUPnPDeviceName & " with DeviceServiceType= " & MyUPnPDeviceServiceType, LogType.LOG_TYPE_INFO)
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "LG")
-                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "3000")
+                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "3001")
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "")
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "ZTeaydfwEuaM5bkYY377PA==")
                         If HSRefRemote = -1 Then CreateHSLGRemoteButtons(False)
@@ -5499,8 +5499,13 @@ Partial Public Class HSPI
         Dim Index As Integer = 0
         Dim ServiceURL As String = ""
         Dim ServiceXmlDoc As New XmlDocument
+        Dim elementCount As Integer = 0
         Try
-            Do While Index < 100 ' can't be that there are 100 services
+            elementCount = xmlDoc.GetElementsByTagName("serviceId").Count
+        Catch ex As Exception
+        End Try
+        Try
+            Do While Index < elementCount  ' can't be that there are 100 services
                 Try
                     Dim ServiceId As String = xmlDoc.GetElementsByTagName("serviceId").Item(Index).InnerText
                     Try
@@ -5596,7 +5601,12 @@ Partial Public Class HSPI
                             If PIDebuglevel > DebugLevel.dlEvents Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString, LogType.LOG_TYPE_INFO)
                             'If piDebuglevel > DebugLevel.dlErrorsOnly Then log( " ProcessServiceDocument for device = " & MyUPnPDeviceName & " retrieved following Service document = " & ServiceXmlDoc.OuterXml.ToString)
                             Dim ActionIndex As Integer = 0
-                            Do While ActionIndex < 100
+                            Dim actionElementCount As Integer
+                            Try
+                                actionElementCount = ServiceXmlDoc.GetElementsByTagName("name").Count
+                            Catch ex As Exception
+                            End Try
+                            Do While ActionIndex < actionElementCount
                                 Try
                                     Dim ActionType As String = ServiceXmlDoc.GetElementsByTagName("name").Item(ActionIndex).InnerText
                                     If PIDebuglevel > DebugLevel.dlEvents Then Log(" ProcessServiceDocument for device = " & MyUPnPDeviceName & " found actiontype = " & ActionType.ToString, LogType.LOG_TYPE_INFO)

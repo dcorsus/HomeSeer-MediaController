@@ -201,6 +201,7 @@
     <Compile Include="IPNetFunctions.vb" />
     <Compile Include="LGRemote.vb" />
     <Compile Include="DIAL.vb" />
+    <Compile Include="NetWebSocket.vb" />
     <Compile Include="UPnPListener.vb" />
     <Compile Include="classes.vb" />
     <Compile Include="ConnectionManager.vb" />

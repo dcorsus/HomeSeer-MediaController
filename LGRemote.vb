@@ -6,12 +6,15 @@ Imports System.Xml
 Imports System.Drawing
 Imports System.IO
 Imports System.Web.Script.Serialization
+Imports System.Net.WebSockets
 'Imports System.Object
 
 Partial Public Class HSPI
 
-    Dim LGWebSocket As WebSocketClient
-    Dim LGWebPointerSocket As WebSocketClient
+    'Dim LGWebSocket As WebSocketClient
+    'Dim LGWebPointerSocket As WebSocketClient
+    Dim lgNetWS As NetWebSocket
+    Dim lgPointerNetWS As NetWebSocket
     Dim LGCommandCount As Integer = 0
     Const MaxButtonCollumns = 6
 
@@ -424,8 +427,8 @@ Partial Public Class HSPI
 
     Private Sub CreateLGAppandInputButtons(HSRefRemote As Integer)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateLGAppandInputButtons called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-        LGSendCommand("listLaunchPoints_0", "request", "ssap://com.webos.applicationManager/listLaunchPoints", "", "", True)
-        LGSendCommand("getexternalinputlist_0", "request", "ssap://tv/getExternalInputList", "", "", True)
+        If Not LGSendCommand("listLaunchPoints_0", "request", "ssap://com.webos.applicationManager/listLaunchPoints", "", "", True) Then Exit Sub
+        If Not LGSendCommand("getexternalinputlist_0", "request", "ssap://tv/getExternalInputList", "", "", True) Then Exit Sub
         LGSendCommand("channellist_0", "request", "ssap://tv/getChannelList", "", "", True)
     End Sub
 
@@ -758,11 +761,11 @@ Partial Public Class HSPI
 
     End Sub
 
-    Private Sub TreatRegistered(inBytes As Byte())
+    Private Sub TreatRegistered(msg As String)
         ' great, we registered successfully, now retrieve the client-key in the payload
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatRegistered called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
 
-        Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
+        Dim Payload As Object = FindPairInJSONString(msg, "payload")
         If Payload Is Nothing Then Exit Sub
         Dim ClientKey As String = FindPairInJSONString(Payload, "client-key").ToString.Trim("""")
         If ClientKey <> "" Then
@@ -809,50 +812,43 @@ Partial Public Class HSPI
 
             Dim URL = New Uri(SocketPath)
 
-            If LGWebPointerSocket Is Nothing Then
+            If lgPointerNetWS Is Nothing Then
                 Try
-                    LGWebPointerSocket = New WebSocketClient(SocketPath.IndexOf("wss://") <> -1) ' no SSL
+                    lgPointerNetWS = New NetWebSocket()
                 Catch ex As Exception
-                    Log("Error in TreatPointerInputSocket for UPnPDevice = " & MyUPnPDeviceName & " unable to open WebPointerSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                    Exit Sub
                 End Try
             End If
+            AddHandler lgPointerNetWS.NewMsgReceived, AddressOf HandleLGPointerDataReceived
+            AddHandler lgPointerNetWS.wsStateChange, AddressOf HandleLGPointerSocketClosed
 
-            AddHandler LGWebPointerSocket.DataReceived, AddressOf HandleLGPointerDataReceived
-            AddHandler LGWebPointerSocket.WebSocketClosed, AddressOf HandleLGPointerSocketClosed
-
-            If Not LGWebPointerSocket.ConnectSocket(URL.Host, URL.Port) Then
-                Exit Sub
-            End If
+            lgPointerNetWS.OpenWebSocket(SocketPath)
 
             ' wait until connected. Important for SSL as it takes longer
             Dim WaitLoopCounter As Integer = 0
-            While LGWebPointerSocket.MySocketIsClosed
+            While Not lgPointerNetWS.webSocketIsOpened
                 wait(1)
                 WaitLoopCounter += 1
-                If WaitLoopCounter > 10 Then Exit While
+                If WaitLoopCounter > 10 Then
+                    Try
+                        lgPointerNetWS.closeWebSocket()
+                    Catch ex As Exception
+                    End Try
+                    lgPointerNetWS = Nothing
+                    Exit Sub
+                End If
             End While
-
-            LGWebPointerSocket.Receive()
-
-            Dim WebURL = URL.PathAndQuery
-            If WebURL.IndexOf("/") = 0 Then WebURL = WebURL.Remove(0, 1)
-
-            If Not LGWebPointerSocket.UpgradeWebSocket(WebURL, SecWebSocketKey, 0, True) Then ' timevalue set to 0 no pings
-                LGWebPointerSocket.CloseSocket()
-                Exit Sub
-            End If
 
         Catch ex As Exception
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatPointerInputSocket called for Device = " & MyUPnPDeviceName & " and Payload = " & Payload.ToString & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
-    Private Sub TreatHelloReceived(Payload As Byte())
+    Private Sub TreatHelloReceived(msg As String)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"protocolVersion":1,"deviceType":"tv","deviceOS":"webOS","deviceOSVersion":"4.1.0","deviceOSReleaseVersion":"3.0.0","deviceUUID":"05ee840a-cf71-15a1-12d8-11e0eb21437c","pairingTypes":["PIN","PROMPT","COMBINED"]}}
         Try
-            Dim PairingTypes As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(Payload), "pairingTypes")
+            Dim PairingTypes As Object = FindPairInJSONString(msg, "pairingTypes")
+            '  Dim PairingTypes As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(Payload), "pairingTypes")
             If PairingTypes Is Nothing Then Exit Sub
             If PairingTypes.ToString.IndexOf("PROMPT") = -1 Then
                 'Exit Sub ' we need to use PIN or COMBINED
@@ -875,16 +871,14 @@ Partial Public Class HSPI
             Dim SocketData As Byte() = System.Text.ASCIIEncoding.ASCII.GetBytes(JSONRegisterString)
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
 
-            If Not LGWebSocket.SendDataOverWebSocket(OpcodeText, SocketData, True) Then
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived for device - " & MyUPnPDeviceName & " unsuccessful sending registration_0", LogType.LOG_TYPE_INFO)
-                Exit Sub
-            End If
+            lgNetWS.SendWebSocketMessage(JSONRegisterString)
+
             ' expected response inHandleLGDataREceived
             ' {"type":"response","id":"register_0","payload":{"pairingType":"PROMPT","returnValue":true}}
             ' {"type": "registered","id":"register_0","payload":{"client-key":"5e738846a5e1d5ca08df28c4d955e8b8"}}
 
         Catch ex As Exception
-            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatHelloReceived called for Device = " & MyUPnPDeviceName & " and Payload = " & ASCIIEncoding.ASCII.GetChars(Payload) & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatHelloReceived called for Device = " & MyUPnPDeviceName & " and Payload = " & msg & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
     End Sub
@@ -920,15 +914,15 @@ Partial Public Class HSPI
             Case psCreateRemoteAppButtons
                 CreateLGAppandInputButtons(HSRefRemote)
             Case Else
-                If GetBooleanIniFile("Remote Service by UDN", MyUDN, False) And UCase(DeviceStatus) = "ONLINE" Then
-                    Dim objRemoteFile As String = gRemoteControlPath
-                    Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
-                    Dim ButtonInfos As String()
-                    ButtonInfos = Split(ButtonInfoString, ":;:-:")
-                    If UBound(ButtonInfos, 1) > 3 Then
-                        LGSendKeyCode(ButtonInfos(1), ButtonInfos(4))
-                    End If
+                'If GetBooleanIniFile("Remote Service by UDN", MyUDN, False) And UCase(DeviceStatus) = "ONLINE" Then
+                Dim objRemoteFile As String = gRemoteControlPath
+                Dim ButtonInfoString As String = GetStringIniFile(MyUDN, ButtonValue.ToString, "", objRemoteFile)
+                Dim ButtonInfos As String()
+                ButtonInfos = Split(ButtonInfoString, ":;:-:")
+                If UBound(ButtonInfos, 1) > 3 Then
+                    LGSendKeyCode(ButtonInfos(1), ButtonInfos(4))
                 End If
+                'End If
         End Select
 
     End Sub
@@ -1139,16 +1133,17 @@ Partial Public Class HSPI
         Dim Port As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "")
         If SecWebSocketKey = "" Then Return False
 
-        If LGWebSocket Is Nothing Then
+        If lgNetWS Is Nothing Then
             Try
-                LGWebSocket = New WebSocketClient(False)    'dcorssl set to true if you want to test SSL
+                lgNetWS = New NetWebSocket()
             Catch ex As Exception
                 Log("Error in SendLGRegistration for UPnPDevice = " & MyUPnPDeviceName & " unable to open WebSocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 MyRemoteServiceActive = False
                 Return False
             End Try
         End If
-        'Port = "3001"  'dcorssl
+
+        Port = "3001"  'dcorssl dcor ws
 
         'GET / HTTP/1.1
         'Sec-WebSocket-Key: PhlKjlr5qP6gw/T+VHzCZg==
@@ -1166,27 +1161,25 @@ Partial Public Class HSPI
         ' this could be the JSON way of registering
         '  {"type":"register","payload":{"manifest":{"permissions":["LAUNCH","LAUNCH_WEBAPP","APP_TO_APP","CONTROL_AUDIO","CONTROL_INPUT_MEDIA_PLAYBACK","CONTROL_POWER","READ_INSTALLED_APPS","CONTROL_DISPLAY","CONTROL_INPUT_JOYSTICK","CONTROL_INPUT_MEDIA_RECORDING","CONTROL_INPUT_TV","READ_INPUT_DEVICE_LIST","READ_NETWORK_STATE","READ_TV_CHANNEL_LIST","WRITE_NOTIFICATION_TOAST","CONTROL_INPUT_TEXT","CONTROL_MOUSE_AND_KEYBOARD","READ_CURRENT_CHANNEL","READ_RUNNING_APPS"]}}}
 
-        AddHandler LGWebSocket.DataReceived, AddressOf HandleLGDataReceived
-        AddHandler LGWebSocket.WebSocketClosed, AddressOf HandleLGSocketClosed
+        AddHandler lgNetWS.NewMsgReceived, AddressOf HandleLGDataReceived
+        AddHandler lgNetWS.wsStateChange, AddressOf HandleLGSocketClosed
 
-        If Not LGWebSocket.ConnectSocket(MyIPAddress, Port) Then
-            Return False
-        End If
+        lgNetWS.OpenWebSocket("wss://" & MyIPAddress & ":" & Port)
 
         ' wait until connected. Important for SSL as it takes longer
         Dim WaitLoopCounter As Integer = 0
-        While LGWebSocket.MySocketIsClosed
+        While Not lgNetWS.webSocketIsOpened
             wait(1)
             WaitLoopCounter += 1
-            If WaitLoopCounter > 10 Then Exit While
+            If WaitLoopCounter > 10 Then
+                Try
+                    If lgNetWS IsNot Nothing Then lgNetWS.closeWebSocket()
+                    lgNetWS = Nothing
+                Catch ex As Exception
+                End Try
+                Return False
+            End If
         End While
-
-        LGWebSocket.Receive()
-
-        If Not LGWebSocket.UpgradeWebSocket("", SecWebSocketKey, 20, True) Then
-            LGWebSocket.CloseSocket()
-            Return False
-        End If
 
         Dim ClientKey As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, "")
 
@@ -1212,28 +1205,27 @@ Partial Public Class HSPI
 
     End Function
 
-    Public Sub HandleLGDataReceived(send As Object, inBytes As Byte())
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
-        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " Datasize = " & inBytes.Length.ToString, LogType.LOG_TYPE_INFO)
+    Public Sub HandleLGDataReceived(msg As String)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & msg, LogType.LOG_TYPE_INFO)
         Dim Type As String = ""
         Dim Id As String = ""
+        If msg = "" Then Exit Sub
         Try
-            Type = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "type").ToString.Trim("""")
+            Type = FindPairInJSONString(msg, "type").ToString.Trim("""")
             If Type = "" Then Exit Sub
         Catch ex As Exception
             Log("Error in HandleLGDataReceived for UPnPDevice = " & MyUPnPDeviceName & " retrieving json info with Type = " & Type & " and ID = " & Id & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        Id = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "id").ToString.Trim("""")
+        Id = FindPairInJSONString(msg, "id").ToString.Trim("""")
         Try
             Select Case Type
                 Case "registered"
                     If Id = "register_0" Then
-                        TreatRegistered(inBytes)
+                        TreatRegistered(msg)
                     End If
                 Case "response"
-                    ' If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGDataReceived received a response     for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
-                    Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
+                    Dim Payload As Object = FindPairInJSONString(msg, "payload")
                     If Payload Is Nothing Then Exit Sub
                     Dim returnValue As Object = Nothing
                     Try
@@ -1275,11 +1267,11 @@ Partial Public Class HSPI
 
                     End If
                 Case "hello"
-                    TreatHelloReceived(inBytes)
+                    TreatHelloReceived(msg)
                 Case "error"
                     Dim ReturnError As String = ""
                     Try
-                        ReturnError = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "error").ToString.Trim("""")
+                        ReturnError = FindPairInJSONString(msg, "error").ToString.Trim("""")
                     Catch ex As Exception
                         ReturnError = ""
                     End Try
@@ -1298,7 +1290,7 @@ Partial Public Class HSPI
                         MyRemoteServiceActive = False
                         SetHSRemoteState()
                     Else
-                        Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
+                        Dim Payload As Object = FindPairInJSONString(msg, "payload")
                         If Payload Is Nothing Then Exit Sub
                         ' returnValue typically true , if false it comes with type error ..... or so I think
                         ' errorCode
@@ -1310,17 +1302,19 @@ Partial Public Class HSPI
         End Try
     End Sub
 
-    Public Sub HandleLGSocketClosed(sender As Object)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-        MyRemoteServiceActive = False
-        Try
-            If LGWebSocket IsNot Nothing Then
-                RemoveHandler LGWebSocket.DataReceived, AddressOf HandleLGDataReceived
-                RemoveHandler LGWebSocket.WebSocketClosed, AddressOf HandleLGSocketClosed
-            End If
-        Catch ex As Exception
-        End Try
-        LGWebSocket = Nothing
+    Public Sub HandleLGSocketClosed(isOpen As Boolean)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGSocketClosed called for UPnPDevice = " & MyUPnPDeviceName & " with isOpen = " & isOpen.ToString, LogType.LOG_TYPE_INFO)
+        If Not isOpen Then
+            MyRemoteServiceActive = False
+            Try
+                If lgNetWS IsNot Nothing Then
+                    RemoveHandler lgNetWS.NewMsgReceived, AddressOf HandleLGDataReceived
+                    RemoveHandler lgNetWS.wsStateChange, AddressOf HandleLGSocketClosed
+                End If
+            Catch ex As Exception
+            End Try
+            lgNetWS = Nothing
+        End If
         ' maybe some more actions are needed here, like updating the HS status of the remote
         Try
             If HSRefRemote <> -1 Then hs.SetDeviceValueByRef(HSRefRemote, dsDeactivated, True)
@@ -1328,71 +1322,70 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("Error in HandleLGSocketClosed for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-
     End Sub
 
-    Public Sub HandleLGPointerDataReceived(send As Object, inBytes As Byte())
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & Encoding.UTF8.GetString(inBytes, 0, inBytes.Length), LogType.LOG_TYPE_INFO)
-        Dim Type As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "type").ToString.Trim("""")
+    Public Sub HandleLGPointerDataReceived(msg As String)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerDataReceived called for Device = " & MyUPnPDeviceName & " and Data = " & msg, LogType.LOG_TYPE_INFO)
+        If msg = "" Then Exit Sub
+        Dim Type As String = FindPairInJSONString(msg, "type").ToString.Trim("""")
         If Type = "" Then Exit Sub
-        Dim Id As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "id").ToString.Trim("""")
+        Dim Id As String = FindPairInJSONString(msg, "id").ToString.Trim("""")
         Select Case Type
             Case "registered"
             Case "response"
-                Dim Payload As Object = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "payload")
+                Dim Payload As Object = FindPairInJSONString(msg, "payload")
                 If Payload Is Nothing Then Exit Sub
                 Dim returnValue As Object = FindPairInJSONString(Payload, "returnValue")
                 If returnValue.ToString.ToLower <> "true" Then Exit Sub
             Case "error"
-                Dim ReturnError As String = FindPairInJSONString(ASCIIEncoding.ASCII.GetChars(inBytes), "error").ToString.Trim("""")
+                Dim ReturnError As String = FindPairInJSONString(msg, "error").ToString.Trim("""")
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerDataReceived received a response error for Device = " & MyUPnPDeviceName & " with Error = " & ReturnError, LogType.LOG_TYPE_INFO)
         End Select
-
     End Sub
 
-    Public Sub HandleLGPointerSocketClosed(sender As Object)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerSocketClosed called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-        Try
-            If LGWebPointerSocket IsNot Nothing Then
-                RemoveHandler LGWebPointerSocket.DataReceived, AddressOf HandleLGPointerDataReceived
-                RemoveHandler LGWebPointerSocket.WebSocketClosed, AddressOf HandleLGPointerSocketClosed
-            End If
-        Catch ex As Exception
-        End Try
-        LGWebPointerSocket = Nothing
+    Public Sub HandleLGPointerSocketClosed(isOpen As Boolean)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLGPointerSocketClosed called for UPnPDevice = " & MyUPnPDeviceName & " with isOpen = " & isOpen.ToString, LogType.LOG_TYPE_INFO)
+        If Not isOpen Then
+            Try
+                If lgPointerNetWS IsNot Nothing Then
+                    RemoveHandler lgPointerNetWS.NewMsgReceived, AddressOf HandleLGPointerDataReceived
+                    RemoveHandler lgPointerNetWS.wsStateChange, AddressOf HandleLGPointerSocketClosed
+                End If
+            Catch ex As Exception
+            End Try
+            lgPointerNetWS = Nothing
+        End If
     End Sub
 
     Private Sub LGCloseWebSocket()
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGCloseWebSocket called for UPnPDevice = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-        'If Not MyRemoteServiceActive Then Exit Sub
 
-        If LGWebSocket IsNot Nothing Then
+        If lgNetWS IsNot Nothing Then
             Try
-                LGWebSocket.CloseSocket()
+                lgNetWS.closeWebSocket()
             Catch ex As Exception
                 Log("Error in LGCloseWebSocket for UPnPDevice = " & MyUPnPDeviceName & " closing the websocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
-                RemoveHandler LGWebSocket.DataReceived, AddressOf HandleLGDataReceived
-                RemoveHandler LGWebSocket.WebSocketClosed, AddressOf HandleLGSocketClosed
+                If lgNetWS IsNot Nothing Then RemoveHandler lgNetWS.NewMsgReceived, AddressOf HandleLGDataReceived
+                If lgNetWS IsNot Nothing Then RemoveHandler lgNetWS.wsStateChange, AddressOf HandleLGSocketClosed
             Catch ex As Exception
             End Try
-            LGWebSocket = Nothing
+            lgNetWS = Nothing
         End If
-        If LGWebPointerSocket IsNot Nothing Then
+        If lgPointerNetWS IsNot Nothing Then
             Try
-                LGWebPointerSocket.CloseSocket()
+                lgPointerNetWS.closeWebSocket()
             Catch ex As Exception
-                Log("Error in LGCloseWebSocket for UPnPDevice = " & MyUPnPDeviceName & " closing the websocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in LGCloseWebSocket for UPnPDevice = " & MyUPnPDeviceName & " closing the pointer websocket with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
-                RemoveHandler LGWebPointerSocket.DataReceived, AddressOf HandleLGPointerDataReceived
-                RemoveHandler LGWebPointerSocket.WebSocketClosed, AddressOf HandleLGPointerSocketClosed
+                If lgPointerNetWS IsNot Nothing Then RemoveHandler lgPointerNetWS.NewMsgReceived, AddressOf HandleLGPointerDataReceived
+                If lgPointerNetWS IsNot Nothing Then RemoveHandler lgPointerNetWS.wsStateChange, AddressOf HandleLGPointerSocketClosed
             Catch ex As Exception
             End Try
-            LGWebPointerSocket = Nothing
+            lgPointerNetWS = Nothing
         End If
-
         Try
             If HSRefRemote <> -1 Then hs.SetDeviceValueByRef(HSRefRemote, dsDeactivated, True)
             MyRemoteServiceActive = False
@@ -1421,6 +1414,11 @@ Partial Public Class HSPI
         'This Is used so that a request can be matched with a response.
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendCommand called for device - " & MyUPnPDeviceName & " with Prefix = " & Prefix & ", MsgType = " & Msgtype & ", URI = " & Uri & ", Payload = " & Payload, LogType.LOG_TYPE_INFO)
 
+        If lgNetWS Is Nothing Then
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in LGSendCommand called for device - " & MyUPnPDeviceName & " The webSocket is closed. Trying to open ..... this command execution will be delayed" & Payload, LogType.LOG_TYPE_INFO)
+            If Not SendLGRegistration() Then Return False
+        End If
+
         LGCommandCount += 1
         Dim SendCommandString As String = ""
 
@@ -1439,10 +1437,7 @@ Partial Public Class HSPI
         End If
         SendCommandString &= "}"
         Try
-            If Not LGWebSocket.SendDataOverWebSocket(OpcodeText, System.Text.ASCIIEncoding.ASCII.GetBytes(SendCommandString), True) Then
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
-                Return False
-            End If
+            lgNetWS.SendWebSocketMessage(SendCommandString)
         Catch ex As Exception
             Log("Error in LGSendCommand for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
@@ -1479,10 +1474,7 @@ Partial Public Class HSPI
         End Select
 
         Try
-            If Not LGWebPointerSocket.SendDataOverWebSocket(OpcodeText, System.Text.ASCIIEncoding.ASCII.GetBytes(SendCommandString), True) Then
-                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("LGSendPointerCommand for device - " & MyUPnPDeviceName & " unsuccessful sending command", LogType.LOG_TYPE_INFO)
-                Return False
-            End If
+            lgPointerNetWS.SendWebSocketMessage(SendCommandString)
         Catch ex As Exception
             Log("Error in LGSendPointerCommand for UPnPDevice = " & MyUPnPDeviceName & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return False
@@ -1495,8 +1487,6 @@ Partial Public Class HSPI
             Try
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceValueByRef(HSRefServiceRemote, Value, True)
                 If HSRefServiceRemote <> -1 Then hs.SetDeviceString(HSRefServiceRemote, ValueString, True)
-                '   If piDebuglevel > DebugLevel.dlEvents Then Log("HS updated in UpdateTransportState. HSRef = " & HSRefPlayer & " and MyTransportStateHasChanged = " & MyTransportStateHasChanged.ToString & ", MyTrackInfoHasChanged = " & MyTrackInfoHasChanged.ToString & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
-                'End If
             Catch ex As Exception
                 Log("Error in UpdateLGREmoteState updating HS with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
@@ -1525,9 +1515,9 @@ Partial Public Class HSPI
         ' send_command("", "request", "ssap://system/turnOff", null, fn);
         '  send_command("", "request", "ssap://system.notifications/createToast", '{"message": "MSG"}'.replace('MSG', text), fn);
 
-        If LGWebSocket Is Nothing Then
+        If lgNetWS Is Nothing Then
             If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning LGSendKeyCode called for UPnPDevice = " & MyUPnPDeviceName & " with KeyCode = " & KeyCode & " but no Open Socket", LogType.LOG_TYPE_WARNING)
-            Return False
+            If Not SendLGRegistration() Then Return False
         End If
 
         ' https://github.com/hobbyquaker/lgtv2mqtt/blob/master/index.js

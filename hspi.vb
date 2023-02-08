@@ -581,6 +581,14 @@ Public Class HSPI
             Catch ex As Exception
 
             End Try
+            Try
+                RemoveHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
+            Catch ex As Exception
+            End Try
+            Try
+                RemoveHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
+            Catch ex As Exception
+            End Try
             If MySSDPDevice IsNot Nothing Then
                 Try
                     MySSDPDevice.Dispose()
@@ -596,14 +604,6 @@ Public Class HSPI
                 End Try
                 UPnPViewerPage = Nothing
             End If
-            Try
-                RemoveHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
-            Catch ex As Exception
-            End Try
-            Try
-                RemoveHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
-            Catch ex As Exception
-            End Try
             Try
                 'RemoveHandler MySSDPDevice.MSearchEvent, AddressOf MSearchEvent
             Catch ex As Exception
@@ -5304,14 +5304,14 @@ NextElement:
         End If
     End Function
 
-    Public Function RemoveBlanks(ByVal InString) As String
+    Public Function RemoveBlanks(ByVal InString As String) As String
         RemoveBlanks = InString
         Dim InIndex As Integer = 0
         Dim Outstring As String = ""
         InString = Trim(InString)
         If InString = "" Then Exit Function
         Try
-            Do While InIndex < InString.length
+            Do While InIndex < InString.Length
                 If InString(InIndex) = " " Then
                     Outstring = Outstring + "_"
                 ElseIf InString(InIndex) = "!" Then

@@ -398,7 +398,7 @@ Partial Public Class HSPI
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " : Rendering (BlueVideoBlackLevel) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
             Case "HorizontalKeystone" ' LG
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " : Rendering (HorizontalKeystone) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
-            Case "VerticalKeystone" ' LG
+            Case "VerticalKeystone", "X_Subtitle", "X_Current3DFormatter", "X_Possible3DFormatter" ' LG
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log(MyUPnPDeviceName & " : Rendering (VerticalKeystone) = " & VariableValue.ToString, LogType.LOG_TYPE_INFO)
 
             Case Else
