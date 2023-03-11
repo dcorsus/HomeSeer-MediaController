@@ -976,13 +976,27 @@ Partial Public Class HSPI
     Private Sub TreatSetAppResponse(Payload As Object)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"14","payload":{"returnValue":true,"id":"com.showtime.app.showtimeanytime","sessionId":"Y29tLnNob3d0aW1lLmFwcC5zaG93dGltZWFueXRpbWU="}}
+        Try
+            Dim AppId As Object = FindPairInJSONString(Payload, "id")
+        Catch ex As Exception
+
+        End Try
     End Sub
 
-    Private Sub TreatForegroundAppResponse(Payload As Object)
+    Private Sub TreatForegroundAppResponse(Payload As Object, useAppId As Boolean)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatSetTreatForegroundAppResponseAppResponse called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
         ' {"type":"response","id":"foregroundapp_0","payload":{"subscribed":true,"appId":"netflix","returnValue":true,"windowId":"","processId":""}} 
+        ' {"type":"response","id":"14","payload":{"returnValue":true,"id":"com.showtime.app.showtimeanytime","sessionId":"Y29tLnNob3d0aW1lLmFwcC5zaG93dGltZWFueXRpbWU="}}
+        ' {"type":"response","id":"externalinput_0","payload":{"devices":[{"id":"AV_1","label":"AV","port":1,"appId":"com.webos.app.externalinput.av1","icon":"http://192.168.1.69:3000/resources/ab9b4e9c4bffbdd51f410c2221b8c2a3102f6420/av.png","modified":false,"subList":[],"subCount":0,"connected":false,"favorite":false},{"id":"HDMI_1","label":"Set-Top Box","port":1,"appId":"com.webos.app.hdmi1","icon":"http://192.168.1.69:3000/resources/ed950809c417e52569bc0c8aeed67d50163ac551/settopbox.png","modified":true,"spdProductDescription":"TiVo","spdVendorName":"Broadcom","spdSourceDeviceInfo":"Digital STB","lastUniqueId":255,"subList":[{"id":"URCU","serviceType":"settop","connectedInput":"HDMI_1","serviceName":"Comcast(Saratoga)","serviceId":"10","serviceArea":"","manufacturerName":"Samsung","manufacturerId":"10210002","settopCode":"C-CA67102","settopOption":"","irType":"C"}],"subCount":1,"connected":true,"favorite":true},{"id":"HDMI_2","label":"HDMI2","port":2,"appId":"com.webos.app.hdmi2","icon":"http://192.168.1.69:3000/resources/0604a74a61bc0f940cf1372169add19b2f7b3a70/HDMI_2.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":true},{"id":"HDMI_3","label":"HDMI3","port":3,"appId":"com.webos.app.hdmi3","icon":"http://192.168.1.69:3000/resources/33f30cb550c0ad1a09d2188030803ce8c99b96c7/HDMI_3.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":false},{"id":"HDMI_4","label":"HDMI4","port":4,"appId":"com.webos.app.hdmi4","icon":"http://192.168.1.69:3000/resources/46e19792c140226a116692add4677cd9c1c74efe/HDMI_4.png","modified":false,"lastUniqueId":255,"subList":[],"subCount":0,"connected":false,"favorite":false}],"subscribed":true}}
+
+
         Try
-            Dim AppId As Object = FindPairInJSONString(Payload, "appId")
+            Dim AppId As Object '= FindPairInJSONString(Payload, "appId")
+            If useAppId Then
+                AppId = FindPairInJSONString(Payload, "appId")
+            Else
+                AppId = FindPairInJSONString(Payload, "id")
+            End If
             ' this might be not right to hard code but I'll do it anyway.
             If AppId.ToString.ToLower = "com.webos.app.livetv" Then
                 ' we can only subscribe to channel info when the TV is in TV mode
@@ -1250,7 +1264,8 @@ Partial Public Class HSPI
                     ElseIf Id = "channels_0" Then
                         TreatChannelInfoEvent(Payload)
                     ElseIf Id = "externalinput_0" Then
-                        TreatExternalInputInfoEvent(Payload)
+                        'TreatExternalInputInfoEvent(Payload)
+                        TreatForegroundAppResponse(Payload, True)
                     ElseIf Id = "audiostatus_0" Then
                         TreatAudioInfoEvent(Payload)
                     ElseIf Id = "volumestatus_0" Then
@@ -1258,9 +1273,10 @@ Partial Public Class HSPI
                     ElseIf Id = "keyboardstatus_0" Then
                     ElseIf Id = "interestingevents_0" Then
                     ElseIf Id = "foregroundapp_0" Then
-                        TreatForegroundAppResponse(Payload)
+                        TreatForegroundAppResponse(Payload, True)
                     ElseIf Id = "setapp_0" Then
-                        TreatSetAppResponse(Payload)
+                        'TreatSetAppResponse(Payload)
+                        TreatForegroundAppResponse(Payload, False)
                     ElseIf Id = "currentchannel_0" Then
                         TreatCurrentChannelResponse(Payload)
                     Else
