@@ -86,6 +86,8 @@ Public Class NetWebSocket
                     End Try
                     If PIDebuglevel > DebugLevel.dlEvents Then Log("OpenWebSocket received = " & System.Text.Encoding.UTF8.GetString(answ.Array), LogType.LOG_TYPE_INFO)
                 End While
+                If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in OpenWebSocket. The WS is not open anymore. State = " & ws.State.ToString, LogType.LOG_TYPE_WARNING)
+                closeWebSocket()
             Else
                 If PIDebuglevel > DebugLevel.dlOff Then Log("Warning OpenWebSocket couldn't be opened with Url = " & webSocketUrl, LogType.LOG_TYPE_WARNING)
                 closeWebSocket()
@@ -107,7 +109,6 @@ Public Class NetWebSocket
         Catch ex As Exception
         End Try
         Try
-            webSocketIsOpened = False
             If cancelToken IsNot Nothing Then
                 cancelToken.Cancel()
                 cancelToken = Nothing
@@ -115,6 +116,7 @@ Public Class NetWebSocket
             ws = Nothing
         Catch ex As Exception
         End Try
+        webSocketIsOpened = False
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning webSocket closed", LogType.LOG_TYPE_WARNING)
     End Sub
 
