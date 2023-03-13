@@ -776,16 +776,23 @@ Partial Public Class HSPI
             MyRemoteServiceActive = True
             SetHSRemoteState()
             ' check some capabilities
+            wait(1)
             LGSendCommand("services_0", "request", "ssap://api/getServiceList", "", "", True)
             ' get the websocket info to do rest of "old style" remote
+            wait(1)
             LGSendCommand("getpointerinputsocket_0", "request", "ssap://com.webos.service.networkinput/getPointerInputSocket", """{}""", "", True)
             ' Subscribe to interesting events
             'LGSendCommand("channels_0", "subscribe", "ssap://tv/getChannelList", "", "", True)
+            wait(1)
             LGSendCommand("externalinput_0", "subscribe", "ssap://tv/getExternalInputList", "", "", True)
+            wait(1)
             LGSendCommand("audiostatus_0", "subscribe", "ssap://audio/getStatus", "", "", True)
+            wait(1)
             LGSendCommand("volumestatus_0", "subscribe", "ssap://audio/getVolume", "", "", True)
+            wait(1)
             ' additional stuff
             LGSendCommand("keyboardstatus_0", "subscribe", "ssap://com.webos.service.ime/registerRemoteKeyboard", "", "", True)
+            wait(1)
             ' {"type":"response","id":"keyboardstatus_0","payload":{"currentWidget":{"focus":false},"subscribed":true}}
             'LGSendCommand("interestingevents_0", "subscribe", "ssap://com.webos.service.tv.keymanager/listInterestingEvents", "", "", True)
             '{"type":"error","id":"interestingevents_0","error":"401 insufficient permissions","payload":{}} 
