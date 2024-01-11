@@ -3,6 +3,7 @@ Imports System.Text
 Imports System.Net.WebSockets
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports System.Security.Cryptography.X509Certificates
 
 Public Class NetWebSocket
 
@@ -50,8 +51,11 @@ Public Class NetWebSocket
             If PIDebuglevel > DebugLevel.dlOff Then Log("Error in OpenWebSocket trying to get a ClientWebSocket", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
+        Dim p = ServicePointManager.FindServicePoint(New Uri(webSocketUrl))
+
         ServicePointManager.ServerCertificateValidationCallback = Function(s, c, h, d) True
-        ws.Options.UseDefaultCredentials = True
+        'ws.Options.UseDefaultCredentials = True
+        ws.Options.ClientCertificates = CredentialCache.DefaultCredentials 'New System.Security.Cryptography.X509Certificates.X509CertificateCollection()
         Try
             Await ws.ConnectAsync(New Uri(webSocketUrl), cancelToken.Token)
             If (ws.State = WebSockets.WebSocketState.Open) Then
