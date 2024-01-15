@@ -51,11 +51,14 @@ Public Class NetWebSocket
             If PIDebuglevel > DebugLevel.dlOff Then Log("Error in OpenWebSocket trying to get a ClientWebSocket", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
-        Dim p = ServicePointManager.FindServicePoint(New Uri(webSocketUrl))
+        Try
+            Dim p = ServicePointManager.FindServicePoint(New Uri(webSocketUrl))
+            ServicePointManager.ServerCertificateValidationCallback = Function(s, c, h, d) True
+            ws.Options.UseDefaultCredentials = True
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlOff Then Log("Error in OpenWebSocket trying to set the ServicePointManager with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
 
-        ServicePointManager.ServerCertificateValidationCallback = Function(s, c, h, d) True
-        'ws.Options.UseDefaultCredentials = True
-        ws.Options.ClientCertificates = CredentialCache.DefaultCredentials 'New System.Security.Cryptography.X509Certificates.X509CertificateCollection()
         Try
             Await ws.ConnectAsync(New Uri(webSocketUrl), cancelToken.Token)
             If (ws.State = WebSockets.WebSocketState.Open) Then

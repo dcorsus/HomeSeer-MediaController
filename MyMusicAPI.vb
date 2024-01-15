@@ -4471,9 +4471,11 @@ Partial Public Class HSPI
                         RemoteControlService = objService
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found LG WebOS Second Screen for device = " & MyUPnPDeviceName & " with DeviceServiceType= " & MyUPnPDeviceServiceType, LogType.LOG_TYPE_INFO)
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "LG")
-                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "3001")
+                        If GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "") = "" Then
+                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketPort.ToString, "3001")
+                            WriteStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "ZTeaydfwEuaM5bkYY377PA==")
+                        End If
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "")
-                        WriteStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "ZTeaydfwEuaM5bkYY377PA==")
                         If HSRefRemote = -1 Then CreateHSLGRemoteButtons(False)
                         CreateHSLGRemoteServices()
                         If Not SendLGRegistration() Then
