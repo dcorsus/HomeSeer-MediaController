@@ -1164,7 +1164,15 @@ Partial Public Class HSPI
             End Try
         End If
 
-        Port = "3001"  'dcorssl dcor ws
+        Dim wsUrl As String = ""
+        If Port = "3001" Then
+            wsUrl = "wss://" & MyIPAddress & ":3001"
+        ElseIf Port = "3000" Then
+            wsUrl = "ws://" & MyIPAddress & ":3000"
+        Else
+            wsUrl = "wss://" & MyIPAddress & ":3001"
+        End If
+        'Port = "3001"  'dcorssl dcor ws
 
         'GET / HTTP/1.1
         'Sec-WebSocket-Key: PhlKjlr5qP6gw/T+VHzCZg==
@@ -1185,7 +1193,7 @@ Partial Public Class HSPI
         AddHandler lgNetWS.NewMsgReceived, AddressOf HandleLGDataReceived
         AddHandler lgNetWS.wsStateChange, AddressOf HandleLGSocketClosed
 
-        lgNetWS.OpenWebSocket("wss://" & MyIPAddress & ":" & Port)
+        lgNetWS.OpenWebSocket(wsUrl)
 
         ' wait until connected. Important for SSL as it takes longer
         Dim WaitLoopCounter As Integer = 0
