@@ -11,6 +11,7 @@ Imports System
 Imports System.ComponentModel
 Imports System.Drawing
 Imports System.Numerics
+Imports System.Security.Cryptography
 
 
 'Imports Pairing
@@ -39,7 +40,7 @@ Partial Public Class HSPI
 
     'Private Declare Sub applySamyGOKeyTransform Lib "SamsungCrypto.dll" (ByRef Input As Byte(), ByRef Output As Byte())    ' removed 5/25/2019, not sure what this was doing here?
     Private Declare Sub applySamyGOKeyTransform Lib "MediaControllerCrypto.dll" (ByRef Input As Byte(), ByRef Output As Byte())
-    <DllImport("MediaControllerCrypto.dll", CallingConvention:=CallingConvention.Cdecl)>
+    <DllImport("./html/MediaController/bin/MediaControllerCrypto.dll", CallingConvention:=CallingConvention.Cdecl)>
     Private Shared Sub applySamyGOKeyTransform(Input As IntPtr, Output As IntPtr)
     End Sub
 
@@ -874,6 +875,21 @@ Partial Public Class HSPI
     Private Function SamsungActivateRemote() As Boolean
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungActivateRemote called for UPnPDevice = " & MyUPnPDeviceName & " has ServiceStateActive = " & MyRemoteServiceActive.ToString & " and admin state = " & MyAdminStateActive.ToString, LogType.LOG_TYPE_INFO)
         SamsungActivateRemote = False
+
+        ' dcor crypto test
+        'Try
+        'Dim clientHello As String = "010100000000000000009E000000063635343332313353E0BC32AFE98662C563CD77BCE79C8EBFA9585127BE53B40E5A1B5F1271CBEDA63CA67A5F9D8BCF5C9F75AD79168A2B6E9081D7F78E17ED368F179EE245373E6A413DEC69640FF08B0DACFFD776AF0C893175290C2606233FD6010A07C8F394B1B57211DA480C472E3DE770604F4391B222345E7ACC76EC60CA828080AC4B424E70E7CB59BDC03593D85A871EE09F294884500000000000"
+        'Dim dataHash As Byte() = System.Text.Encoding.UTF8.GetBytes("15697C5A729DD83DEC26003E231B13B60CF481CA")
+        'Dim aeskey As Byte() = System.Text.Encoding.UTF8.GetBytes("9A64CEB94977EB22C52D9ACABF206D3E")
+        'Dim skPrime As Byte() = Nothing
+        'Dim SamsungAppID As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diSamsungAppId.ToString, "")
+        'ParseClientHello(clientHello, dataHash, aeskey, SamsungAppID, skPrime)
+        'Catch ex As Exception
+        'Log("Error in SamsungActivateRemote for UPnPDevice = " & MyUPnPDeviceName & "  parsing test hello with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
+        'End Try
+        '
+        '
+
         If Not MyRemoteServiceActive And MyAdminStateActive Then
             If GetStringIniFile(MyUDN, DeviceInfoIndex.diRemoteType.ToString, "") = "SamsungWebSocket" Then
                 ' Newer models 2016
@@ -1652,7 +1668,9 @@ Step2:
             SessionKey = FindPairInJSONString(AuthData, "session_key").ToString.Trim("""")
         End If
 
-        If SessionID IsNot Nothing Then SessionID = ""
+        ' dcor this may need to be change to If SessionId is Nothing then SessionId = "" or just be removed
+        'If SessionID IsNot Nothing Then SessionID = ""
+        If SessionID Is Nothing Then SessionID = ""
 
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " ClientAckMsg = " & ClientAckMsg, LogType.LOG_TYPE_INFO)
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("SamsungAuthenticateUsePIN for device - " & MyUPnPDeviceName & " SessionID = " & SessionID, LogType.LOG_TYPE_INFO)
@@ -3385,6 +3403,8 @@ Step2:
             End If
             If different Then
                 If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("warning in ParseClientHello for UPnPDevice =  " & MyUPnPDeviceName & " Pin error!!! ", LogType.LOG_TYPE_WARNING)
+
+                ' dcor crypto test
                 Return Nothing
             End If
 
