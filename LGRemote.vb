@@ -851,7 +851,7 @@ Partial Public Class HSPI
     End Sub
 
     Private Sub TreatHelloReceived(msg As String)
-        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived called for Device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log($"TreatHelloReceived called for Device = {MyUPnPDeviceName} with msg = {msg}", LogType.LOG_TYPE_INFO)
         ' {"protocolVersion":1,"deviceType":"tv","deviceOS":"webOS","deviceOSVersion":"4.1.0","deviceOSReleaseVersion":"3.0.0","deviceUUID":"05ee840a-cf71-15a1-12d8-11e0eb21437c","pairingTypes":["PIN","PROMPT","COMBINED"]}}
         Try
             Dim PairingTypes As Object = FindPairInJSONString(msg, "pairingTypes")
@@ -861,7 +861,43 @@ Partial Public Class HSPI
                 'Exit Sub ' we need to use PIN or COMBINED
             End If
 
-            Dim PairingTypeArray As String() = Split(PairingTypes.ToString, ",")
+            LGSendCommand("pre_register_0", "request", "ssap://system/getSystemInfo", "{}", "", True)
+            Exit Sub
+            ' doesn't seem to be used Dim PairingTypeArray As String() = Split(PairingTypes.ToString, ",")
+
+            Dim ClientKey As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, "")
+
+            'Dim JSONRegisterString As String = "{""type"":""register"",""id"":""register_0"",""payload"":{""pairingType"":""PROMPT"",""manifest"":{""permissions"":[""LAUNCH"",""LAUNCH_WEBAPP"",""APP_TO_APP"",""CONTROL_AUDIO"",""CONTROL_INPUT_MEDIA_PLAYBACK"",""CONTROL_POWER"",""READ_INSTALLED_APPS"",""CONTROL_DISPLAY"",""CONTROL_INPUT_JOYSTICK"",""CONTROL_INPUT_MEDIA_RECORDING"",""CONTROL_INPUT_TV"",""READ_INPUT_DEVICE_LIST"",""READ_NETWORK_STATE"",""READ_TV_CHANNEL_LIST"",""WRITE_NOTIFICATION_TOAST"",""CONTROL_INPUT_TEXT"",""CONTROL_MOUSE_AND_KEYBOARD"",""READ_CURRENT_CHANNEL"",""READ_RUNNING_APPS""],""manifestVersion"":1}}}"
+            'Dim JSONAlreadyRegisteredString As String = "{""type"":""register"",""id"":""register_0"",""payload"":{""pairingType"":""PROMPT"",""client-key"":""" & ClientKey & """,""manifest"":{""permissions"":[""LAUNCH"",""LAUNCH_WEBAPP"",""APP_TO_APP"",""CONTROL_AUDIO"",""CONTROL_INPUT_MEDIA_PLAYBACK"",""CONTROL_POWER"",""READ_INSTALLED_APPS"",""CONTROL_DISPLAY"",""CONTROL_INPUT_JOYSTICK"",""CONTROL_INPUT_MEDIA_RECORDING"",""CONTROL_INPUT_TV"",""READ_INPUT_DEVICE_LIST"",""READ_NETWORK_STATE"",""READ_TV_CHANNEL_LIST"",""WRITE_NOTIFICATION_TOAST"",""CONTROL_INPUT_TEXT"",""CONTROL_MOUSE_AND_KEYBOARD"",""READ_CURRENT_CHANNEL"",""READ_RUNNING_APPS""],""manifestVersion"":1}}}"
+
+            Dim JSONRegisterString As String = "{""type"":""register"",""id"":""register_0"",""payload"":{""pairingType"":""PROMPT"",""manifest"":{""permissions"":[""LAUNCH"",""LAUNCH_WEBAPP"",""APP_TO_APP"",""CONTROL_AUDIO"",""CONTROL_INPUT_MEDIA_PLAYBACK"",""CONTROL_POWER"",""READ_INSTALLED_APPS"",""CONTROL_DISPLAY"",""CONTROL_INPUT_JOYSTICK"",""CONTROL_INPUT_MEDIA_RECORDING"",""CONTROL_INPUT_TV"",""READ_INPUT_DEVICE_LIST"",""READ_NETWORK_STATE"",""READ_TV_CHANNEL_LIST"",""WRITE_NOTIFICATION_TOAST"",""CONTROL_INPUT_TEXT"",""CONTROL_MOUSE_AND_KEYBOARD"",""READ_CURRENT_CHANNEL"",""READ_RUNNING_APPS"",""TEST_OPEN"",""TEST_PROTECTED"",""TEST_SECURE"",""READ_APP_STATUS"",""READ_POWER_STATE"",""READ_COUNTRY_INFO"",""READ_LGE_SDX"",""READ_NOTIFICATIONS"",""SEARCH"",""WRITE_SETTINGS"",""WRITE_NOTIFICATION_ALERT"",""READ_UPDATE_INFO"",""UPDATE_FROM_REMOTE_APP"",""READ_LGE_TV_INPUT_EVENTS"",""READ_TV_CURRENT_TIME"",""CLOSE""],""manifestVersion"":1}}}"
+            Dim JSONAlreadyRegisteredString As String = "{""type"":""register"",""id"":""register_0"",""payload"":{""pairingType"":""PROMPT"",""client-key"":""" & ClientKey & """,""manifest"":{""permissions"":[""LAUNCH"",""LAUNCH_WEBAPP"",""APP_TO_APP"",""CONTROL_AUDIO"",""CONTROL_INPUT_MEDIA_PLAYBACK"",""CONTROL_POWER"",""READ_INSTALLED_APPS"",""CONTROL_DISPLAY"",""CONTROL_INPUT_JOYSTICK"",""CONTROL_INPUT_MEDIA_RECORDING"",""CONTROL_INPUT_TV"",""READ_INPUT_DEVICE_LIST"",""READ_NETWORK_STATE"",""READ_TV_CHANNEL_LIST"",""WRITE_NOTIFICATION_TOAST"",""CONTROL_INPUT_TEXT"",""CONTROL_MOUSE_AND_KEYBOARD"",""READ_CURRENT_CHANNEL"",""READ_RUNNING_APPS"",""TEST_OPEN"",""TEST_PROTECTED"",""TEST_SECURE"",""READ_APP_STATUS"",""READ_POWER_STATE"",""READ_COUNTRY_INFO"",""READ_LGE_SDX"",""READ_NOTIFICATIONS"",""SEARCH"",""WRITE_SETTINGS"",""WRITE_NOTIFICATION_ALERT"",""READ_UPDATE_INFO"",""UPDATE_FROM_REMOTE_APP"",""READ_LGE_TV_INPUT_EVENTS"",""READ_TV_CURRENT_TIME"",""CLOSE""],""manifestVersion"":1}}}"
+
+            If ClientKey <> "" Then
+                JSONRegisterString = JSONAlreadyRegisteredString
+            End If
+
+            Dim SocketData As Byte() = System.Text.ASCIIEncoding.ASCII.GetBytes(JSONRegisterString)
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("TreatHelloReceived send Registration String for device - " & MyUPnPDeviceName & " with String = " & JSONRegisterString.ToString, LogType.LOG_TYPE_INFO)
+
+            lgNetWS.SendWebSocketMessage(JSONRegisterString)
+
+            ' expected response inHandleLGDataREceived
+            ' {"type":"response","id":"register_0","payload":{"pairingType":"PROMPT","returnValue":true}}
+            ' {"type": "registered","id":"register_0","payload":{"client-key":"5e738846a5e1d5ca08df28c4d955e8b8"}}
+
+        Catch ex As Exception
+            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TreatHelloReceived called for Device = " & MyUPnPDeviceName & " and Payload = " & msg & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+
+    End Sub
+
+    Private Sub TreatPreRegisteredInfo(msg As String)
+        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log($"TreatPreRegisteredInfo called for Device = {MyUPnPDeviceName} with msg = {msg}", LogType.LOG_TYPE_INFO)
+        '
+        Try
+            ' no idea what to do with the retrieved information ... yet
+            ' it appears as of WebOS25 between hello and registering we need to retrieve this info
 
             Dim ClientKey As String = GetStringIniFile(MyUDN, DeviceInfoIndex.diLGClientKey.ToString, "")
 
@@ -1228,7 +1264,7 @@ Partial Public Class HSPI
         End If
 
         ' this should happen first because there might be scenari where pairingType = PROMPT is not supported
-        LGSendCommand("hello_0", "hello", "", "", "", True) ' check some capabilities
+        LGSendCommand("hello_0", "hello", "", "{}", "", True) ' check some capabilities
 
         Return True
 
@@ -1294,6 +1330,8 @@ Partial Public Class HSPI
                         TreatForegroundAppResponse(Payload, False)
                     ElseIf Id = "currentchannel_0" Then
                         TreatCurrentChannelResponse(Payload)
+                    ElseIf Id = "pre_register_0" Then
+                        TreatPreRegisteredInfo(Payload)
                     Else
 
                     End If
