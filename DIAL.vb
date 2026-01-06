@@ -11,7 +11,7 @@ Partial Public Class HSPI
     Private Function RetrieveDIALAppList(AppURL As String) As Boolean
         RetrieveDIALAppList = False
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with AppURL = " & AppURL.ToString, LogType.LOG_TYPE_INFO)
-        If AppURL = "" Then Exit Function
+        If String.IsNullOrEmpty(AppURL) Then Exit Function
         ' http://www.dial-multiscreen.org/dial-registry/namespace-database
         ' YouTube Netflix Pandora   Hulu YahooScreen Vimeo Plex FiberTV AmazonInstantVideo VUDU Movies  
         ' the URL to the DIAL information is returned in the header with a header field = "Application-URL"

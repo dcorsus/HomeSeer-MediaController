@@ -86,7 +86,7 @@ Partial Public Class HSPI
         '</apps>
         RokuRetrieveDIALAppList = False
         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("RokuRetrieveDIALAppList called for device - " & MyUPnPDeviceName & " with URL = " & URLDoc.ToString, LogType.LOG_TYPE_INFO)
-        If URLDoc = "" Then Exit Function
+        If String.IsNullOrEmpty(URLDoc) Then Exit Function
         ' the URL to the DIAL information is returned in the header with a header field = "Application-URL"
         ' So first do get on the Location Info
         Dim RequestUri As Uri = Nothing

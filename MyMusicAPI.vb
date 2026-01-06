@@ -37,6 +37,7 @@ Partial Public Class HSPI
     Private MyIPMask As String = ""
     Private DeviceConnectFlag As Boolean = False
     Private PlayModeisConfigurable As Boolean = False
+    Private thisIsARokuDevice As Boolean = False
 
     Private HSRefDevice As Integer = -1
     Private HSRefPlayer As Integer = -1
@@ -934,7 +935,11 @@ Partial Public Class HSPI
             DeviceManufacturer = MyUPnPDeviceManufacturer
         End Get
         Set(value As String)
-            MyUPnPDeviceManufacturer = value
+            If Not String.IsNullOrEmpty(value) Then
+                MyUPnPDeviceManufacturer = value
+            Else
+                MyUPnPDeviceManufacturer = ""
+            End If
         End Set
     End Property
 
@@ -3781,7 +3786,7 @@ Partial Public Class HSPI
                         Connect("uuid:" & MyUDN)
                         If MyUPnPDevice IsNot Nothing Then
                             If MyUPnPDevice.Alive Then 'MyReferenceToMyController.CheckDeviceIsOnLine(MyIPAddress) Then
-                                If MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
+                                If thisIsARokuDevice OrElse MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
                                     If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
                                         DeviceStatus = "Online"
                                         If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
@@ -4458,14 +4463,18 @@ Partial Public Class HSPI
                         End If
                     ElseIf objectserviceType = "urn:dial-multiscreen-org:service:dial:1" Or objectserviceType = "urn:dial-multiscreen-org:device:dialreceiver:1" Then
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices found DIAL Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
-                        If MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
-                            If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
-                                If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
+                        If MyUPnPDevice IsNot Nothing Then
+                            If thisIsARokuDevice OrElse MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
+                                If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
+                                    If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
+                                End If
+                            Else
+                                If RetrieveDIALAppList(MyUPnPDevice.ApplicationURL) Then
+                                    If HSRefRemote = -1 Then CreateHSDIALRemoteButtons(False)
+                                End If
                             End If
                         Else
-                            If RetrieveDIALAppList(MyUPnPDevice.ApplicationURL) Then
-                                If HSRefRemote = -1 Then CreateHSDIALRemoteButtons(False)
-                            End If
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ExtractAllServices for device = " & MyUPnPDeviceName & " found DIAL service but we have no UPNPDevice class", LogType.LOG_TYPE_WARNING)
                         End If
                     ElseIf objectserviceType = "urn:lge-com:service:webos-second-screen:1" Then
                         RemoteControlService = objService
@@ -4501,6 +4510,16 @@ Partial Public Class HSPI
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSamsungWebSocketLocation.ToString, "api/v2/channels/samsung.remote.control?name=" & ToBase64("MediaController"))
                         WriteStringIniFile(MyUDN, DeviceInfoIndex.diSecWebSocketKey.ToString, "u5Y00EnwvXkhM4CqnAGJVQ==")
                         ' 
+                    ElseIf objectserviceType = "urn:roku-com:serviceId:ecp1-0" Then
+                        If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices ROKU ECP Service for device = " & MyUPnPDeviceName, LogType.LOG_TYPE_INFO)
+                        MyUPnPDeviceManufacturer = "ROKU"
+                        If MyUPnPDevice IsNot Nothing Then
+                            If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
+                                If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
+                            End If
+                        Else
+                            If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ExtractAllServices for device = " & MyUPnPDeviceName & " found ROKU ECP service but we have no UPNPDevice class", LogType.LOG_TYPE_WARNING)
+                        End If
                     Else
                         If PIDebuglevel > DebugLevel.dlErrorsOnly Then Log("ExtractAllServices for device = " & MyUPnPDeviceName & " found additional service with ID = " & ObjectserviceID, LogType.LOG_TYPE_INFO)
                     End If
@@ -4685,7 +4704,7 @@ Partial Public Class HSPI
                         DeviceStatus = "Online"
                         SetHSMainState()
                     ElseIf MyUPnPDeviceServiceType = "DIAL" Then
-                        If MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
+                        If thisIsARokuDevice OrElse MyUPnPDeviceManufacturer.ToUpper.IndexOf("ROKU") <> -1 Then
                             If RokuRetrieveDIALAppList(MyUPnPDevice.Location) Then '"http://" & MyIPAddress & ":" & MyIPPort) Then
                                 If HSRefRemote = -1 Then CreateHSRokuRemoteButtons(False)
                             End If
@@ -5818,6 +5837,8 @@ Partial Public Class HSPI
                     Case "Search"
                         SupportSearch = True
                 End Select
+            Case "urn:roku-com:serviceId:ecp1-0"
+                thisIsARokuDevice = True
             Case Else
                 If PIDebuglevel > DebugLevel.dlEvents Then Log("SetServiceFlags for device - " & MyUPnPDeviceName & " found unkown Service = " & ServiceId & " and ActionType = " & ActionType, LogType.LOG_TYPE_INFO)
         End Select
